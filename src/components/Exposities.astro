@@ -1,0 +1,237 @@
+---
+/**
+ * Sectie "Exposities": titelbalk (gedeelde Marquee) en een lijst met rijen: jaar, titel (H3), plekken en publicaties.
+ * Zelfde opmaak als "Diensten" (zelfde tokens, lijnen en typografie). Elke rij is een accordion op basis van
+ * native <details>/<summary>: klik of toets (Enter/spatie) om de plekken en publicaties te tonen. Geen JavaScript;
+ * de inhoud staat ook ingeklapt in de initiële HTML. Alleen verleden exposities, daarom geen Event-markup.
+ * Onafhankelijk van de buren: geen aannames over wat erboven of eronder staat. Geen client-side JavaScript.
+ * Content: home.exposities in src/data/home.ts.
+ */
+import Marquee from './Marquee.astro';
+import { home } from '../data/home';
+
+const { titel, items } = home.exposities;
+
+// Boven deze grens gaat de locatielijst op desktop in twee kolommen.
+const MAX_LOCATIES_EEN_KOLOM = 4;
+---
+
+<section class="exposities" aria-labelledby="exposities-titel">
+  <Marquee woord={titel} kopId="exposities-titel" />
+
+  <div class="exposities__inhoud">
+    <ul class="exposities__lijst">
+      {
+        items.map((expositie) => (
+          <li class="expositie">
+            <details class="expositie__details">
+              <summary class="expositie__kop">
+                <span class="expositie__jaar">{expositie.jaar}</span>
+                <h3 class="expositie__titel">{expositie.titel}</h3>
+                <span class="expositie__teken" aria-hidden="true" />
+              </summary>
+              <div class="expositie__detail">
+                <ul
+                  class:list={[
+                    'expositie__locaties',
+                    { 'expositie__locaties--twee': expositie.locaties.length > MAX_LOCATIES_EEN_KOLOM },
+                  ]}
+                >
+                  {expositie.locaties.map((locatie) => (
+                    <li>{locatie}</li>
+                  ))}
+                </ul>
+                {expositie.publicaties && <p class="expositie__publicaties">{expositie.publicaties}</p>}
+              </div>
+            </details>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  /* ---------- Exposities (mobiel eerst) ---------- */
+  /* Geen eigen buitenmarges: de verticale ruimte komt van de .sectie-wrapper in index.astro. */
+  .exposities__inhoud {
+    padding-inline: var(--gutter);
+  }
+
+  /* Lijn onder elke rij (ook de laatste), geen lijn boven de eerste. */
+  .expositie {
+    border-bottom: 1px solid var(--ink);
+    color: var(--ink);
+  }
+
+  /* Klikbare kop: jaar, titel en plus/min-teken. Geen standaardpijltje van de browser. */
+  .expositie__kop {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 1rem;
+    align-items: center;
+    min-height: 56px; /* raakvlak */
+    padding-block: 1.5rem;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .expositie__kop::-webkit-details-marker {
+    display: none;
+  }
+
+  .expositie__jaar {
+    grid-column: 1;
+    margin: 0 0 0.5rem;
+    font-size: var(--font-size-small);
+    font-weight: 400;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Zelfde typografie als de dienstnamen: gewicht 400, regelhoogte 1, geen extra letterafstand. */
+  .expositie__titel {
+    grid-column: 1;
+    margin: 0;
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: normal;
+  }
+
+  /* Plus-teken van twee streepjes; bij open wordt de verticale streep een min. */
+  .expositie__teken {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    position: relative;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .expositie__teken::before,
+  .expositie__teken::after {
+    content: '';
+    position: absolute;
+    inset: 50% 0 auto;
+    height: 1.5px;
+    background: currentColor;
+  }
+
+  .expositie__teken::after {
+    transform: rotate(90deg);
+  }
+
+  .expositie__details[open] .expositie__teken::after {
+    transform: rotate(0deg);
+  }
+
+  .expositie__kop:hover .expositie__titel {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  /* Zichtbare focus: binnen de rij, zodat de ring niet wordt afgesneden. */
+  .expositie__kop:focus-visible {
+    outline-offset: -3px;
+  }
+
+  .expositie__detail {
+    padding-bottom: 1.5rem;
+  }
+
+  .expositie__locaties,
+  .expositie__publicaties {
+    max-width: none;
+    font-size: clamp(1rem, 4vw, 1.0625rem);
+    line-height: 1.5;
+  }
+
+  .expositie__locaties {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .expositie__publicaties {
+    margin: 0.75rem 0 0;
+    color: var(--ink-zacht);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .expositie__teken::after {
+      transition: transform 200ms ease;
+    }
+
+    /* Zachte fade bij openen; de hoogte springt (geen JavaScript). */
+    .expositie__details[open] .expositie__detail {
+      animation: expositie-open 250ms ease-out both;
+    }
+
+    @keyframes expositie-open {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  }
+
+  /* ---------- Exposities (desktop) ---------- */
+  @media (min-width: 900px) {
+    /* Zelfde kolomindeling als Diensten (18,5% / rest), zodat de titels op dezelfde lijn staan.
+       De basislijn van het jaar loopt gelijk met die van de titel. */
+    .expositie__kop {
+      grid-template-columns: 18.5% minmax(0, 1fr) auto;
+      column-gap: 0; /* titel en plekken beginnen exact op dezelfde lijn (18,5%) */
+      align-items: baseline;
+      padding-block: clamp(1.5rem, 2.6vw, 3.5rem);
+    }
+
+    .expositie__jaar {
+      grid-column: 1;
+      grid-row: 1;
+      margin: 0;
+      font-size: clamp(1.25rem, 2vw, 2.5rem);
+      line-height: 1;
+    }
+
+    .expositie__titel {
+      grid-column: 2;
+      grid-row: 1;
+      font-size: clamp(1.75rem, 3.3vw, 4.5rem);
+    }
+
+    .expositie__teken {
+      grid-column: 3;
+      grid-row: 1;
+      align-self: center;
+      width: clamp(1.25rem, 1.8vw, 2.25rem);
+      height: clamp(1.25rem, 1.8vw, 2.25rem);
+    }
+
+    /* De plekken beginnen in dezelfde kolom als de titel. */
+    .expositie__detail {
+      padding-inline-start: 18.5%;
+      padding-bottom: clamp(1.5rem, 2.6vw, 3.5rem);
+    }
+
+    .expositie__locaties,
+    .expositie__publicaties {
+      font-size: clamp(1rem, 1.25vw, 1.375rem);
+    }
+
+    /* Meer dan 4 plekken: twee kolommen, zodat de rij niet te hoog wordt. De publicaties staan buiten
+       de kolomlijst en lopen dus over de volle breedte. */
+    .expositie__locaties--twee {
+      columns: 2;
+      column-gap: 3vw;
+    }
+
+    .expositie__locaties--twee li {
+      break-inside: avoid;
+    }
+  }
+</style>

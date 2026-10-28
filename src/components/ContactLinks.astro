@@ -1,0 +1,31 @@
+---
+/**
+ * Zichtbare contactgegevens als gewone tekst met mailto: en tel: (geen JavaScript).
+ */
+import { CONTACT } from '../data/site';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<ul class:list={['contact-links', className]}>
+  <li>
+    <span class="visually-hidden">Telefoon: </span>
+    <!-- TODO(paul): bevestig dat dit telefoonnummer nog klopt. -->
+    <a href={CONTACT.phoneHref}>{CONTACT.phoneDisplay}</a>
+  </li>
+  <li>
+    <span class="visually-hidden">E-mail: </span>
+    {
+      CONTACT.email ? (
+        <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+      ) : (
+        // TODO(paul): e-mailadres invullen in src/data/site.ts.
+        <span class="todo">TODO(paul)</span>
+      )
+    }
+  </li>
+</ul>

@@ -1,0 +1,224 @@
+---
+/**
+ * Sectie "Projecten": titel die met het scrollen meebeweegt (gedeelde Marquee), twee verspringende kaarten en een brede kaart met "alle series".
+ * Onafhankelijk van de buren: geen eigen buitenmarges (die komen van de .sectie-wrapper in index.astro), geen aannames over wat erboven of eronder staat.
+ * Content: home.projecten in src/data/home.ts.
+ */
+import Marquee from './Marquee.astro';
+import Photo from './Photo.astro';
+import { home } from '../data/home';
+
+const { titel, items, allLink } = home.projecten;
+
+// Maten per positie. Breedte en hoogte bepalen de uitsnede (fit: cover) en voorkomen layoutverschuiving.
+const kaart = {
+  links: { width: 1200, height: 1440, sizes: '(min-width: 900px) 36vw, 85vw' }, // 5 / 6
+  rechts: { width: 1200, height: 1000, sizes: '(min-width: 900px) 48vw, 100vw' }, // 6 / 5
+  onder: { width: 1600, height: 1200, sizes: '(min-width: 900px) 55vw, 100vw' }, // 4 / 3
+} as const;
+
+const widths = { links: [480, 800, 1200, 1600], rechts: [480, 800, 1200, 1600], onder: [480, 800, 1200, 1600, 2400] };
+
+// Rij 1: verspringende kaarten; rij 2: brede kaart met "alle series" rechts.
+const rij1 = items.filter((project) => project.positie !== 'onder');
+const rij2 = items.filter((project) => project.positie === 'onder');
+---
+
+<section class="projecten" aria-labelledby="projecten-titel">
+  <Marquee woord={titel} kopId="projecten-titel" />
+
+  <div class="projecten__inhoud">
+    <ul class="projecten__rij1">
+      {
+        rij1.map((project) => (
+          <li class={`kaart kaart--${project.positie}`}>
+            <a class="kaart__link" href={project.href}>
+              <Photo
+                name={project.photo.name}
+                alt={project.photo.alt}
+                width={kaart[project.positie].width}
+                height={kaart[project.positie].height}
+                widths={widths[project.positie]}
+                sizes={kaart[project.positie].sizes}
+                loading="lazy"
+              />
+              <span class="kaart__titel">{project.title}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <!-- Rij 2: brede kaart links, "alle series" rechts op de regel van het bijschrift. -->
+    <div class="projecten__rij2">
+      <ul>
+        {
+          rij2.map((project) => (
+          <li class={`kaart kaart--${project.positie}`}>
+            <a class="kaart__link" href={project.href}>
+              <Photo
+                name={project.photo.name}
+                alt={project.photo.alt}
+                width={kaart[project.positie].width}
+                height={kaart[project.positie].height}
+                widths={widths[project.positie]}
+                sizes={kaart[project.positie].sizes}
+                loading="lazy"
+              />
+              <span class="kaart__titel">{project.title}</span>
+            </a>
+          </li>
+          ))
+        }
+      </ul>
+
+      <p class="projecten__alle">
+        <a class="projecten__alle-link" href={allLink.href}>
+          <span class="projecten__alle-tekst">{allLink.label}</span>
+          <svg
+            class="projecten__pijl"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="square"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M3 12h17M14 5.5l6.5 6.5-6.5 6.5"></path>
+          </svg>
+        </a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---------- Projecten (mobiel eerst) ---------- */
+  .projecten {
+    --titel-size: clamp(1.25rem, 2vw, 2.5rem);
+    /* Geen eigen buitenmarges: de verticale ruimte komt van de .sectie-wrapper in index.astro. */
+  }
+
+  /* ----- Kaarten (mobiel: onder elkaar) ----- */
+  .projecten__inhoud {
+    padding-inline: var(--gutter);
+  }
+
+  .projecten__rij1 {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kaart--links {
+    width: 85%;
+  }
+
+  .kaart--rechts {
+    width: 100%;
+    margin-top: 2rem;
+  }
+
+  .kaart--onder {
+    width: 100%;
+    margin-top: 2rem;
+  }
+
+  .kaart__link {
+    display: block;
+    text-decoration: none;
+  }
+
+  .kaart__titel {
+    display: block;
+    margin-top: 1rem;
+    font-size: var(--titel-size);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .kaart__link:hover .kaart__titel {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .projecten__alle {
+    max-width: none;
+    margin: 4rem 0 0;
+    text-align: right;
+    font-size: var(--titel-size);
+    line-height: 1.15;
+  }
+
+  .projecten__alle-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding-block: 0.4rem; /* raakvlak */
+    text-decoration: none;
+  }
+
+  .projecten__alle-link:hover .projecten__alle-tekst {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .projecten__pijl {
+    flex: none;
+    width: 0.9em;
+    height: 0.9em;
+  }
+
+  /* ---------- Projecten (desktop) ---------- */
+  @media (min-width: 900px) {
+    .projecten__rij1 {
+      display: grid;
+      grid-template-columns: 40% 53.5%;
+      justify-content: space-between;
+      align-items: start;
+    }
+
+    .kaart--links,
+    .kaart--rechts {
+      width: auto;
+      margin-top: 0;
+    }
+
+    /* De positie uit de data bepaalt de kolom, ongeacht de volgorde in de lijst. */
+    .kaart--links {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .kaart--rechts {
+      grid-column: 2;
+      grid-row: 1;
+      margin-top: 18vw; /* verspringing ten opzichte van de linkerkaart */
+    }
+
+    /* Rij 2: de ruimte wordt gemeten vanaf de onderkant van het bijschrift van de (lagere) rechterkaart. */
+    .projecten__rij2 {
+      display: grid;
+      grid-template-columns: 62% auto;
+      justify-content: space-between;
+      align-items: end; /* link onderaan, basislijn gelijk aan het bijschrift */
+      margin-top: clamp(4rem, 7vw, 8rem);
+    }
+
+    .kaart--onder {
+      width: auto;
+      margin-top: 0;
+    }
+
+    .projecten__alle {
+      margin: 0 0 -0.4rem; /* compenseert het raakvlak, zodat de tekstbasis op het bijschrift ligt */
+    }
+  }
+</style>

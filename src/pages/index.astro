@@ -1,0 +1,227 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Photo from '../components/Photo.astro';
+import OverPaul from '../components/OverPaul.astro';
+import Diensten from '../components/Diensten.astro';
+import BeeldDuo from '../components/BeeldDuo.astro';
+import Exposities from '../components/Exposities.astro';
+import Panorama from '../components/Panorama.astro';
+import Projecten from '../components/Projecten.astro';
+import { home } from '../data/home';
+import { localBusiness } from '../lib/schema';
+import { CONTACT, SAME_AS } from '../data/site';
+
+const jsonLd = [
+  localBusiness({
+    type: 'ProfessionalService',
+    telephone: CONTACT.phoneHref.replace('tel:', ''),
+    email: CONTACT.email || undefined,
+    address: home.schema.address,
+    areaServed: home.schema.areaServed,
+    sameAs: SAME_AS,
+  }),
+];
+
+// H1 is alleen de naam. Op mobiel staat elk woord op een eigen regel.
+const titleWords = home.hero.h1.split(' ');
+---
+
+<BaseLayout title={home.seo.title} description={home.seo.description} jsonLd={jsonLd}>
+  <!--
+    VOLGORDE HOMEPAGE (bindend, zie .cursor/rules/paulbreuker-regels.mdc):
+    1. Hero
+    2. OverPaul
+    3. Projecten
+    4. Diensten
+    5. BeeldDuo
+    6. Exposities
+    7. Panorama (foto van rand tot rand, geen kop)
+    Daarna volgt later een CTA (bestaat nog niet). Wijzig deze volgorde alleen op uitdrukkelijk verzoek.
+    Elke sectie staat in een .sectie-wrapper (alleen padding-block, geen horizontale padding, zodat de
+    marquee's full-bleed blijven). Secties hebben zelf geen buitenmarges.
+    Vorige versie: design/archief/index-vorige-versie.astro.txt
+  -->
+  <section class="hero" aria-labelledby="hero-title">
+    <h1 id="hero-title" class="hero__title">
+      {titleWords.map((word, index) => <><span>{word}</span>{index < titleWords.length - 1 ? ' ' : ''}</>)}
+    </h1>
+
+    <div class="hero__media">
+      <div class="hero__photo">
+        <!-- Het hero-beeld is het LCP-beeld, staand (2:3) en ongecropt. `sizes` zonder var(): die wordt in dit attribuut niet ondersteund (5,5vw = --gutter). -->
+        <Photo
+          name={home.hero.photo.name}
+          alt={home.hero.photo.alt}
+          width={1200}
+          height={1800}
+          widths={[480, 800, 1200]}
+          sizes="(min-width: 900px) 36vw, calc(100vw - 5.5vw)"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </div>
+
+      <div class="hero__text">
+        <p class="hero__lead">{home.hero.lead}</p>
+        <p class="hero__knop-rij">
+          <a class="hero__knop" href={home.hero.knop.href}>
+            {home.hero.knop.label} <span aria-hidden="true">→</span>
+          </a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="sectie sectie--na-hero">
+    <OverPaul />
+  </div>
+  <div class="sectie">
+    <Projecten />
+  </div>
+  <div class="sectie">
+    <Diensten />
+  </div>
+  <div class="sectie sectie--compact">
+    <BeeldDuo />
+  </div>
+  <div class="sectie">
+    <Exposities />
+  </div>
+  <div class="sectie">
+    <Panorama />
+  </div>
+</BaseLayout>
+
+<style>
+  /* ---------- Sectie-wrapper ---------- */
+  /* Alleen padding-block: de ruimte tussen twee secties is de som van twee halve waarden, ongeacht de volgorde.
+     Bewust geen horizontale padding of marge: de marquee's lopen van rand tot rand. */
+  .sectie {
+    padding-block: calc(var(--sectie-ruimte) / 2);
+  }
+
+  /* Fotospread zit dichter op zijn buren. */
+  .sectie--compact {
+    --sectie-ruimte: clamp(4rem, 8vw, 10rem);
+  }
+
+  /* Direct na de hero geldt alleen de eigen ruimte van de hero (8vh onder de foto): geen dubbele ruimte. */
+  .sectie--na-hero {
+    padding-top: 0;
+  }
+
+  /* ---------- Hero (mobiel eerst) ---------- */
+  .hero {
+    /* Mobiel vult "Breuker" (het langste woord, 3,29em ink) de breedte binnen de marges (89vw). */
+    --wordmark-size: 27vw;
+    --overlap: 0.13; /* deel van het wordmark (in em) dat de foto overlapt */
+    position: relative;
+    padding: var(--space-5) var(--gutter) 8vh;
+    overflow-x: clip;
+  }
+
+  .hero__title {
+    position: relative;
+    z-index: 2; /* wordmark staat boven de foto */
+    margin: 0 0 0 -0.081em; /* linkerzijbeen van de P (0,081em) op de tekstmarge */
+    font-size: var(--wordmark-size);
+    font-weight: 700;
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .hero__title span {
+    display: block;
+  }
+
+  .hero__media {
+    position: relative;
+    margin-top: calc(var(--wordmark-size) * var(--overlap) * -1);
+  }
+
+  /* Links tegen de schermrand: de hero-marge wordt teruggenomen, rechts blijft de marge staan. */
+  .hero__photo {
+    width: calc(100% + var(--gutter));
+    margin-left: calc(var(--gutter) * -1);
+  }
+
+  .hero__text {
+    margin-top: var(--space-4);
+  }
+
+  .hero__lead {
+    max-width: 28ch;
+    margin: 0 0 var(--space-3);
+    font-size: var(--font-size-body);
+    line-height: 1.1;
+  }
+
+  .hero__knop-rij {
+    max-width: none;
+    margin: 0;
+  }
+
+  /* Tekstlink met streep eronder en pijltje, zoals de vorige links. */
+  .hero__knop {
+    display: inline-block;
+    padding-block: 0.4rem; /* raakvlak */
+    font-size: var(--font-size-body);
+    line-height: 1.1;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .hero__knop:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  /* Zachte fade van de hero-tekst bij laden. Niet op het wordmark of de foto (LCP). */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__text {
+      animation: hero-fade 0.9s ease-out both;
+    }
+
+    @keyframes hero-fade {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  }
+
+  /* ---------- Hero (desktop) ---------- */
+  @media (min-width: 900px) {
+    .hero {
+      /* "Paul Breuker" is 5,36em ink breed bij -0,04em letter-spacing: 15,5vw geeft 83vw. */
+      --wordmark-size: clamp(4rem, 15.5vw, 26rem);
+      --overlap: 0.3;
+      padding-top: 5vw;
+    }
+
+    .hero__title span {
+      display: inline;
+    }
+
+    .hero__photo {
+      width: 36vw;
+      margin-left: calc(var(--gutter) * -1); /* tegen de linkerrand van het scherm */
+    }
+
+    .hero__text {
+      position: absolute;
+      top: 33%;
+      left: calc(62vw - var(--gutter));
+      width: 22vw;
+      margin-top: 0;
+    }
+
+    .hero__lead {
+      max-width: none;
+    }
+  }
+</style>

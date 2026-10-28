@@ -1,0 +1,127 @@
+---
+/**
+ * Gedeelde titelbalk (marquee) voor homepage-secties: full-bleed, gewicht 700, alleen CSS, geen JavaScript.
+ * Gebruikt in Projecten en Diensten.
+ *
+ * - `woord`: het woord dat herhaald wordt. De eerste herhaling is de echte <h2>, de rest is aria-hidden.
+ * - `kopId`: id van die <h2>, voor aria-labelledby van de sectie.
+ *
+ * Beweging: scroll-gestuurd (geen tijd). In plaats van een duur per instantie is er `--afstand`: de
+ * verschuiving als percentage van de track. De track is evenredig met het aantal tekens, dus door de
+ * afstand om te keren met de lengte van het woord is de schijnbare snelheid (pixels per scroll-pixel)
+ * voor elk woord gelijk. Referentie: "Projecten" (9 tekens) = 8%.
+ */
+interface Props {
+  woord: string;
+  kopId: string;
+}
+
+const { woord, kopId } = Astro.props;
+
+const HERHALINGEN = 3;
+const REFERENTIE_TEKENS = 9;
+const REFERENTIE_AFSTAND = 8; // procent van de track
+const afstand = Math.round(((REFERENTIE_AFSTAND * REFERENTIE_TEKENS) / woord.length) * 100) / 100;
+---
+
+<!--
+  Twee identieke groepen van elk 3 herhalingen, zodat de track naadloos blijft op brede schermen.
+  Alleen de eerste herhaling is de H2, de rest is aria-hidden.
+-->
+<div class="marquee" style={`--afstand: ${afstand}%`}>
+  <div class="marquee__track">
+    <div class="marquee__groep">
+      <h2 id={kopId} class="marquee__woord">{woord}</h2>
+      {
+        Array.from({ length: HERHALINGEN - 1 }, () => (
+          <span class="marquee__woord marquee__woord--herhaling" aria-hidden="true">
+            {woord}
+          </span>
+        ))
+      }
+    </div>
+    <div class="marquee__groep marquee__groep--kopie" aria-hidden="true">
+      {Array.from({ length: HERHALINGEN }, () => <span class="marquee__woord">{woord}</span>)}
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ----- Marquee: full-bleed, geen marges ----- */
+  .marquee {
+    --marquee-size: clamp(6rem, 19vw, 30rem);
+    overflow: hidden;
+    width: 100%;
+    font-size: var(--marquee-size);
+    /* Vaste hoogte: regelhoogte 0,9 + 0,15em onderpadding. Voorkomt layoutverschuiving. */
+    height: 1.05em;
+    margin-bottom: clamp(3rem, 7vw, 8rem);
+  }
+
+  .marquee__track {
+    display: flex;
+    width: max-content;
+  }
+
+  .marquee__groep {
+    display: flex;
+    flex-shrink: 0;
+  }
+
+  .marquee__woord {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0 0.25em 0.15em 0; /* 0,25em tussen de herhalingen; onderpadding tegen afsnijden van de j */
+    font-size: 1em;
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: var(--ink-zwart);
+    white-space: nowrap;
+  }
+
+  /* Zonder animatie (geen scroll-gestuurde animaties, of prefers-reduced-motion):
+     één statisch woord, linksuitgelijnd. */
+  .marquee__woord--herhaling,
+  .marquee__groep--kopie {
+    display: none;
+  }
+
+  /* De titel beweegt alleen met het scrollen: de positie volgt hoe ver de balk door het scherm is.
+     Stilstaand scrollen = stilstaande tekst. Geen JavaScript. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .marquee__woord--herhaling {
+        display: block;
+      }
+
+      .marquee__groep--kopie {
+        display: flex;
+      }
+
+      /* De tijdlijn hoort bij .marquee zelf: de track zit in een overflow:hidden-container, dat is
+         zelf een scroll-container en zou de tijdlijn anders aan zichzelf koppelen in plaats van aan de pagina. */
+      .marquee {
+        view-timeline: --marquee-scroll block;
+      }
+
+      .marquee__track {
+        animation: marquee-scroll linear both;
+        animation-timeline: --marquee-scroll;
+        animation-range: cover 0% cover 100%;
+        will-change: transform;
+      }
+
+      @keyframes marquee-scroll {
+        from {
+          transform: translateX(0);
+        }
+        /* Bewust klein (zie --afstand): circa een halve titel over de hele scroll van de balk door het scherm.
+           Alles tot -50% blijft naadloos; groter maken kan, maar beweegt dan snel. */
+        to {
+          transform: translateX(calc(var(--afstand) * -1));
+        }
+      }
+    }
+  }
+</style>

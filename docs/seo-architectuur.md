@@ -1,0 +1,147 @@
+# SEO-architectuur paulbreuker.nl
+
+Opgesteld op 28 oktober 2026 op basis van de briefing en een check van de huidige homepage.
+
+## 1. Uitgangssituatie (huidige site)
+
+- Platform: Joomla met YOOtheme. De nieuwe site vervangt dit volledig.
+- Alleen de homepage is bekeken. Subpagina's, rankings en backlinks nog niet: haal die uit Search Console voordat de redirectlijst definitief is.
+- De navigatie bestaat uit 10 serie-pagina's, platte URL's zonder submap. Deze URL's bestaan al en kunnen backlinks en rankings hebben:
+  - /asty-mwaka
+  - /love-marriage
+  - /de-gaarkeuken
+  - /groeten-uit-lent
+  - /take-me-to-the-river
+  - /asfalt
+  - /panoramas
+  - /portretten
+  - /het-gezicht-van-nijmegen
+  - /promoties
+- Het cv staat op een Joomla-URL met querystring (`/?view=article&id=141:curriculum-vitae&catid=8`). Die moet een 301 krijgen naar /over-paul.
+- Het e-mailadres zit achter JavaScript-bescherming en is voor crawlers onzichtbaar. In de nieuwe site staat het gewoon als tekst met `mailto:`.
+- De homepage heeft voor zover te zien geen commerciële zoekintentie: geen prijzen, geen "trouwfotograaf", geen "zakelijke portretfoto". Dat is de grootste SEO-winst.
+- Host: www.paulbreuker.nl stuurt nu door naar paulbreuker.nl (zonder www). Kies bewust één canonieke host. Advies: houd paulbreuker.nl aan, want alle bestaande interne links wijzen daarheen. Redirect www naar apex in Vercel.
+
+## 2. Sitestructuur en URL's
+
+Principe: één primair zoekwoord per URL. Commerciële pagina's en kunstseries hebben bewust verschillende URL's en intenties, zodat ze elkaar niet kannibaliseren.
+
+### Laag 1: geld-pagina's (aanvragen)
+
+| URL | Doel / primair zoekwoord | Eindigt in |
+|---|---|---|
+| `/` | Merk + wie is Paul + drie ingangen (bruiloft, portret, kunst) | Doorverwijzen + contact |
+| `/trouwfotograaf-nijmegen` | trouwfotograaf nijmegen. Prijzen vanaf €2.450, werkwijze, reviews, FAQ | Bruiloftformulier |
+| `/trouwfotograaf-arnhem` | trouwfotograaf arnhem. Alleen live als er genoeg eigen Arnhem-inhoud is | Bruiloftformulier |
+| `/trouwlocaties/[locatie]` | trouwen op/in [locatie] + fotograaf. Alleen locaties waar Paul echt heeft gefotografeerd | Bruiloftformulier |
+| `/zakelijke-portretfoto` | zakelijke portretfoto (nijmegen). Hub voor headshots, teams, wetenschappers | Portretformulier |
+| `/linkedin-foto-laten-maken` | linkedin foto laten maken. Eigen pagina, want andere intentie dan teams | Portretformulier |
+| `/teamfoto-laten-maken` | teamfoto / personeelsfoto. Pas in fase 3 | Portretformulier |
+
+### Laag 2: autoriteit en kunst
+
+| URL | Inhoud |
+|---|---|
+| `/werk` | Overzicht van alle series |
+| Bestaande 9 serie-URL's (alle behalve /promoties) | Zelfde slugs behouden (platte structuur), nieuwe teksten en schema |
+| `/exposities` | Kunsthal, Valkhof, Photoville New York, nieuwe exposities als Event |
+| `/pers` | Volkskrant, Telegraaf, EenVandaag met link naar het bronartikel |
+| `/over-paul` | 35 jaar werk, cv, palmares. Vervangt de Joomla-cv-URL |
+| `/boek` | Boek, voorintekening of e-maillijst (naam + e-mail) |
+| `/contact` | E-mail, telefoon, WhatsApp (optioneel), formulier |
+| `/bedankt` | Bedankpagina, `noindex` |
+
+### Laag 3: content (fase 2)
+
+Blogartikelen onder `/blog/[slug]`, elk met één doelpagina uit laag 1 waarnaar het linkt:
+
+- Wat kost een trouwfotograaf? (linkt naar /trouwfotograaf-nijmegen)
+- Hoe kies je een trouwfotograaf? (zelfde doelpagina)
+- Trouwlocatiegidsen per locatie (linkt naar de bijbehorende /trouwlocaties/-pagina)
+- Een goede LinkedIn-foto: waar let je op? (linkt naar /linkedin-foto-laten-maken)
+
+### /promoties: 301 naar de Radboud-site
+
+De Radboud-site voor promotiefotografie blijft apart. De bestaande `/promoties` krijgt een permanente 301 naar https://www.fotograafpromotiesradboud.nl/ en komt dus niet terug als pagina op de nieuwe site.
+
+- Haal `/promoties` ook uit de navigatie, de sitemap en de interne links van de nieuwe site.
+- Controleer in Search Console of `/promoties` backlinks of rankings heeft. Via de 301 gaat die waarde naar de Radboud-site.
+- Links in de andere richting (Radboud-site naar paulbreuker.nl) zijn waardevol: plaats ze contextueel (bijvoorbeeld bij "portretten voor wetenschappers"), niet alleen in een voettekst.
+- Op `/zakelijke-portretfoto` komt een tekstlink naar de Radboud-site voor wie een promotiefoto zoekt, zodat bezoekers met die intentie het juiste aanbod vinden.
+
+## 3. Technische setup (Astro op Vercel)
+
+- Astro met statische output, standaard vrijwel zonder JavaScript. Alleen het formulier-endpoint draait on-demand (`prerender = false`). Alle content staat in de initiële HTML. Interactieve onderdelen (galerij, lightbox) zijn islands met `client:visible` of `client:idle`.
+- Eén `BaseLayout` met een `SEOHead`-component die per pagina zorgt voor: unieke `title` (rond 60 tekens), `description` (rond 155 tekens), `canonical`, Open Graph en Twitter-kaarten, en JSON-LD.
+- Eén H1 per pagina, logische H2/H3-hiërarchie.
+- `@astrojs/sitemap` (met filter voor `/bedankt`) en `src/pages/robots.txt.ts`. De sitemap bevat alleen indexeerbare, canonieke URL's. Stel `lastmod` in waar je echte wijzigingsdata hebt. Een aparte image-sitemap is optioneel.
+- Afbeeldingen: `<Image>` of `<Picture>` uit `astro:assets`, AVIF/WebP, vaste `width`/`height`, `loading="eager"` met `fetchpriority="high"` alleen op het LCP-beeld, `sizes` correct instellen, lazy loading voor de rest. Alt-teksten in het Nederlands en beschrijvend, geen keyword stuffing.
+- Prestatiedoelen (mobiel, veldmeting): LCP onder 2,5 s, CLS onder 0,1, INP onder 200 ms. Een beeld-eerst site wint of verliest hier.
+- Lettertypen self-hosted (bijvoorbeeld Fontsource) met `font-display: swap`, geen render-blocking externe CSS.
+- Animatie: CSS (scroll-driven animations, fade-ins) en Astro View Transitions eerst. Alleen waar dat tekortschiet een island met een animatiebibliotheek. Geen zware scroll-animatie op het LCP-beeld boven de vouw.
+- Previews niet indexeerbaar: controleer dat preview-deployments `noindex` serveren. Productie niet.
+- 404-pagina met links naar de drie ingangen.
+- IndexNow of handmatige indexering via Search Console na livegang voor de laag 1-pagina's.
+- AI-crawlers (GPTBot, ClaudeBot, PerplexityBot e.d.) niet blokkeren in `robots.txt`. Optioneel een `llms.txt` met de belangrijkste pagina's.
+
+## 4. Structured data (JSON-LD)
+
+| Waar | Type |
+|---|---|
+| Overal | `WebSite`, `BreadcrumbList` |
+| Home / contact | `LocalBusiness` (of `ProfessionalService`) met adres, telefoon, e-mail, werkgebied, `sameAs` (Instagram, LinkedIn, Facebook, Singulart) |
+| /over-paul | `Person` met `knowsAbout`, `sameAs`, verwijzing naar het bedrijf via `@id` |
+| Bruiloft- en portretpagina's | `Service` met `Offer` en `priceSpecification` (vanaf-prijs), `areaServed` |
+| Serie-pagina's | `ImageGallery` / `ImageObject` met `creator`, `copyrightNotice`, `creditText`; optioneel `license` en `acquireLicensePage` |
+| /exposities | `Event` alleen voor aankomende exposities met echte data; verleden als gewone tekst |
+| /boek | `Book` met `Offer` zodra het te koop is |
+| FAQ-blokken | `FAQPage` is optioneel: de rich result is beperkt, maar de Q&A-structuur helpt AI-antwoorden |
+
+Let op: geen `AggregateRating` of `Review`-markup op Pauls eigen pagina's voor zijn eigen bedrijf. Google toont daar geen sterren voor (self-serving reviews). Zet echte reviews zichtbaar op de pagina en verzamel Google-reviews via het bedrijfsprofiel.
+
+## 5. Interne linking
+
+- Home linkt naar de drie ingangen: /trouwfotograaf-nijmegen, /zakelijke-portretfoto, /werk.
+- Elke serie-pagina linkt naar de relevante commerciële pagina. Voorbeeld: /love-marriage naar /trouwfotograaf-nijmegen met een beschrijvende ankertekst ("trouwfotograaf in Nijmegen"), en /portretten naar /zakelijke-portretfoto.
+- Elke commerciële pagina linkt terug naar 2 tot 3 relevante series als bewijs.
+- Blog en locatiepagina's linken omhoog naar hun doelpagina en sideways naar verwante locaties.
+- Header en footer: e-mail en telefoon zichtbaar op elke pagina; navigatie met maximaal 6 items.
+- Geen orphan pages: elke indexeerbare pagina krijgt minstens drie interne links.
+
+## 6. Tekst op een beeld-eerst site
+
+De toon is rustig en visueel, maar Google en AI-systemen hebben tekst nodig om een pagina te begrijpen. Oplossing: beeld boven de vouw, daaronder 300 tot 600 woorden echte tekst op de geld-pagina's.
+
+- Bruiloftpagina: wat Paul anders doet, hoe een dag eruitziet, pakketten en prijzen, locaties, FAQ, reviews.
+- Portretpagina: voor wie, hoe een sessie werkt, vanaf-prijs, wat je krijgt, formulier.
+- Serie-pagina's: een korte inleiding van Paul in de ik-vorm, bijschriften en jaartal/plaats per serie.
+- Houd de toon aan uit de briefing: persoonlijk, bewijs in plaats van claims, geen superlatieven.
+
+## 7. Conversie
+
+- Elke bruiloft- en portretpagina eindigt in een kort formulier. Bruiloftformulier: datum en locatie bovenaan.
+- Verzenden leidt naar /bedankt (`noindex`) met uitleg wat er nu gebeurt, plus een automatische bevestigingsmail. Paul reageert binnen 24 uur.
+- Meet formulierverzendingen als conversie (GA4-event `generate_lead`, met type bruiloft/portret/editie). Meet ook klikken op telefoon, e-mail en WhatsApp.
+- Spamwering: honeypot of Cloudflare Turnstile, geen zware CAPTCHA.
+- Vertrouwen bij het formulier: 2 tot 3 echte reviews en het aantal bruidsparen. Controleer de "rond 200 in 2014"-claim (Kunsthal) en zet er het jaartal bij.
+
+## 8. Migratie en lancering
+
+1. Voor livegang: exporteer uit Search Console de top-pagina's en -zoekopdrachten, inclusief afbeeldingsverkeer. Inventariseer backlinks.
+2. Bouw een redirectmap (in `vercel.json`, met `permanent: true`) voor elke oude URL die niet 1:1 terugkomt. Behoud de serie-slugs waar mogelijk. Vaste regels: `/promoties` naar https://www.fotograafpromotiesradboud.nl/ en de Joomla-cv-URL naar `/over-paul`.
+3. Test redirects op een preview voordat het domein wordt omgezet. Geen redirectketens.
+4. Na livegang: sitemap indienen, URL's laten inspecteren, 4 weken lang wekelijks dekking en rankings bekijken.
+5. Controleer of oude afbeeldings-URL's (`/images/...`) significant verkeer hadden. Zo ja, redirect de belangrijkste.
+
+## 9. Fasering
+
+- Fase 1 (lancering): home, /trouwfotograaf-nijmegen, /zakelijke-portretfoto, /linkedin-foto-laten-maken, 9 series, /werk, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, redirects, schema, sitemap, meting.
+- Fase 2 (maand 1 tot 3): 5 tot 10 trouwlocatiepagina's, eerste 5 blogartikelen, Google-reviews opbouwen.
+- Fase 3 (daarna): /trouwfotograaf-arnhem, teamfoto's, uitbreiding blog en locaties op basis van wat Search Console laat zien.
+
+## 10. Risico's en open punten
+
+- Locatiepagina's alleen publiceren met echte, eigen foto's en feiten. Sjabloonpagina's met alleen een andere plaatsnaam zijn dunne content.
+- Google Bedrijfsprofiel (lokale pakket bij "trouwfotograaf nijmegen") is voor lokale zichtbaarheid minstens zo belangrijk als de site. Claim of optimaliseer het profiel en vraag reviews aan.
+- Zoekvolumes en concurrentie zijn nog niet gemeten. Doe keywordonderzoek voordat de titels en H1's vastliggen.
+- Bevestig de canonieke host (met of zonder www).

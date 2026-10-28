@@ -1,0 +1,89 @@
+---
+description: Projectregels paulbreuker.nl (SEO, content, conversie, techniek)
+alwaysApply: true
+---
+
+# paulbreuker.nl: projectregels
+
+Website voor fotograaf Paul Breuker (Nijmegen). Stack: Astro (TypeScript strict) op Vercel, statische output; alleen het formulier-endpoint draait on-demand. Taal van de site: Nederlands. Canonieke host: https://paulbreuker.nl (bevestig voor livegang; www redirect naar apex).
+
+Detailplan: zie `docs/seo-architectuur.md`. Bij twijfel gelden deze regels.
+
+## Doel
+
+1. Hoofddoel: aanvragen voor bruiloften (vanaf €2.450) en portretten, via Google.
+2. Paul neerzetten als artistieke, premium fotograaf (35 jaar werk, Kunsthal, Valkhof, Photoville New York).
+3. Boek en exposities onder de aandacht brengen.
+
+Doelgroepen met eigen ingang: bruidsparen (regio Nijmegen/Arnhem, belangrijkste), zakelijke klanten en wetenschappers, kunstliefhebbers/musea/pers, mensen uit Pauls series en Lent.
+
+## Toon en content
+
+- Ik-vorm van Paul. Persoonlijk en rustig.
+- Geen superlatieven ("de beste", "onvergetelijk", "uniek"). Bewijs in plaats van claims: exposities, persvermeldingen (Volkskrant, Telegraaf, EenVandaag), aantallen.
+- Geen stockbeeld. Elke foto op de site is van Paul. Gebruik geen placeholder-foto's van externe bronnen.
+- Verzin nooit feiten, reviews, prijzen, aantallen of persvermeldingen. Ontbreekt informatie: zet een duidelijke `TODO(paul)` in de code of tekst en meld dat.
+- Prijzen: bruiloftpakketten zichtbaar (vanaf €2.450), portretten met een vanaf-prijs, kunst en exposities op aanvraag.
+- Beeld eerst: grote foto's, veel witruimte, weinig tekst boven de vouw. De homepage opent met portretten en toont in één oogopslag wie Paul is, wat hij doet (bruiloft, portret, kunst) en hoe je contact opneemt.
+- Geld-pagina's krijgen onder de beelden 300 tot 600 woorden echte tekst. Serie-pagina's krijgen een korte inleiding, bijschriften en jaartal/plaats.
+
+## SEO per pagina (verplicht)
+
+- Eén primair zoekwoord per URL. Voorkom kannibalisatie tussen kunstseries (/love-marriage, /portretten) en commerciële pagina's (/trouwfotograaf-nijmegen, /zakelijke-portretfoto).
+- Eén `BaseLayout` met een `SEOHead`-component voor: unieke `title` (rond 60 tekens), `description` (rond 155 tekens), `canonical`, Open Graph en Twitter. Elke pagina geeft deze waarden door, geen standaardwaarden laten doorlekken.
+- Precies één `<h1>`, daarna een logische H2/H3-opbouw.
+- JSON-LD via een herbruikbare component. Types: `WebSite`, `BreadcrumbList`, `LocalBusiness`/`ProfessionalService`, `Person`, `Service` + `Offer`, `ImageObject`/`ImageGallery`, `Event` (alleen aankomend met echte data), `Book`. Geen `AggregateRating` of `Review` op eigen pagina's voor Pauls eigen bedrijf.
+- `@astrojs/sitemap` en `src/pages/robots.txt.ts`. Alleen indexeerbare canonieke URL's in de sitemap. `/bedankt` en previews zijn `noindex`. AI-crawlers niet blokkeren.
+- Interne links met beschrijvende ankertekst. Elke indexeerbare pagina heeft minstens drie interne links. Serie-pagina's linken naar de relevante commerciële pagina en andersom.
+- Statisch renderen (Astro-standaard). Alle content moet in de initiële HTML staan, niet pas na client-side JavaScript. Gebruik `client:*`-islands alleen waar interactiviteit echt nodig is, en kies `client:visible` of `client:idle` boven `client:load`.
+- Animatie: CSS en Astro View Transitions eerst. Geen zware animatiebibliotheek of scroll-effect op het LCP-beeld boven de vouw.
+
+## Volgorde homepage (bindend)
+
+De secties op de homepage staan altijd in deze volgorde: Hero, OverPaul, Projecten, Diensten, BeeldDuo, Exposities, Panorama (foto van rand tot rand, geen kop). Daarna volgt later een CTA. Wijzig deze volgorde alleen als ik er in de chat uitdrukkelijk om vraag. Plaats nieuwe secties nooit relatief ("onder X") zonder deze lijst bij te werken. Lees bij elke wijziging aan index.astro eerst deze lijst.
+
+## URL's
+
+- Behoud de bestaande slugs: /asty-mwaka, /love-marriage, /de-gaarkeuken, /groeten-uit-lent, /take-me-to-the-river, /asfalt, /panoramas, /portretten, /het-gezicht-van-nijmegen.
+- `/promoties` is geen pagina op deze site: permanente 301 (`permanent: true` in `vercel.json`) naar https://www.fotograafpromotiesradboud.nl/. Neem `/promoties` niet op in navigatie, sitemap of interne links. Verwijs voor promotiefotografie met een gewone tekstlink naar de Radboud-site.
+- Nieuwe commerciële URL's: /trouwfotograaf-nijmegen, /zakelijke-portretfoto, /linkedin-foto-laten-maken, later /trouwfotograaf-arnhem en /trouwlocaties/[locatie].
+- Overig: /werk, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, /blog/[slug].
+- Houd URL's kort, kleine letters, koppeltekens, geen trailing-slash-variaties, geen querystrings voor content.
+- Oude Joomla-URL's krijgen een 301 in `vercel.json` (bijvoorbeeld het cv naar /over-paul). Geen redirectketens. Voeg bij elke verwijderde of hernoemde URL meteen de redirect toe.
+- Locatiepagina's (/trouwlocaties/...) alleen met echte, eigen foto's en feiten van Paul. Geen sjabloonpagina's waarbij alleen de plaatsnaam wisselt.
+
+## Afbeeldingen en prestaties
+
+- Gebruik `<Image>` of `<Picture>` uit `astro:assets` met vaste `width`/`height` en `sizes`. `loading="eager"` met `fetchpriority="high"` alleen voor het LCP-beeld per pagina.
+- AVIF/WebP via `astro:assets`. Commit geen ongecomprimeerde originelen in de repo: gebruik geoptimaliseerde bestanden of externe opslag (bijvoorbeeld Vercel Blob).
+- Alt-teksten in het Nederlands, beschrijvend (wie/wat/waar), geen keyword stuffing. Decoratieve beelden krijgen `alt=""`.
+- Doelen op mobiel: LCP onder 2,5 s, CLS onder 0,1, INP onder 200 ms. Lettertypen self-hosted (bijvoorbeeld Fontsource) met `font-display: swap`.
+- Geen zware third-party scripts. Analytics privacyvriendelijk en laat laden.
+
+## Contact en conversie
+
+- E-mail en telefoon zichtbaar in kop of voet op elke pagina, als gewone tekst met `mailto:` en `tel:` (geen JavaScript-verberging). WhatsApp optioneel.
+- Elke bruiloft- en portretpagina eindigt in een kort formulier.
+  - Bruiloftformulier: trouwdatum en locatie bovenaan, dan namen, aantal gasten, gewenst pakket, "hoe ken je mij?".
+  - Portretformulier: naam, type (headshot, zakelijk, team, kunstportret), aantal personen, waarvoor (LinkedIn, website, anders), gewenste periode, "hoe ken je mij?".
+  - Editie: alleen naam en e-mail (e-maillijst of voorintekening).
+- Verwerking via een Astro Action of API-route (`prerender = false`) met validatie (bijvoorbeeld Zod), spamwering (honeypot of Turnstile) en e-mail via een transactionele dienst (bijvoorbeeld Resend). Geen formulierdata in de URL.
+- Na verzenden: redirect naar /bedankt met uitleg wat er nu gebeurt, plus een automatische bevestigingsmail. Paul reageert binnen 24 uur.
+- Plaats bij het formulier 2 tot 3 echte reviews en het aantal bruidsparen (rond 200 in 2014, volgens de Kunsthal; zet het jaartal erbij).
+- Meet conversies: formulierverzending (type bruiloft/portret/editie), klik op telefoon, e-mail en WhatsApp.
+
+## Toegankelijkheid en kwaliteit
+
+- Semantische HTML, zichtbare focus, voldoende contrast, toetsenbordbediening, `lang="nl"`.
+- Juridisch: privacyverklaring en cookiebeleid, AVG-conforme toestemming waar nodig.
+
+## Definition of done per pagina
+
+- [ ] Eén H1, unieke title en description, canonical
+- [ ] JSON-LD van het juiste type, valideert zonder fouten
+- [ ] Afbeeldingen met alt, juiste `sizes`, LCP-beeld met `loading="eager"` en `fetchpriority="high"`
+- [ ] Interne links in en uit, geen orphan
+- [ ] Formulier of contactroute zichtbaar (op geld-pagina's)
+- [ ] In sitemap (of bewust `noindex`)
+- [ ] Redirect aanwezig voor een eventuele oude URL
+- [ ] Lighthouse mobiel: Performance, SEO en Accessibility elk 90 of hoger

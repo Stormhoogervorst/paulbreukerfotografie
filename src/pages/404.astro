@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Pagina niet gevonden | Paul Breuker Fotografie"
+  description="Deze pagina bestaat niet (meer). Ga verder naar bruiloftsfotografie, portretten of het werk van Paul Breuker."
+  noindex
+>
+  <div class="container page-intro">
+    <h1>Deze pagina bestaat niet</h1>
+    <p>De pagina die je zoekt is verplaatst of bestaat niet meer. Kies hieronder waar je verder wilt kijken.</p>
+    <!-- TODO(paul): definitieve tekst voor de 404-pagina. -->
+    <ul class="not-found-links">
+      <!-- TODO(paul): placeholder-links, de pagina's volgen in een latere ronde. -->
+      <li><a href="/trouwfotograaf-nijmegen">Bruiloft: trouwfotograaf in Nijmegen</a></li>
+      <li><a href="/zakelijke-portretfoto">Portret: zakelijke portretfoto</a></li>
+      <li><a href="/werk">Werk: alle series van Paul</a></li>
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .not-found-links {
+    display: grid;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+</style>

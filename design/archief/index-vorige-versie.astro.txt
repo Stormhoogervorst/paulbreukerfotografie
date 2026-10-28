@@ -1,0 +1,487 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Photo from '../components/Photo.astro';
+import ContactLinks from '../components/ContactLinks.astro';
+import { home } from '../data/home';
+import { localBusiness } from '../lib/schema';
+import { CONTACT, SAME_AS } from '../lib/site';
+import { getHomeImage } from '../lib/images';
+
+const jsonLd = [
+  localBusiness({
+    type: 'ProfessionalService',
+    telephone: CONTACT.phoneHref.replace('tel:', ''),
+    email: CONTACT.email || undefined,
+    address: home.schema.address,
+    areaServed: home.schema.areaServed,
+    sameAs: SAME_AS,
+  }),
+];
+
+const showExhibitionPhoto = Boolean(getHomeImage(home.exhibitions.photo.name));
+---
+
+<BaseLayout title={home.seo.title} description={home.seo.description} jsonLd={jsonLd}>
+  <!-- 1. Hero -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero__strip">
+      {
+        home.hero.photos.map((photo, index) => (
+          <div class="hero__item">
+            <Photo
+              name={photo.name}
+              alt={photo.alt}
+              width={960}
+              height={1200}
+              widths={[480, 720, 960, 1280]}
+              sizes="(min-width: 48rem) 33vw, 100vw"
+              loading={index === 0 ? 'eager' : 'lazy'}
+              fetchpriority={index === 0 ? 'high' : undefined}
+              fill
+            />
+          </div>
+        ))
+      }
+    </div>
+    <div class="container hero__text">
+      <h1 id="hero-title">{home.hero.h1}</h1>
+      <p class="hero__lead">{home.hero.lead}</p>
+      <p class="hero__links">
+        {home.hero.links.map((link) => <a class="text-link" href={link.href}>{link.label}</a>)}
+      </p>
+    </div>
+  </section>
+
+  <!-- 2. Anekdote -->
+  <section class="section" aria-labelledby="anekdote-title">
+    <div class="container anecdote">
+      <div class="anecdote__photo">
+        <Photo
+          name={home.anecdote.photo.name}
+          alt={home.anecdote.photo.alt}
+          width={800}
+          height={1000}
+          widths={[400, 600, 800]}
+          sizes="(min-width: 56rem) 40vw, 100vw"
+        />
+      </div>
+      <div class="anecdote__text">
+        <h2 id="anekdote-title">{home.anecdote.heading}</h2>
+        {home.anecdote.pullQuote && <blockquote class="pull-quote">{home.anecdote.pullQuote}</blockquote>}
+        {home.anecdote.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+        <a class="text-link" href={home.anecdote.link.href}>{home.anecdote.link.label}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Diensten -->
+  <section class="section section--tint" aria-labelledby="diensten-title">
+    <div class="container">
+      <h2 id="diensten-title" class="section__intro">{home.services.heading}</h2>
+      <ul class="grid grid--services">
+        {
+          home.services.items.map((item) => (
+            <li class="card">
+              <Photo
+                name={item.photo.name}
+                alt={item.photo.alt}
+                width={640}
+                height={800}
+                widths={[320, 480, 640]}
+                sizes="(min-width: 68.75rem) 380px, (min-width: 45rem) 33vw, 100vw"
+              />
+              <div class="card__body">
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+                <p class="card__price">{item.price}</p>
+                <a class="text-link card__link" href={item.link.href}>
+                  {item.link.label}
+                </a>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- 4. Uitgelichte projecten -->
+  <section class="section" aria-labelledby="werk-title">
+    <div class="container">
+      <h2 id="werk-title" class="section__intro">{home.projects.heading}</h2>
+      <ul class="grid grid--projects">
+        {
+          home.projects.items.map((item) => (
+            <li class="card">
+              <Photo
+                name={item.photo.name}
+                alt={item.photo.alt}
+                width={640}
+                height={800}
+                widths={[320, 480, 640]}
+                sizes="(min-width: 68.75rem) 290px, (min-width: 35rem) 50vw, 100vw"
+              />
+              <div class="card__body">
+                <h3>
+                  <a class="card__link" href={item.href}>
+                    {item.title}
+                  </a>
+                </h3>
+                <p>{item.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="section__more">
+        <a class="text-link" href={home.projects.allLink.href}>{home.projects.allLink.label}</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- 5. Tentoonstellingen -->
+  <section class="section section--tint" aria-labelledby="tentoonstellingen-title">
+    <div class:list={['container', 'exhibitions', { 'exhibitions--with-photo': showExhibitionPhoto }]}>
+      {
+        showExhibitionPhoto && (
+          <div class="exhibitions__photo">
+            <Photo
+              name={home.exhibitions.photo.name}
+              alt={home.exhibitions.photo.alt}
+              width={800}
+              height={1000}
+              widths={[400, 600, 800]}
+              sizes="(min-width: 56rem) 40vw, 100vw"
+            />
+          </div>
+        )
+      }
+      <div class="exhibitions__text">
+        <h2 id="tentoonstellingen-title">{home.exhibitions.heading}</h2>
+        <p class="lead">{home.exhibitions.intro}</p>
+        <ul class="exhibitions__list">
+          {
+            home.exhibitions.items.map((item) => (
+              <li>
+                <span class="exhibitions__name">{item.name}</span>
+                <span class="exhibitions__meta">
+                  {[item.place, item.year, item.series].filter(Boolean).join(', ')}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+        <p>{home.exhibitions.press}</p>
+        <p class="exhibitions__links">
+          {home.exhibitions.links.map((link) => <a class="text-link" href={link.href}>{link.label}</a>)}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. CTA -->
+  <section class="section cta" aria-labelledby="cta-title">
+    <div class="container">
+      <h2 id="cta-title">{home.cta.heading}</h2>
+      <p class="cta__buttons">
+        {
+          home.cta.buttons.map((button, index) => (
+            <a class:list={['button', { 'button--outline': index > 0 }]} href={button.href}>
+              {button.label}
+            </a>
+          ))
+        }
+      </p>
+      <ContactLinks class="cta__contact" />
+      <p class="cta__response">{home.cta.response}</p>
+      <p class="cta__promo">
+        {home.cta.promo.before}<a class="text-link-inline" href={home.cta.promo.link.href}>{home.cta.promo.link.label}</a>{home.cta.promo.after}
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ---------- Hero ---------- */
+  .hero__strip {
+    display: flex;
+    gap: clamp(0.5rem, 1.2vw, 1rem);
+    padding-inline: clamp(0.5rem, 2vw, 1.5rem);
+    padding-top: clamp(0.5rem, 2vw, 1.5rem);
+  }
+
+  .hero__item {
+    flex: 1 1 0;
+    min-width: 0;
+    /* Mobiel: één beeld met vaste verhouding, daarmee geen layoutverschuiving. */
+    aspect-ratio: 4 / 5;
+    max-height: 78svh;
+  }
+
+  .hero__item:nth-child(n + 2) {
+    display: none;
+  }
+
+  @media (min-width: 48rem) {
+    .hero__strip {
+      height: clamp(26rem, 66svh, 46rem);
+    }
+
+    .hero__item,
+    .hero__item:nth-child(n + 2) {
+      display: block;
+      aspect-ratio: auto;
+      max-height: none;
+      height: 100%;
+    }
+  }
+
+  .hero__text {
+    padding-top: var(--space-5);
+  }
+
+  .hero__text h1 {
+    max-width: 18ch;
+    margin-bottom: var(--space-3);
+    text-wrap: balance;
+  }
+
+  .hero__lead {
+    margin-bottom: var(--space-2);
+    font-size: var(--text-lg);
+    color: var(--color-muted);
+  }
+
+  .hero__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-5);
+    max-width: none;
+    margin: 0;
+    font-size: var(--text-lg);
+  }
+
+  /* ---------- Tinten ---------- */
+  .section--tint {
+    background: var(--color-surface);
+  }
+
+  /* ---------- Anekdote ---------- */
+  .anecdote {
+    display: grid;
+    gap: var(--space-5);
+    align-items: center;
+  }
+
+  .anecdote__text p {
+    font-size: var(--text-lg);
+  }
+
+  .pull-quote {
+    margin: 0 0 var(--space-4);
+    padding-left: var(--space-4);
+    border-left: 2px solid var(--color-accent);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: 1.2;
+  }
+
+  @media (min-width: 56rem) {
+    .anecdote {
+      grid-template-columns: 2fr 3fr;
+      gap: var(--space-7);
+    }
+  }
+
+  /* ---------- Kaarten ---------- */
+  .grid {
+    display: grid;
+    gap: var(--space-5) var(--space-4);
+  }
+
+  .grid--services {
+    grid-template-columns: 1fr;
+  }
+
+  .grid--projects {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 35rem) {
+    .grid--projects {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 45rem) {
+    .grid--services {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: 68.75rem) {
+    .grid--projects {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .card__body h3 {
+    margin-bottom: var(--space-2);
+    font-size: var(--text-xl);
+  }
+
+  .grid--projects .card__body h3 {
+    font-size: 1.625rem;
+  }
+
+  .card__body p {
+    margin-bottom: var(--space-2);
+  }
+
+  .card__price {
+    color: var(--color-accent);
+    font-weight: 500;
+  }
+
+  .card__body h3 .card__link {
+    text-decoration: none;
+  }
+
+  /* De hele kaart is klikbaar via de zichtbare, beschrijvende link. */
+  .card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .card :global(img) {
+    transition: transform 0.4s ease;
+  }
+
+  .card:hover :global(img) {
+    transform: scale(1.02);
+  }
+
+  .card:hover .card__link,
+  .card__link:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+    text-decoration-thickness: 2px;
+  }
+
+  .card:has(:focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 6px;
+  }
+
+  .card__link:focus-visible {
+    outline: none;
+  }
+
+  .section__more {
+    margin-top: var(--space-5);
+    max-width: none;
+  }
+
+  /* ---------- Tentoonstellingen ---------- */
+  .exhibitions {
+    display: grid;
+    gap: var(--space-5);
+    align-items: center;
+  }
+
+  @media (min-width: 56rem) {
+    .exhibitions--with-photo {
+      grid-template-columns: 3fr 2fr;
+      gap: var(--space-7);
+    }
+
+    .exhibitions--with-photo .exhibitions__photo {
+      order: 2;
+    }
+  }
+
+  .lead {
+    font-size: var(--text-lg);
+  }
+
+  .exhibitions__list {
+    display: grid;
+    gap: var(--space-3);
+    margin-block: var(--space-5);
+    padding-block: var(--space-4);
+    border-block: 1px solid var(--color-line);
+  }
+
+  .exhibitions__list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .exhibitions__name {
+    font-family: var(--font-display);
+    font-weight: 200;
+    font-size: var(--text-xl);
+    line-height: 1.2;
+  }
+
+  .exhibitions__meta {
+    color: var(--color-muted);
+  }
+
+  .exhibitions__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-5);
+    max-width: none;
+  }
+
+  /* ---------- CTA ---------- */
+  .cta__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    max-width: none;
+    margin-block: var(--space-4);
+  }
+
+  .cta__contact {
+    margin-bottom: var(--space-2);
+    font-size: var(--text-lg);
+  }
+
+  .cta__response {
+    color: var(--color-muted);
+  }
+
+  .cta__promo {
+    margin-top: var(--space-5);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  .text-link-inline {
+    text-decoration-line: underline;
+    text-decoration-color: var(--color-accent);
+    text-underline-offset: 0.2em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card :global(img) {
+      transition: none;
+    }
+
+    .card:hover :global(img) {
+      transform: none;
+    }
+  }
+</style>

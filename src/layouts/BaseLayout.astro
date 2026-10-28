@@ -1,0 +1,56 @@
+---
+import '../styles/global.css';
+import SEOHead from '../components/SEOHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { webSite, type AnySchema } from '../lib/schema';
+import { DEFAULT_OG_IMAGE } from '../data/site';
+import fontMedium from '../assets/fonts/satoshi-medium.woff2?url';
+import fontBold from '../assets/fonts/satoshi-bold.woff2?url';
+
+interface Props {
+  /** Verplicht, geen standaardwaarde. Rond 60 tekens. */
+  title: string;
+  /** Verplicht, geen standaardwaarde. Rond 155 tekens. */
+  description: string;
+  canonical?: string;
+  ogImage?: string;
+  noindex?: boolean;
+  /** Extra JSON-LD voor deze pagina. WebSite wordt altijd automatisch toegevoegd. */
+  jsonLd?: AnySchema[];
+}
+
+const { title, description, canonical, ogImage = DEFAULT_OG_IMAGE, noindex, jsonLd = [] } =
+  Astro.props;
+
+const schemas: AnySchema[] = [webSite(), ...jsonLd];
+---
+
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="preload" href={fontBold} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={fontMedium} as="font" type="font/woff2" crossorigin />
+    <SEOHead
+      title={title}
+      description={description}
+      canonical={canonical}
+      ogImage={ogImage}
+      noindex={noindex}
+      jsonLd={schemas}
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Ga naar de inhoud</a>
+    <Header />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

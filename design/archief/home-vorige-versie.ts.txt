@@ -1,0 +1,185 @@
+/**
+ * Content van de homepage. Alles wat op de pagina staat komt hieruit.
+ *
+ * Regels:
+ * - Alleen teksten en feiten die Paul heeft aangeleverd. Ontbreekt iets: TODO(paul).
+ * - Afbeeldingen staan in src/assets/home/<name>.<jpg|jpeg|png|webp|avif>.
+ *   Bestaat het bestand niet, dan toont de pagina een neutraal blok met dezelfde verhouding.
+ * - Optionele velden (jaar, serie, pull quote) die leeg zijn worden niet getoond.
+ */
+
+/** Alt-tekst zolang Paul de foto's niet heeft beschreven. Staat in de README-lijst. */
+const TODO_ALT = 'TODO(paul): beschrijf foto';
+
+export interface HomePhoto {
+  /** Bestandsnaam zonder extensie, in src/assets/home/. */
+  name: string;
+  /** Nederlandse, beschrijvende alt-tekst (wie/wat/waar). */
+  alt: string;
+}
+
+export interface HomeLink {
+  label: string;
+  href: string;
+}
+
+export interface HomeService {
+  title: string;
+  text: string;
+  /** Zichtbare prijsregel. */
+  price: string;
+  photo: HomePhoto;
+  link: HomeLink;
+}
+
+export interface HomeProject {
+  title: string;
+  /** Eigen intro van Paul, letterlijk overgenomen. */
+  text: string;
+  href: string;
+  photo: HomePhoto;
+}
+
+export interface HomeExhibition {
+  name: string;
+  place: string;
+  /** TODO(paul): jaar. Leeg laten tot Paul het aanlevert. */
+  year?: string;
+  /** TODO(paul): serie. Leeg laten tot Paul het aanlevert. */
+  series?: string;
+}
+
+export const home = {
+  seo: {
+    title: 'Paul Breuker | Bruiloft, portret en kunst in Nijmegen',
+    description:
+      'Paul Breuker fotografeert bruiloften, portretten en kunstseries. Al 35 jaar werk, getoond in onder meer de Kunsthal en het Valkhof. Bruiloften vanaf €2.450.',
+  },
+
+  hero: {
+    h1: 'Paul Breuker, fotograaf in Nijmegen',
+    lead: 'Bruiloften, portretten en kunstseries. Al 35 jaar.',
+    links: [
+      { label: 'Bruiloft aanvragen', href: '/trouwfotograaf-nijmegen' },
+      { label: 'Portret aanvragen', href: '/zakelijke-portretfoto' },
+    ] satisfies HomeLink[],
+    /** De eerste foto is het LCP-beeld (eager, fetchpriority high). */
+    photos: [
+      { name: 'hero-1', alt: TODO_ALT },
+      { name: 'hero-2', alt: TODO_ALT },
+      { name: 'hero-3', alt: TODO_ALT },
+    ] satisfies HomePhoto[],
+  },
+
+  anecdote: {
+    heading: 'Schilder en fotograaf',
+    // TODO(paul): de aangeleverde tekst is korter dan de gewenste 120 tot 180 woorden. Uitbreiden of bevestigen.
+    paragraphs: [
+      'Sinds 1984 werk ik als kunstenaar. Eerst als schilder, vanaf 1995 ook als fotograaf. Die twee disciplines voeden elkaar — schilders kijken naar licht, compositie en gebaar; fotografen leggen vast wat ze zien. In mijn werk komen ze samen.',
+    ],
+    /** Optioneel. TODO(paul): pull quote aanleveren. */
+    pullQuote: undefined as string | undefined,
+    photo: { name: 'anekdote', alt: TODO_ALT } satisfies HomePhoto,
+    link: { label: 'Meer over Paul', href: '/over-paul' } satisfies HomeLink,
+  },
+
+  services: {
+    heading: 'Wat ik doe',
+    items: [
+      {
+        title: 'Bruiloft',
+        text: 'Ik fotografeer bruiloften sinds 1992.',
+        price: 'Pakketten vanaf €2.450.',
+        photo: { name: 'dienst-bruiloft', alt: TODO_ALT },
+        link: { label: 'trouwfotograaf in Nijmegen', href: '/trouwfotograaf-nijmegen' },
+      },
+      {
+        title: 'Portret',
+        text: 'Portretten voor LinkedIn, website of team.',
+        price: 'Vanaf €250.',
+        photo: { name: 'dienst-portret', alt: TODO_ALT },
+        link: { label: 'zakelijke portretfoto', href: '/zakelijke-portretfoto' },
+      },
+      {
+        title: 'Kunst',
+        text: 'Series over mensen en plekken, op aanvraag voor exposities en collecties.',
+        price: 'Op aanvraag.',
+        photo: { name: 'dienst-kunst', alt: TODO_ALT },
+        link: { label: 'Bekijk het werk', href: '/werk' },
+      },
+    ] satisfies HomeService[],
+  },
+
+  projects: {
+    heading: 'Uitgelicht werk',
+    items: [
+      {
+        title: 'Asty Mwaka',
+        text: 'Drie jaar heb ik Asty Mwaka gefotografeerd. Dat heeft geresulteerd in een serie portretten van een persoon met 64 verschillende gezichten.',
+        href: '/asty-mwaka',
+        photo: { name: 'project-asty-mwaka', alt: TODO_ALT },
+      },
+      {
+        title: 'Love & Marriage',
+        text: "'Love & Marriage' is de titel van mijn project over bruiloften, dat in 1992 is gestart en nog steeds loopt.",
+        href: '/love-marriage',
+        photo: { name: 'project-love-marriage', alt: TODO_ALT },
+      },
+      {
+        title: 'Groeten uit Lent',
+        text: 'Verdwenen plekken, huiskamers, interieurs en portretten zijn terugkerende thema\u2019s in mijn zoektocht naar de constant veranderende identiteit van Lent, mijn woonplaats.',
+        href: '/groeten-uit-lent',
+        photo: { name: 'project-groeten-uit-lent', alt: TODO_ALT },
+      },
+      {
+        title: 'Take me to the river',
+        text: 'Scheepsladingen van binnenvaartschepen, ik sta perplex van de schoonheid van het beeld: de vorm, de kleuren, de symmetrie en de structuren zijn als abstracte schilderijen. Zo dichtbij, maar nooit eerder gezien.',
+        href: '/take-me-to-the-river',
+        photo: { name: 'project-take-me-to-the-river', alt: TODO_ALT },
+      },
+    ] satisfies HomeProject[],
+    allLink: { label: 'Alle series', href: '/werk' } satisfies HomeLink,
+  },
+
+  exhibitions: {
+    heading: 'Tentoonstellingen',
+    intro: 'Eerder getoond in de Kunsthal, op Photoville in New York en in het Valkhof.',
+    items: [
+      { name: 'Kunsthal', place: 'Rotterdam' },
+      { name: 'Photoville', place: 'New York' },
+      { name: 'Museum Het Valkhof', place: 'Nijmegen' },
+    ] as HomeExhibition[],
+    press: 'In de media: de Volkskrant, de Telegraaf en EenVandaag.',
+    links: [
+      { label: 'Alle tentoonstellingen', href: '/exposities' },
+      { label: 'Pers', href: '/pers' },
+    ] satisfies HomeLink[],
+    /** Optioneel beeld: bestaat het bestand niet, dan wordt het weggelaten. */
+    photo: { name: 'tentoonstelling', alt: TODO_ALT } satisfies HomePhoto,
+  },
+
+  cta: {
+    heading: 'Een bruiloft of portret aanvragen',
+    buttons: [
+      { label: 'Bruiloft aanvragen', href: '/trouwfotograaf-nijmegen' },
+      { label: 'Portret aanvragen', href: '/zakelijke-portretfoto' },
+    ] satisfies HomeLink[],
+    response: 'Ik reageer binnen 24 uur.',
+    promo: {
+      before: 'Op zoek naar een promotiefoto? Ga naar ',
+      link: {
+        label: 'fotograafpromotiesradboud.nl',
+        href: 'https://www.fotograafpromotiesradboud.nl/',
+      },
+      after: '.',
+    },
+  },
+
+  /** JSON-LD-gegevens voor de homepage. */
+  schema: {
+    // TODO(paul): straat en postcode. Tot die tijd alleen plaats en land.
+    address: { addressLocality: 'Nijmegen', addressCountry: 'NL' },
+    // TODO(paul): openingstijden, alleen toevoegen als ze bekend zijn.
+    areaServed: ['Nijmegen', 'Arnhem'],
+  },
+};

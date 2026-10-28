@@ -1,0 +1,76 @@
+---
+/**
+ * Alle SEO-output voor <head>: title, description, canonical, robots,
+ * Open Graph, Twitter en JSON-LD.
+ *
+ * `title` en `description` zijn verplicht en hebben bewust geen standaardwaarde:
+ * een pagina zonder deze waarden bouwt niet (type-fout in `astro check`,
+ * runtime-fout in `astro build`).
+ */
+import JsonLd from './JsonLd.astro';
+import { absoluteUrl, type AnySchema } from '../lib/schema';
+import { SITE_NAME } from '../data/site';
+
+interface Props {
+  /** Unieke paginatitel, rond 60 tekens. */
+  title: string;
+  /** Unieke meta description, rond 155 tekens. */
+  description: string;
+  /** Standaard afgeleid van Astro.url (pad, zonder querystring) en `site`. */
+  canonical?: string;
+  /** Pad of URL van de deelafbeelding (eigen foto van Paul). */
+  ogImage?: string;
+  /** Zet robots op noindex (bijvoorbeeld /bedankt, 404, previews). */
+  noindex?: boolean;
+  /** JSON-LD-nodes voor deze pagina. */
+  jsonLd?: AnySchema[];
+}
+
+const { title, description, canonical, ogImage, noindex = false, jsonLd = [] } = Astro.props;
+
+if (!title?.trim()) {
+  throw new Error(`SEOHead: "title" ontbreekt op ${Astro.url.pathname}.`);
+}
+if (!description?.trim()) {
+  throw new Error(`SEOHead: "description" ontbreekt op ${Astro.url.pathname}.`);
+}
+if (title.length > 70) {
+  console.warn(`[seo] Title op ${Astro.url.pathname} is ${title.length} tekens (richtlijn: rond 60).`);
+}
+if (description.length > 170) {
+  console.warn(
+    `[seo] Description op ${Astro.url.pathname} is ${description.length} tekens (richtlijn: rond 155).`,
+  );
+}
+
+// Canonical: pad zonder querystring/hash, geen trailing slash (behalve de root).
+const site = Astro.site ?? new URL('https://paulbreuker.nl');
+const defaultPath =
+  Astro.url.pathname.length > 1 ? Astro.url.pathname.replace(/\/+$/, '') : Astro.url.pathname;
+const canonicalUrl = canonical ? absoluteUrl(canonical) : new URL(defaultPath, site).href;
+
+const imageUrl = ogImage ? absoluteUrl(ogImage) : undefined;
+const robots = noindex
+  ? 'noindex, follow'
+  : 'index, follow, max-image-preview:large';
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalUrl} />
+<meta name="robots" content={robots} />
+
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="nl_NL" />
+<meta property="og:site_name" content={SITE_NAME} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalUrl} />
+{imageUrl && <meta property="og:image" content={imageUrl} />}
+
+<meta name="twitter:card" content={imageUrl ? 'summary_large_image' : 'summary'} />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+{imageUrl && <meta name="twitter:image" content={imageUrl} />}
+
+{jsonLd.length > 0 && <JsonLd data={jsonLd} />}

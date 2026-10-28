@@ -1,0 +1,132 @@
+---
+/**
+ * Fotospread: twee foto's naast elkaar (desktop) of onder elkaar (mobiel), zonder tekst, bijschrift of link.
+ * Visueel tussenstuk: bewust een <div> met twee <figure>-elementen, zonder kop en zonder landmark.
+ * Onafhankelijk van de buren: geen eigen buitenmarges (die komen van de .sectie-wrapper in index.astro), geen client-side JavaScript.
+ * Content: home.beeldDuo in src/data/home.ts.
+ */
+import { Picture } from 'astro:assets';
+import { home } from '../data/home';
+import { getHomeImage } from '../lib/images';
+
+// Per positie: breedtes en sizes. Width en height komen uit de bronafmetingen; elke foto staat in zijn originele
+// verhouding (geen uitsnede). Binnen de gewone marges (89vw): desktop links 60% (ca. 53vw) en rechts 30% (ca. 27vw),
+// mobiel links 85% (ca. 76vw) en rechts 62% (ca. 55vw).
+const instellingen = {
+  links: { widths: [800, 1200, 1600, 2400], sizes: '(min-width: 900px) 53vw, 76vw' },
+  rechts: { widths: [480, 800, 1200, 1600], sizes: '(min-width: 900px) 27vw, 55vw' },
+} as const;
+
+const items = home.beeldDuo.map((item) => ({
+  ...item,
+  image: getHomeImage(item.afbeelding),
+  ...instellingen[item.positie],
+}));
+---
+
+<div class="beeld-duo">
+  {
+    items.map((item) => (
+      <figure
+        class={`beeld-duo__figuur beeld-duo__figuur--${item.positie}`}
+        style={item.image ? `aspect-ratio: ${item.image.width} / ${item.image.height}` : 'aspect-ratio: 4 / 5'}
+      >
+        {item.image ? (
+          <Picture
+            src={item.image}
+            alt={item.alt}
+            width={item.image.width}
+            height={item.image.height}
+            widths={[...item.widths]}
+            sizes={item.sizes}
+            formats={['avif', 'webp']}
+            fallbackFormat="jpg"
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <p class="beeld-duo__placeholder">TODO(paul): foto <code>{item.afbeelding}</code> ontbreekt</p>
+        )}
+      </figure>
+    ))
+  }
+</div>
+
+<style>
+  /* ---------- BeeldDuo (mobiel eerst) ---------- */
+  .beeld-duo {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    /* Zelfde zijmarges als de andere secties. Geen eigen buitenmarges boven of onder: die komen van de
+       .sectie-wrapper in index.astro. */
+    padding: 0 var(--gutter);
+  }
+
+  .beeld-duo__figuur {
+    margin: 0;
+    overflow: hidden;
+    background: #f2f2f2;
+  }
+
+  .beeld-duo__figuur--links {
+    width: 85%;
+  }
+
+  .beeld-duo__figuur--rechts {
+    width: 62%;
+    margin-inline-start: auto; /* rechts uitgelijnd */
+  }
+
+  /* Picture en img vullen de figure; de verhouding van de figure is die van de bronfoto (inline aspect-ratio). */
+  .beeld-duo__figuur :global(picture) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .beeld-duo__figuur :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  .beeld-duo__placeholder {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: var(--space-3);
+    border: 1px dashed var(--ink);
+    font-size: var(--font-size-small);
+    text-align: center;
+  }
+
+  /* ---------- BeeldDuo (desktop) ---------- */
+  @media (min-width: 900px) {
+    /*
+     * Beide foto's in hun originele verhouding (links 1200 x 796, rechts 600 x 900), met veel wit ertussen.
+     * De rechterfoto staat lager dan de linker (verspringing, zoals bij "Projecten") en eindigt dus onder de
+     * onderkant van de linkerfoto: ze lijnen niet uit.
+     */
+    .beeld-duo {
+      display: grid;
+      grid-template-columns: 60% 30%;
+      justify-content: space-between;
+      align-items: start;
+    }
+
+    .beeld-duo__figuur--rechts {
+      margin-top: 14vw; /* verspringing ten opzichte van de linkerfoto */
+    }
+
+    .beeld-duo__figuur--links,
+    .beeld-duo__figuur--rechts {
+      width: 100%;
+      margin-inline-start: 0;
+    }
+  }
+</style>

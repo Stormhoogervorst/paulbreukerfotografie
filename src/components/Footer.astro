@@ -1,0 +1,233 @@
+---
+/**
+ * Voettekst in drie lagen (zie ook BaseLayout: staat buiten <main>, dus op elke pagina):
+ * 1. tekstblok links + navigatie rechts, onderaan uitgelijnd;
+ * 2. decoratief wordmark van marge tot marge;
+ * 3. kleine regel met contact, copyright, socials en privacyverklaring.
+ * Alle gegevens komen uit src/data/site.ts (dezelfde bron als de Header). Geen JavaScript.
+ */
+import { CONTACT, FOOTER_NAV, FOOTER_TEKST, FOOTER_WORDMARK, PRIVACY, SOCIALS } from '../data/site';
+
+const year = new Date().getFullYear();
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+---
+
+<footer class="site-footer">
+  <div class="site-footer__top">
+    <!-- TODO(paul): tekst goedkeuren (staat in src/data/site.ts). -->
+    <p class="site-footer__lead">
+      {FOOTER_TEKST.map((regel) => <span>{regel}</span>)}
+    </p>
+
+    <nav class="site-footer__nav" aria-label="Footernavigatie">
+      <ul>
+        {
+          FOOTER_NAV.map((item) => (
+            <li>
+              <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Decoratief: de naam staat al in de header. -->
+  <div class="site-footer__wordmark" aria-hidden="true">{FOOTER_WORDMARK}</div>
+
+  <div class="site-footer__bottom">
+    <div class="site-footer__group">
+      <span class="site-footer__contact">
+        {
+          CONTACT.email ? (
+            <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+          ) : (
+            // TODO(paul): e-mailadres invullen in src/data/site.ts.
+            <span class="todo">TODO(paul)</span>
+          )
+        }
+        <!-- TODO(paul): bevestig dat dit telefoonnummer nog klopt. -->
+        <a href={CONTACT.phoneHref}>{CONTACT.phoneDisplay}</a>
+      </span>
+      <span class="site-footer__dot" aria-hidden="true">•</span>
+      <span class="site-footer__copy">© {year} Paul Breuker Fotografie</span>
+    </div>
+
+    <ul class="site-footer__group site-footer__links">
+      {
+        SOCIALS.map((social) => (
+          <li>
+            <a href={social.href} rel="me noopener" target="_blank">
+              {social.label}
+            </a>
+          </li>
+        ))
+      }
+      <li>
+        <a href={PRIVACY.href}>{PRIVACY.label}</a>
+      </li>
+    </ul>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    /* De breedte van de voettekst is de basis voor het wordmark (cqw). */
+    container-type: inline-size;
+    padding: clamp(5rem, 10vw, 12rem) var(--rand-ruim) 1.5rem;
+    background: var(--paper);
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .site-footer a {
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1px;
+  }
+
+  .site-footer ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* ---------- Laag 1 (mobiel): onder elkaar ---------- */
+  .site-footer__top {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .site-footer__lead {
+    max-width: none;
+    margin: 0;
+    font-size: clamp(1.75rem, 7vw, 2.5rem);
+    font-weight: 400; /* alleen Satoshi 500 en 700 zijn zelf gehost: 400 valt terug op 500 */
+    line-height: 1.08;
+  }
+
+  .site-footer__lead span {
+    display: block;
+    text-wrap: balance; /* mobiel: geen weesregel als een zin moet afbreken */
+  }
+
+  .site-footer__nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .site-footer__nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: none;
+  }
+
+  .site-footer__nav a:hover,
+  .site-footer__nav a:focus-visible,
+  .site-footer__nav a[aria-current='page'] {
+    text-decoration: underline;
+  }
+
+  /* ---------- Laag 2: wordmark, één regel van marge tot marge ---------- */
+  .site-footer__wordmark {
+    /* "Paul Breuker" is 5,36em ink breed bij -0,04em letter-spacing (zelfde meting als de hero),
+       dus 100cqw / 5,36 vult de breedte tussen de marges. */
+    font-size: calc((100vw - 2 * var(--rand-ruim)) / 5.36);
+    font-size: calc(100cqw / 5.36);
+    margin: clamp(4rem, 11vw, 14rem) 0 0 -0.081em; /* linkerzijbeen van de P op de marge */
+    font-weight: 700;
+    line-height: 0.8;
+    letter-spacing: -0.04em;
+    white-space: nowrap;
+    color: var(--ink);
+    user-select: none;
+  }
+
+  /* ---------- Laag 3 (mobiel): onder elkaar ---------- */
+  .site-footer__bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    font-size: clamp(0.875rem, 0.9vw, 1rem);
+    font-weight: 500;
+  }
+
+  .site-footer__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .site-footer__contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+  }
+
+  .site-footer__dot {
+    display: none;
+  }
+
+  .site-footer__links {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+  }
+
+  /* ---------- Desktop ---------- */
+  @media (min-width: 900px) {
+    .site-footer__top {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: end;
+      align-items: last baseline; /* basislijn van de navigatie = laatste tekstregel links */
+      gap: 2rem;
+    }
+
+    .site-footer__lead {
+      flex: 0 1 auto; /* de langste regel (circa 40% van de breedte) bepaalt de breedte */
+      font-size: clamp(1.75rem, 3.2vw, 4.5rem);
+      white-space: nowrap; /* regelbreuk alleen op de zinsgrens */
+    }
+
+    .site-footer__nav ul {
+      flex-wrap: nowrap;
+      gap: 1.6vw;
+      font-size: clamp(1rem, 1.05vw, 1.375rem);
+    }
+
+    .site-footer__nav a {
+      min-height: 0;
+      white-space: nowrap;
+    }
+
+    .site-footer__bottom {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1.5rem;
+    }
+
+    .site-footer__group {
+      flex-direction: row;
+      align-items: baseline;
+      gap: 0.75rem;
+    }
+
+    .site-footer__contact {
+      flex-wrap: nowrap;
+      gap: 1.25rem;
+    }
+
+    .site-footer__dot {
+      display: inline;
+    }
+  }
+</style>

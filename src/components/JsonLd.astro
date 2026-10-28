@@ -1,0 +1,17 @@
+---
+/**
+ * Herbruikbare JSON-LD-uitvoer. Eén <script> per node.
+ * `<` wordt geëscaped zodat een waarde nooit de script-tag kan afsluiten.
+ */
+import type { AnySchema } from '../lib/schema';
+
+interface Props {
+  data: AnySchema | AnySchema[];
+}
+
+const { data } = Astro.props;
+const nodes = Array.isArray(data) ? data : [data];
+const serialize = (node: AnySchema) => JSON.stringify(node).replace(/</g, '\\u003c');
+---
+
+{nodes.map((node) => <script type="application/ld+json" set:html={serialize(node)} />)}
