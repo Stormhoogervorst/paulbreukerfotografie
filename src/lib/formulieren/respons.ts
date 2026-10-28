@@ -19,6 +19,8 @@ interface Fout {
   uitleg: string;
   /** Alleen bij `validatie`: melding per veld. */
   fouten?: Record<string, string>;
+  /** Pad van de pagina met het formulier ("Terug naar het formulier"); standaard de bruiloftpagina. */
+  terug?: string;
 }
 
 const NO_STORE = { 'Cache-Control': 'no-store' };
@@ -78,7 +80,7 @@ p,ul{max-width:32em}ul{padding-left:1.2em}a{color:inherit;text-underline-offset:
 <h1>${escape(melding.titel)}</h1>
 <p>${escape(melding.uitleg)}</p>
 ${lijst}
-<p><a href="/fotograaf-bruiloft#aanvragen">Terug naar het formulier</a>. Gebruik je de terugknop van je browser, dan blijft wat je invulde meestal staan.</p>
+<p><a href="${escape(melding.terug ?? '/fotograaf-bruiloft#aanvragen')}">Terug naar het formulier</a>. Gebruik je de terugknop van je browser, dan blijft wat je invulde meestal staan.</p>
 <p>Liever mailen of bellen? <a href="mailto:${mail}">${mail}</a> of <a href="${escape(CONTACT.phoneHref)}">${escape(CONTACT.phoneDisplay)}</a>.</p>
 </main>
 </body>

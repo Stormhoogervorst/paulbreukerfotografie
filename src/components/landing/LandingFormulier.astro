@@ -5,7 +5,7 @@
  * contactgegevens, rechts het formulier op dezelfde horizontale positie als de tekstkolom in Vragen en de hero-inleiding
  * (`--kolom-tekst`, minstens 24rem breed). Mobiel: één kolom.
  *
- * - De velden komen uit het register (`src/lib/formulieren/`, per type `bruiloft.ts` of `portret.ts`); dit component rendert alleen. Het
+ * - De velden komen uit het register (`src/lib/formulieren/`, per type `bruiloft.ts`, `portret.ts` of `contact.ts`); dit component rendert alleen. Het
  *   formulier werkt zonder JavaScript als gewone POST naar /api/aanvraag; het script (src/scripts/formulier.ts) voegt
  *   validatie, verzenden via fetch en de pakketkeuze toe.
  * - Velden: alleen een onderlijn in --ink, label klein erboven, "(optioneel)" achter optionele labels. Echte
@@ -14,6 +14,11 @@
  * - Spamwering: honeypot "website" (verborgen met CSS, niet bereikbaar met het toetsenbord) en een tijdstempelveld dat
  *   het script invult. Zie src/pages/api/aanvraag.ts.
  * - Geen eigen buitenmarges: de verticale ruimte rond de sectie komt van de .sectie-wrapper in LandingLayout.astro.
+ *
+ * - Hergebruik op /contact (`type: 'contact'`): `ankerId="formulier"`, `toonContact={false}` (de contactregels staan daar
+ *   direct onder het formulier) en `toonTitel={false}` (geen bewegende titel; de <h2> blijft als visueel verborgen kop).
+ *   Met de standaardwaarden (`ankerId="aanvragen"`, `toonContact`, `toonTitel`) is de output voor de landingspagina's
+ *   ongewijzigd.
  *
  * Content: `pagina.formulier` (zie src/data/landing/types.ts).
  */
@@ -24,18 +29,24 @@ import type { LandingFormulier, Segment } from '../../data/landing/types';
 
 interface Props {
   formulier: LandingFormulier;
+  /** Het blok "Liever bellen of mailen?" met telefoon en e-mail in het introblok (standaard ja). */
+  toonContact?: boolean;
+  /** Anker (id) van de sectie (standaard "aanvragen"). */
+  ankerId?: string;
+  /** De bewegende titel (Marquee) boven het formulier (standaard ja). Zonder: een visueel verborgen <h2> met dezelfde tekst. */
+  toonTitel?: boolean;
 }
 
-const { formulier } = Astro.props;
+const { formulier, toonContact = true, ankerId = 'aanvragen', toonTitel = true } = Astro.props;
 const definitie = formulieren[formulier.type];
 
 /** Id van de <h2> (de eerste herhaling in de marquee); de sectie verwijst ernaar met aria-labelledby. */
-const KOP_ID = 'aanvragen-titel';
+const KOP_ID = `${ankerId}-titel`;
 const veldId = (naam: string) => `aanvraag-${naam}`;
 ---
 
-<section class="formulier" id="aanvragen" aria-labelledby={KOP_ID}>
-  <Marquee woord={formulier.titel} kopId={KOP_ID} />
+<section class:list={['formulier', { 'formulier--zonder-titel': !toonTitel }]} id={ankerId} aria-labelledby={KOP_ID}>
+  {toonTitel ? <Marquee woord={formulier.titel} kopId={KOP_ID} /> : <h2 id={KOP_ID} class="visually-hidden">{formulier.titel}</h2>}
 
   <div class="formulier__inhoud">
     <div class="formulier__intro">
@@ -46,17 +57,27 @@ const veldId = (naam: string) => `aanvraag-${naam}`;
           </p>
         ))
       }
-      <p class="formulier__tekst formulier__contact-kop">Liever bellen of mailen?</p>
-      <ul class="formulier__contact" role="list">
-        <li>
-          <span class="visually-hidden">Telefoon: </span>
-          <a class="formulier__tekst" href={CONTACT.phoneHref}>{CONTACT.phoneDisplay}</a>
-        </li>
-        <li>
-          <span class="visually-hidden">E-mail: </span>
-          <a class="formulier__tekst" href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
-        </li>
-      </ul>
+      {
+        toonContact && (
+          <>
+            <p class="formulier__tekst formulier__contact-kop">Liever bellen of mailen?</p>
+            <ul class="formulier__contact" role="list">
+              <li>
+                <span class="visually-hidden">Telefoon: </span>
+                <a class="formulier__tekst" href={CONTACT.phoneHref}>
+                  {CONTACT.phoneDisplay}
+                </a>
+              </li>
+              <li>
+                <span class="visually-hidden">E-mail: </span>
+                <a class="formulier__tekst" href={`mailto:${CONTACT.email}`}>
+                  {CONTACT.email}
+                </a>
+              </li>
+            </ul>
+          </>
+        )
+      }
     </div>
 
     <form class="formulier__form" method="post" action="/api/aanvraag" data-aanvraag>
@@ -146,9 +167,12 @@ const veldId = (naam: string) => `aanvraag-${naam}`;
                     id={id}
                     name={veld.naam}
                     rows={veld.rijen ?? 4}
+                    required={required}
+                    minlength={veld.minlength}
                     maxlength={veld.maxlength}
                     aria-describedby={hulpId}
                     data-hulp={hulpId}
+                    data-fout-leeg={veld.meldingen?.leeg}
                     data-fout-ongeldig={veld.meldingen?.ongeldig}
                   />
                 ) : (
@@ -499,6 +523,11 @@ const veldId = (naam: string) => `aanvraag-${naam}`;
       align-items: start;
       row-gap: 0;
       margin-top: calc(5vw - var(--marquee-onder));
+    }
+
+    /* Zonder titel: de ruimte erboven komt van de wrapper om de sectie. */
+    .formulier--zonder-titel .formulier__inhoud {
+      margin-top: 0;
     }
 
     /* Introblok: begint op de gutter en loopt tot ongeveer 40vw (en laat altijd wat ruimte voor het formulier). */

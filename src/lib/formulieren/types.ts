@@ -1,5 +1,5 @@
 /**
- * Types voor formulieren (aanvragen). Een formulier is één bestand in deze map (bruiloft.ts, portret.ts; gedeelde onderdelen staan in gedeeld.ts) met:
+ * Types voor formulieren (aanvragen). Een formulier is één bestand in deze map (bruiloft.ts, portret.ts, contact.ts; gedeelde onderdelen staan in gedeeld.ts) met:
  * de velden (configuratie voor het renderen), het Zod-schema (de enige bron van waarheid voor validatie, altijd op de
  * server), de mailteksten, de bedankstappen en het type. De API-route (src/pages/api/aanvraag.ts) kiest het formulier uit het register
  * in index.ts.
@@ -27,6 +27,8 @@ export interface VeldConfig {
   autocomplete?: string;
   inputmode?: 'text' | 'email' | 'tel' | 'numeric' | 'decimal' | 'search' | 'url' | 'none';
   maxlength?: number;
+  /** Minimaal aantal tekens (alleen `textarea`); de browser toont dan de melding `meldingen.ongeldig`. */
+  minlength?: number;
   /** HTML-patroon voor de browservalidatie (zie ook het schema, dat altijd leidend is). */
   pattern?: string;
   /** Aantal rijen van een `textarea`. */
@@ -63,4 +65,6 @@ export interface Formulier<T extends AanvraagBasis = AanvraagBasis> {
   bevestiging(data: T): { onderwerp: string; tekst: string };
   /** De stappen onder "Wat gebeurt er nu?" op /bedankt (src/pages/bedankt.astro), in volgorde. */
   stappen: string[];
+  /** Pad van de pagina met het formulier, voor "Terug naar het formulier" op de foutpagina zonder JavaScript. Standaard de bruiloftpagina. */
+  terug?: string;
 }

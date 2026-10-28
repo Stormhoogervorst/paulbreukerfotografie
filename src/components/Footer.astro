@@ -10,11 +10,11 @@
 import {
   CONTACT,
   FOOTER_NAV,
+  FOOTER_SOCIALS,
   FOOTER_TEKST,
   FOOTER_TEKST_BREUK_NA,
   FOOTER_WORDMARK,
   PRIVACY,
-  SOCIALS,
 } from '../data/site';
 
 const year = new Date().getFullYear();
@@ -68,7 +68,7 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
 
     <ul class="site-footer__socials">
       {
-        SOCIALS.map((social) => (
+        FOOTER_SOCIALS.map((social) => (
           <li>
             <a href={social.href} rel="me noopener" target="_blank">
               {social.label}

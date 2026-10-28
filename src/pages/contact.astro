@@ -1,0 +1,235 @@
+---
+/**
+ * /contact. Vaste opbouw (verandert nooit): header, H1 "Contact" (PaginaKop), formuliersectie, contactregels, Panorama
+ * (foto van rand tot rand, geen kop, tegen de footer aan), footer.
+ * Data: src/data/contact.ts (regels uit src/data/site.ts). Formulier: LandingFormulier.astro met type "contact"
+ * (velden en mails in src/lib/formulieren/contact.ts), anker #formulier, zonder bewegende titel (visueel verborgen H2)
+ * en zonder het blok "Liever bellen of mailen?".
+ *
+ * Elk blok zit in een eigen wrapper met alleen padding (--sectie-ruimte); geen margins die van buren afhangen.
+ * Het formulier staat direct onder de H1 (de 6vw onder de kop is de ruimte ertussen). Tussen het formulier en de
+ * contactregels ligt --sectie-ruimte (twee halve waarden), net als tussen de contactregels en het panorama. Het
+ * panorama (dezelfde foto en component als op de homepage, `home.panorama`) sluit onderaan direct aan op de footer.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PaginaKop from '../components/PaginaKop.astro';
+import LandingFormulier from '../components/landing/LandingFormulier.astro';
+import Panorama from '../components/Panorama.astro';
+import { regels, formulier, seo, breadcrumb } from '../data/contact';
+import { home } from '../data/home';
+import { CONTACT, SAME_AS } from '../data/site';
+import { breadcrumbList, contactPage, localBusiness } from '../lib/schema';
+
+const PAD = '/contact';
+
+// Zelfde gegevens als het LocalBusiness op de homepage (adres en werkgebied komen uit home.schema); geen AggregateRating of Review.
+const jsonLd = [
+  breadcrumbList([
+    { name: 'Home', path: '/' },
+    { name: breadcrumb, path: PAD },
+  ]),
+  contactPage({ name: 'Contact', description: seo.description, path: PAD }),
+  localBusiness({
+    type: 'ProfessionalService',
+    telephone: CONTACT.phoneHref.replace('tel:', ''),
+    email: CONTACT.email,
+    address: home.schema.address,
+    areaServed: home.schema.areaServed,
+    sameAs: SAME_AS,
+    contactPoint: {
+      contactType: 'customer service',
+      telephone: CONTACT.phoneHref.replace('tel:', ''),
+      email: CONTACT.email,
+      availableLanguage: 'nl',
+      areaServed: home.schema.areaServed,
+    },
+  }),
+];
+
+const hoofdletter = (tekst: string) => tekst.charAt(0).toUpperCase() + tekst.slice(1);
+---
+
+<BaseLayout title={seo.title} description={seo.description} canonical={PAD} jsonLd={jsonLd}>
+  <div class="contact-kop">
+    <PaginaKop titel="Contact" />
+  </div>
+
+  <div class="contact-formulier">
+    <LandingFormulier formulier={formulier} toonContact={false} toonTitel={false} ankerId="formulier" />
+  </div>
+
+  <div class="contact-regels">
+    <ul class="regels" role="list">
+      {
+        regels.map((regel) => (
+          <li class="regels__item">
+            <a
+              class="regel"
+              href={regel.href}
+              data-conversie={regel.conversie}
+              target={regel.extern ? '_blank' : undefined}
+              rel={regel.extern ? 'noopener me' : undefined}
+              aria-label={regel.extern ? `${hoofdletter(regel.label)} ${regel.waarde}, opent in een nieuw tabblad` : undefined}
+            >
+              <span class="regel__label">{regel.label}</span>
+              <span class="regel__waarde">{regel.waarde}</span>
+              <svg class="regel__pijl" viewBox="0 0 60 12" fill="none" aria-hidden="true" focusable="false">
+                <path
+                  d="M0 6h58M52 1l6 5-6 5"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="butt"
+                  stroke-linejoin="miter"
+                  vector-effect="non-scaling-stroke"
+                />
+              </svg>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <div class="contact-panorama">
+    <Panorama />
+  </div>
+</BaseLayout>
+
+<style>
+  /* ---------- Kop ---------- */
+  /* De H1 staat in PaginaKop (dezelfde stijl als /series). Op desktop 6vw tussen de H1 en het formulier. */
+  @media (min-width: 700px) {
+    .contact-kop {
+      --pagina-kop-onder: 6vw;
+    }
+  }
+
+  /* ---------- Contactregels (mobiel eerst) ---------- */
+  /* Alleen padding: de ruimte tot het formulier is de som van deze halve --sectie-ruimte en de onderste helft van
+     .contact-formulier; onder de laatste haarlijn nog een halve voor het panorama (samen met de bovenste helft van
+     .contact-panorama). */
+  .contact-regels {
+    padding: calc(var(--sectie-ruimte) / 2) var(--gutter);
+  }
+
+  /* Haarlijnen van 1px in --ink: boven elke regel en onder de laatste. */
+  .regels {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .regels__item {
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--ink);
+  }
+
+  /* Mobiel: label klein boven de waarde, de pijl rechts verticaal gecentreerd over beide rijen. */
+  .regel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'label pijl'
+      'waarde pijl';
+    align-items: center;
+    column-gap: var(--space-3);
+    min-height: 56px;
+    padding-block: 4vw;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .regel__label {
+    grid-area: label;
+    min-width: 0;
+    font-size: var(--font-size-small);
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .regel__waarde {
+    grid-area: waarde;
+    min-width: 0;
+    margin-top: 0.15em;
+    font-size: max(1.125rem, 5.6vw);
+    font-weight: 500;
+    line-height: 1.1;
+    overflow-wrap: anywhere; /* het e-mailadres loopt nooit uit beeld */
+  }
+
+  .regel__pijl {
+    grid-area: pijl;
+    width: max(1.75rem, 8vw);
+    height: auto;
+    color: var(--ink);
+  }
+
+  /* Hover en focus: de waarde krijgt een onderstreping. */
+  .regel:hover .regel__waarde,
+  .regel:focus-visible .regel__waarde {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+  }
+
+  .regel:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 0;
+  }
+
+  /* De pijl schuift bij hover en focus naar rechts; niet bij prefers-reduced-motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .regel__pijl {
+      transition: transform 0.2s ease;
+    }
+
+    .regel:hover .regel__pijl,
+    .regel:focus-visible .regel__pijl {
+      transform: translateX(0.5vw);
+    }
+  }
+
+  /* ---------- Panorama ---------- */
+  /* Van rand tot rand (geen horizontale padding) en onderaan direct tegen de footer: geen ruimte eronder. */
+  .contact-panorama {
+    padding-block: calc(var(--sectie-ruimte) / 2) 0;
+  }
+
+  /* ---------- Formuliersectie ---------- */
+  /* Direct onder de kop: geen ruimte erboven (die zit in PaginaKop). */
+  .contact-formulier {
+    padding-block: 0 calc(var(--sectie-ruimte) / 2);
+  }
+
+  /* ---------- Contactregels (desktop) ---------- */
+  @media (min-width: 700px) {
+    /* Label links op de gutter, de waarde op de tekstkolom van Werkwijze (--kolom-statement, vanaf de schermrand; de
+       regel begint op de gutter), de pijl met de rechterrand op de rechtergutter. */
+    .regel {
+      grid-template-columns: calc(var(--kolom-statement) - var(--gutter)) minmax(0, 1fr) auto;
+      grid-template-areas: 'label waarde pijl';
+      column-gap: 0;
+      min-height: 0;
+      padding-block: 2.4vw;
+    }
+
+    .regel__label {
+      font-size: max(1rem, 1.4vw);
+    }
+
+    .regel__waarde {
+      margin-top: 0;
+      padding-right: 2vw;
+      font-size: max(1.5rem, 3.3vw);
+      overflow-wrap: normal;
+    }
+
+    .regel__pijl {
+      width: max(1.75rem, 4vw);
+      justify-self: end;
+    }
+  }
+</style>

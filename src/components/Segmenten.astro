@@ -1,0 +1,30 @@
+---
+/**
+ * Rendert een lijst Segmenten (tekst en links) zonder `set:html`. Externe links (http:// of https://) openen in een nieuw
+ * tabblad met rel="noopener" en een visueel verborgen mededeling; interne links en mailto:- en tel:-links blijven gewoon.
+ * Geen eigen stijl: de omringende component bepaalt de opmaak van de links.
+ */
+import type { Segment } from '../data/landing/types';
+
+interface Props {
+  segmenten: Segment[];
+}
+
+const { segmenten } = Astro.props;
+const isExtern = (href: string) => /^https?:\/\//i.test(href);
+---
+
+{
+  segmenten.map((segment) =>
+    typeof segment === 'string' ? (
+      segment
+    ) : isExtern(segment.href) ? (
+      <a href={segment.href} target="_blank" rel="noopener">
+        {segment.tekst}
+        <span class="visually-hidden"> (opent in een nieuw tabblad)</span>
+      </a>
+    ) : (
+      <a href={segment.href}>{segment.tekst}</a>
+    ),
+  )
+}

@@ -17,7 +17,7 @@ Marquee-test (WebKit en Chromium, mobiele emulatie): `npm run build`, dan `npm r
 
 Portfolio-test (`/portfolio`, WebKit iPhone 14, Chromium Pixel 7 en Chromium desktop 1440 × 900): `npm run build`, dan `npm run preview` in een tweede terminal, daarna `node scripts/portfolio-test.mjs` (andere poort: `BASE_URL=http://127.0.0.1:4322 node scripts/portfolio-test.mjs`; één apparaat: `APPARAAT=pixel`). Controles: laden (minder dan 150 foto-elementen, minstens 15 zichtbaar, aantal beeldverzoeken, overdracht en tijd tot het eerste scherm compleet is), slepen (offset verandert, foto's komen bij en verdwijnen), uitloop, een lange sleep van 20 000 px (minstens 60% van 5 × 5 meetpunten binnen 150 px van een foto), klik versus sleep (dialog met serietitel, Esc sluit, focus terug), toetsenbord, `prefers-reduced-motion: reduce` (geen uitloop, geen fade-in) en zonder JavaScript (h1, noscript-raster, home-knop). Exit-code 1 bij een mislukte controle. Touch-slepen gaat in Chromium via CDP; in WebKit met synthetische pointer-events (Playwright heeft daar geen CDP of touch-sleep). WebKit draait niet in de sandbox van de Cursor-agent: draai het script dan buiten de sandbox.
 
-Aanvraagtest (`/api/aanvraag`, bruiloft en portret): `node scripts/aanvraag-test.mjs`. Het script start zelf een dev-server op poort 4398 (`astro dev --ignore-lock`, dus naast een draaiende dev-server, zonder `RESEND_API_KEY`) en leest het dry-run-log. Controles: geldige aanvraag (API, zonder JavaScript en in de browser met de cta van Kunstportret, inclusief het veld "locatie" in het log), lege verzending toont fouten, honeypot, te snelle verzending en vreemde Origin loggen niets, ongeldig e-mailadres, pakket of bericht geeft 400, `/bedankt?type=portret` toont de stappen van het portret, plus regressiecontroles voor de bruiloft. Draai het buiten de sandbox van de Cursor-agent (Playwright).
+Aanvraagtest (`/api/aanvraag`, bruiloft, portret en contact): `node scripts/aanvraag-test.mjs`. Het script start zelf een dev-server op poort 4398 (`astro dev --ignore-lock`, dus naast een draaiende dev-server, zonder `RESEND_API_KEY`) en leest het dry-run-log. Controles: geldige aanvraag (API, zonder JavaScript en in de browser met de cta van Kunstportret, inclusief het veld "locatie" in het log), lege verzending toont fouten, honeypot, te snelle verzending en vreemde Origin loggen niets, ongeldig e-mailadres, pakket of bericht geeft 400, `/bedankt?type=portret` toont de stappen van het portret, plus regressiecontroles voor de bruiloft. Voor `/contact`: geldige aanvraag (API, zonder JavaScript en in de browser) leidt naar `/bedankt?type=contact`, lege verzending toont fouten en zet de focus op het eerste ongeldige veld, honeypot gevuld logt niets, ongeldig e-mailadres of onbekend onderwerp geeft 400, en `/contact` toont het blok "Liever bellen of mailen?" niet (de landingspagina's wel). Draai het buiten de sandbox van de Cursor-agent (Playwright).
 
 Voor/na-vergelijking van een pagina: `node scripts/vergelijk/schermafdruk.mjs voor` (en later `na`, optioneel met een pad als tweede argument) maakt `scripts/vergelijk/<voor|na>-<slug>-<1440|390>.png`; `node scripts/vergelijk/diff.mjs <slug>` telt de afwijkende pixels. Draai het buiten de sandbox.
 
@@ -39,10 +39,11 @@ src/
 ├── components/
 │   ├── SEOHead.astro      title, description, canonical, robots, OG, Twitter, JSON-LD
 │   ├── JsonLd.astro       <script type="application/ld+json">, één per node
-│   ├── Header.astro       desktop: 3 kolommen (wordmark, contact, navigatie; socials alleen in de footer); mobiel: <details>-menu (geen JavaScript)
+│   ├── Header.astro       desktop: 3 kolommen (wordmark, contact, navigatie; socials alleen in de footer: LinkedIn en Facebook, zonder Instagram, via `FOOTER_SOCIALS`); mobiel: <details>-menu (geen JavaScript)
 │   ├── Footer.astro       drie lagen: tekstblok + navigatie, wordmark (cqw, marge tot marge), contactregel
 │   ├── BeeldDuo.astro     fotospread (twee foto's, geen tekst) onder Diensten, laatste sectie
 │   ├── Statement.astro    haarlijn, label tussen haakjes, grote tekst met ingesprongen eerste regel, kleine link ("(over paul)" op de homepage, Werkwijze op landingspagina's)
+│   ├── PaginaKop.astro    grote H1 van een overzichtspagina (14vw, gutter-uitgelijnd); gedeeld door /series en /contact (op /contact met 6vw onder de kop via `--pagina-kop-onder`)
 │   ├── Marquee.astro      gedeelde titelbalk (scroll-gekoppeld, klein inline script; zonder JS statisch) voor Projecten, Diensten en Exposities
 │   └── ContactLinks.astro telefoon en e-mail als tekst met tel:/mailto:
 ├── components/landing/
@@ -50,7 +51,7 @@ src/
 │   ├── LandingBeeld.astro  Beeld: één foto van rand tot rand onder het Aanvraagformulier (laatste sectie), uitsnede 5:2 (mobiel 16:9), geen kop
 │   ├── LandingVragen.astro  Vragen: marquee-titel en uitklapbare lijst (native `<details>`, eerste vraag open, plus/min van CSS-lijnen); antwoorden beginnen op `--kolom-tekst`; JSON-LD `FAQPage` komt uit dezelfde data (in `LandingLayout.astro`)
 │   ├── LandingOverPaul.astro  OverPaul: haarlijn, foto van Paul links, rechts grote openingsalinea, alinea's en één kleine link (label alleen als verborgen h2); tekstkolom op dezelfde positie als Werkwijze (`--statement-kolommen`)
-│   ├── LandingFormulier.astro  Aanvraagformulier: vóór Beeld (anker `#aanvragen`), marquee-titel, links intro met contactgegevens, rechts het formulier uit het register in `src/lib/formulieren/`
+│   ├── LandingFormulier.astro  Aanvraagformulier: vóór Beeld (anker `#aanvragen`), marquee-titel, links intro met contactgegevens, rechts het formulier uit het register in `src/lib/formulieren/`; optionele props `toonContact` (standaard `true`; `false` laat het blok "Liever bellen of mailen?" weg), `toonTitel` (standaard `true`; `false` vervangt de Marquee door een visueel verborgen H2) en `ankerId` (standaard `aanvragen`; /contact gebruikt `formulier`)
 │   └── LandingImpressie.astro  Impressie: zonder zichtbare titel; vier foto's in twee rijen van twee (`indeling: 'diagonaal'`, standaard) of drie staande foto's in één rij (`indeling: 'rij'`, portretfotos), elk met een andere breedte (configuratie in de frontmatter), foto's uit `src/assets/landing/impressie/`
 ├── layouts/
 │   ├── BaseLayout.astro   <html lang="nl">, skip-link, header, <main>, footer (props `header` en `footer`, standaard true)
@@ -58,6 +59,7 @@ src/
 ├── data/
 │   ├── landing/           types.ts (interface `LandingPagina`) en één databestand per landingspagina (fotograaf-bruiloft.ts, portretfotos.ts; pakketten in bruiloft-pakketten.ts en portret-pakketten.ts)
 │   ├── home.ts            teksten homepage
+│   ├── contact.ts         /contact: seo, de contactregels (uit `site.ts`: `CONTACT`, `SOCIALS`, optioneel `WHATSAPP`; elke regel heeft `data-conversie`) en de formuliersectie
 │   ├── series.ts          de acht projecten, één bron voor /series en de projectpagina's (slug, titel, onderregel, omslag, alt, introductie, seo, commercieleLink, altTeksten); de volgorde van de lijst is de volgorde op de pagina
 │   ├── paul.ts            volledige bio van Paul (constanten), hergebruik op /over-paul; de bruiloftpagina gebruikt een selectie
 │   └── site.ts            bron voor header en footer: sitegegevens, contact, socials, navigatie, footertekst, @id's
@@ -65,9 +67,9 @@ src/
 ├── lib/serie-fotos.ts     foto's, rijen van twee en `sizes` van een projectpagina (`fotosVan`, `rijenVan`, `titelKlasse`)
 ├── lib/segmenten.ts       `linkSegmenten()`: splitst één tekst in Segmenten (tekst of link) op opgegeven woorden; `segmentenTekst()`: platte tekst van Segmenten
 ├── lib/prijs.ts           `euro()`: "€3.250" (zelfde formaat als Pakketten)
-├── lib/formulieren/       types.ts (veldconfiguratie), gedeeld.ts (gedeelde velden, schema-hulpen en mailhulpen), bruiloft.ts en portret.ts (velden, Zod-schema, mailteksten, bedankstappen), index.ts (register `{ bruiloft, portret }`), respons.ts (JSON- en HTML-antwoorden van de API)
+├── lib/formulieren/       types.ts (veldconfiguratie), gedeeld.ts (gedeelde velden, schema-hulpen en mailhulpen), bruiloft.ts, portret.ts en contact.ts (velden, Zod-schema, mailteksten, bedankstappen), index.ts (register `{ bruiloft, portret, contact }`), respons.ts (JSON- en HTML-antwoorden van de API)
 ├── scripts/formulier.ts   enhancement van het formulier (validatie, fetch, pakketkeuze; ruim onder 3 KB)
-├── pages/                 index, fotograaf-bruiloft, portretfotos, series, [project] (de acht projectpagina's), bedankt, 404, robots.txt.ts, api/aanvraag.ts (de enige on-demand route)
+├── pages/                 index, fotograaf-bruiloft, portretfotos, contact, series, [project] (de acht projectpagina's), bedankt, 404, robots.txt.ts, api/aanvraag.ts (de enige on-demand route)
 └── styles/global.css      CSS-variabelen en basisstijl
 vercel.json                redirects
 ```
@@ -88,7 +90,7 @@ vercel.json                redirects
 
 | Bestand | Waar |
 | :-- | :-- |
-| `hero-take-me-to-the-river-1` (LCP-beeld, eager, staand 2:3, ongecropt, links tegen de schermrand) | Hero (was `public/Take me to the river 1.jpg`; bron 600 × 900 px, zie TODO). De vorige hero-foto staat als `gaarkeuken-3` in dezelfde map. |
+| `hero-take-me-to-the-river-1` (LCP-beeld, eager, staand 2:3, ongecropt, links op de gutter, op één lijn met de H1) | Hero (was `public/Take me to the river 1.jpg`; bron 600 × 900 px, zie TODO). De vorige hero-foto staat als `gaarkeuken-3` in dezelfde map. |
 | `anekdote` | Anekdote over Paul |
 | `project-asty-mwaka` (staand, 5 / 6, links), `project-love-marriage` (liggend, 6 / 5, midden), `project-take-me-to-the-river` (hoog, natuurlijke verhouding, rechts) | Sectie "Projecten" (`src/components/Projecten.astro`, data: `home.projecten`). Eerste twee verplaatst uit `public/` (`Asty 1.jpg`, `Bruiloft 3.jpg`); de derde is een kopie van `src/assets/portfolio/take-me-to-the-river/Take me to the river 06-min.jpg`. `project-het-gezicht-van-nijmegen` wordt niet meer gebruikt. |
 | `beeld-duo-bruiloft-4` (links, breed, 1200 × 796), `beeld-duo-gaarkeuken-1` (rechts, staand, 600 × 900) | Fotospread (`src/components/BeeldDuo.astro`, data: `home.beeldDuo`). Verplaatst uit `public/` (`Bruiloft 4.jpg`, `Gaarkeuken 1.jpg`). |
@@ -105,6 +107,15 @@ De acht projecten (`/love-marriage`, `/take-me-to-the-river`, `/de-gaarkeuken`, 
 - **SEO**: title "{titel} | Fotoserie door Paul Breuker" (of `seo.title`), description `seo.description` (anders "{titel}: een fotoserie van Paul Breuker."), canonical `https://paulbreuker.nl/{slug}`, Open Graph met de eerste foto (1200 × 630). JSON-LD: `WebSite`, `BreadcrumbList` (Home > Series > titel) en `ImageGallery` met de eerste 20 foto's als `ImageObject` (creator via `@id`, creditText, copyrightNotice).
 - **Doorlinkrij**: "← Alle projecten" (`/series`), de `commercieleLink` (alleen Love & Marriage en De Gaarkeuken) en "Volgend project: {titel} →" (volgorde van `series.ts`, na het laatste het eerste).
 
+## Contactpagina (`/contact`)
+
+Vaste opbouw (verandert nooit): header, H1 "Contact" (`PaginaKop.astro`, dezelfde stijl als de H1 op `/series`), formuliersectie, contactregels, Panorama (dezelfde foto en component als op de homepage, `home.panorama`; van rand tot rand, tegen de footer aan), footer. (Eerder stonden de regels boven het formulier, met een bewegende titel; op verzoek omgedraaid.) Data: `src/data/contact.ts`; pagina: `src/pages/contact.astro`.
+
+- **Contactregels** (onder het formulier): telefoon, e-mail en LinkedIn, gebouwd uit `src/data/site.ts` (`CONTACT`, `SOCIALS`); één bron, geen nummers of adressen dubbel in de code. Een WhatsApp-regel verschijnt alleen als `WHATSAPP` in `site.ts` is ingevuld (nu niet). Elke regel is één `<a>` met `data-conversie` (`telefoon`, `email`, `whatsapp`, `linkedin`) als aanknopingspunt voor conversiemeting; er is geen analytics gebouwd. Instagram en Facebook staan bewust niet op /contact (Facebook wel in de footer; Instagram staat alleen nog in `sameAs`). Externe links (LinkedIn) openen in een nieuw tabblad (`rel="noopener me"`, `aria-label` met "opent in een nieuw tabblad").
+- **Opmaak**: desktop (vanaf 700px) label links op de gutter, waarde op de tekstkolom van Werkwijze (`--kolom-statement` in `global.css`), pijl rechts op de rechtergutter; mobiel label boven de waarde. Haarlijnen van 1px in `--ink`.
+- **Formulier**: dezelfde `LandingFormulier.astro` als op de landingspagina's, met `toonContact={false}`, `toonTitel={false}` (geen bewegende titel; de H2 "Stuur een bericht" blijft visueel verborgen) en `ankerId="formulier"`. Type `contact` (`src/lib/formulieren/contact.ts`): naam, e-mail, telefoon (optioneel), onderwerp (select) en bericht (minimaal 10, maximaal 2000 tekens). Na verzenden: `/bedankt?type=contact`.
+- **JSON-LD**: `WebSite`, `BreadcrumbList` (Home > Contact), `ContactPage` (`mainEntity` verwijst via `@id` naar het `LocalBusiness`) en het `ProfessionalService` met `contactPoint` (`customer service`, `availableLanguage` nl, werkgebied van de homepage), adres en werkgebied zoals op de homepage (alleen plaats en land). Geen `AggregateRating` of `Review`.
+
 ## Nieuwe landingspagina toevoegen
 
 Commerciële landingspagina's (`/fotograaf-bruiloft`, `/portretfotos`, later `/zakelijke-portretfoto` en `/linkedin-foto-laten-maken`) zijn datagedreven: een databestand en een paginabestand van een paar regels. De volgorde van de secties staat vast in `src/layouts/LandingLayout.astro` en in de regel "Volgorde commerciële landingspagina (bindend)" in `.cursor/rules/paulbreuker-regels.mdc`.
@@ -120,10 +131,10 @@ De layout levert zelf: `BaseLayout` met `SEOHead` (canonical `https://paulbreuke
 ## Nog te bouwen (links vanaf de homepage die nu een 404 geven)
 
 - `/zakelijke-portretfoto` (gelinkt vanaf `/portretfotos` en de homepage)
-- `/contact` (alleen in navigatie en voettekst)
+- ~~`/contact`~~ gebouwd (`src/pages/contact.astro`, zie "Contactpagina"). Nog te doen: een bestelroute voor de boeken (de pagina verwijst voor "een boek bestellen" nu naar het contactformulier), `/privacy` (bestaat nog niet; gelinkt onder het contactformulier) en bevestiging van WhatsApp (`WHATSAPP` in `src/data/site.ts`) en het adres van Paul (staat bewust niet op /contact en niet in de JSON-LD, behalve plaats en land zoals op de homepage)
 - `/exposities`
 - `/pers`
-- `/privacy` (gelinkt vanuit de footer en onder het aanvraagformulier)
+- ~~`/privacy`~~ gebouwd (`src/pages/privacy.astro`, zie "Privacyverklaring"), gelinkt vanuit de footer en onder de drie formulieren
 - Spamwering met Turnstile of vergelijkbaar (nu alleen honeypot en tijdstempel)
 - Reviews bij het formulier (sectie Reviews, vóór het Aanvraagformulier)
 - Voor `/zakelijke-portretfoto` en `/linkedin-foto-laten-maken`: een eigen formulier (of hergebruik van `portret.ts`; dat heeft een veld "Zakelijk of LinkedIn")
@@ -146,7 +157,7 @@ Gebouwd: de hero, Werkwijze (`Statement.astro`, dezelfde component als "(over pa
 
 ## Formulier en e-mail (Resend)
 
-Het bruiloftformulier (sectie Aanvraagformulier, `#aanvragen`) post naar `src/pages/api/aanvraag.ts`: de enige on-demand route (`export const prerender = false`; de rest van de site blijft statisch, `output: 'static'` met `@astrojs/vercel`). De route valideert met Zod, stuurt via Resend een mail naar Paul (reply-to: de aanvrager) en een bevestiging naar de aanvrager (reply-to: Paul), en stuurt door naar `/bedankt?type=bruiloft` of `/bedankt?type=portret` (zonder JavaScript een 303-redirect; met het script `{ ok: true }` en `window.location.assign`). Er zijn twee formulieren: `bruiloft` (`/fotograaf-bruiloft`) en `portret` (`/portretfotos`).
+Het bruiloftformulier (sectie Aanvraagformulier, `#aanvragen`) post naar `src/pages/api/aanvraag.ts`: de enige on-demand route (`export const prerender = false`; de rest van de site blijft statisch, `output: 'static'` met `@astrojs/vercel`). De route valideert met Zod, stuurt via Resend een mail naar Paul (reply-to: de aanvrager) en een bevestiging naar de aanvrager (reply-to: Paul), en stuurt door naar `/bedankt?type=bruiloft`, `/bedankt?type=portret` of `/bedankt?type=contact` (zonder JavaScript een 303-redirect; met het script `{ ok: true }` en `window.location.assign`). Er zijn drie formulieren: `bruiloft` (`/fotograaf-bruiloft`), `portret` (`/portretfotos`) en `contact` (`/contact`).
 
 **Nodig voor productie**
 
@@ -172,6 +183,27 @@ De variabelen staan in het Astro env-schema (`astro.config.mjs`, `astro:env/serv
 **Spamwering**: honeypotveld `website` (verborgen met CSS), een tijdstempelveld dat het script invult (formulier in minder dan 3 seconden verzonden telt als bot; het veld bevat milliseconden sinds laden, dus klokverschillen spelen geen rol) en een controle op de `Origin`-header. Bij spam doet de route alsof het gelukt is en verstuurt niets. `/api/` staat in `robots.txt` op `Disallow`; `/bedankt` is `noindex` en staat niet in de sitemap.
 
 **Formulier uitbreiden**: een nieuw formulier is een nieuw bestand in `src/lib/formulieren/` (velden, Zod-schema, `onderwerp`, `tekst`, `bevestiging`, `stappen`, `type`; gedeelde onderdelen uit `gedeeld.ts`), een regel in het register `index.ts` en een `formulier`-veld in de landingdata (`type` in `types.ts`). De bedankstappen op `/bedankt` komen per type uit `stappen`; de pagina is statisch, dus een klein inline script toont het blok van het type uit de querystring (zonder JavaScript of bij een onbekend type blijft "Wat gebeurt er nu?" verborgen). Het bruiloftformulier heeft geen pakket-, gasten- of berichtveld; het portretformulier heeft wel een pakketveld (de opties komen uit `portret-pakketten.ts`) en een berichtveld.
+
+## Privacyverklaring
+
+`/privacy` (`src/pages/privacy.astro`, tekst en SEO in `src/data/privacy.ts`). Vaste opbouw: header, H1 "Privacyverklaring" (`PaginaKop`, gedeeld met `/series` en `/contact`; de titel heeft een zacht afbreekteken en staat op twee regels: "Privacy-" en "verklaring"), korte inleiding, secties (haarlijn, titel links, tekst rechts), Panorama (`breuker tradities 18`, van rand tot rand tegen de footer, geen kop), footer. JSON-LD: `WebSite` en `BreadcrumbList`. Indexeerbaar en in de sitemap.
+
+- Plaatshouders in de tekst: `{email}`, `{telefoon}`, `{vestigingsplaats}`, `{kvk}` en `{LAATST_BIJGEWERKT}`. E-mail en telefoon komen uit `CONTACT`, vestigingsplaats en KvK uit `BEDRIJF` in `src/data/site.ts`. Is `BEDRIJF.kvk` niet gezet, dan verschijnt de KvK-regel niet. Pas `LAATST_BIJGEWERKT` aan bij elke inhoudelijke wijziging.
+- De sectie "Cookies en tracking" staat alleen op de pagina als `GEEN_COOKIES_GEMETEN` in `src/data/privacy.ts` op `true` staat. Die waarde hoort bij de uitkomst van `node scripts/privacy-meting.mjs` (cookies, browseropslag, Set-Cookie-headers, verzoeken aan andere hosts en Vercel-analytics op acht pagina's, desktop en mobiel). `astro preview` werkt niet met de Vercel-adapter; het script serveert daarom zelf `.vercel/output/static` (eerst `npm run build`). Voor Set-Cookie-headers van Vercel zelf: draai het script ook op een preview-URL met `BASE_URL=https://<preview>.vercel.app node scripts/privacy-meting.mjs`. Laatste meting (28 oktober 2026, lokaal): niets gevonden.
+- `Panorama.astro` kreeg de optionele props `bron` en `alt`; zonder props gedraagt hij zich als voorheen (homepage en `/contact` ongewijzigd).
+
+### Te controleren door Paul vóór livegang
+
+- [ ] KvK-nummer (`BEDRIJF.kvk` in `src/data/site.ts`; zonder nummer verschijnt de regel niet) en vestigingsplaats (`BEDRIJF.vestigingsplaats`, nu Nijmegen).
+- [ ] Klopt de bewaartermijn van 12 maanden voor aanvragen zonder opdracht, en het bewaren van foto's van een opdracht in een archief, met de praktijk?
+- [ ] Welke aanbieders gebruikt Paul voor e-mail, de online galerij en de boekhouding? Ze mogen desgewenst bij naam in de verklaring (sectie "Met wie ik gegevens deel").
+- [ ] Lopen albums en afdrukken via een drukker of leverancier?
+- [ ] Hoe wordt toestemming voor het gebruik van foto's vastgelegd (bijvoorbeeld in de overeenkomst)?
+- [ ] Heeft het Resend-abonnement dezelfde bewaartermijn van 30 dagen voor e-mails en logs?
+- [ ] De tekst beschrijft velden die de formulieren nu niet hebben: bij een bruiloft "het aantal gasten" en "het gewenste pakket" (het bruiloftformulier heeft die velden niet), bij een portret "waarvoor je de foto's wilt gebruiken" en "je gewenste periode" (bewust weggelaten op `/portretfotos`). Pas de tekst aan de formulieren aan, of andersom.
+- [ ] Pas de verklaring aan zodra analytics, een e-maillijst (bijvoorbeeld bij `/boek`) of nieuwe diensten worden toegevoegd, en draai de meting opnieuw.
+- [ ] Juridische controle van de hele tekst, inclusief de omgang met vrij werk en projecten waarop mensen staan afgebeeld (Tradities, Het gezicht van Nijmegen, De Gaarkeuken enzovoort).
+- [ ] Panorama onderaan: bevestig de foto en de alt-tekst (`panorama` in `src/data/privacy.ts`) en lever een bron van minimaal 2400 px breed aan (nu 1300 px, boven die breedte opgerekt).
 
 ## Redirects (`vercel.json`)
 
@@ -222,7 +254,7 @@ Zoek in de code op `TODO(paul)` voor de actuele lijst. Stand van de site:
 - [ ] **Navigatie**: placeholder-links controleren zodra de pagina's bestaan (`NAV` in `src/data/site.ts`). Op dit moment geven ze een 404.
 - [ ] **Standaard deelafbeelding** (1200x630, eigen foto) voor Open Graph/Twitter (`DEFAULT_OG_IMAGE`). Zonder afbeelding gebruikt Twitter de kaart `summary`.
 - [ ] **Adres en KvK** voor de voettekst. `LocalBusiness` staat op de homepage; `Person` (waar `founder` naar verwijst) komt op `/over-paul`.
-- [ ] **Privacyverklaring en cookiebeleid**: teksten en links in de voettekst.
+- [ ] **Privacyverklaring en cookiebeleid**: pagina gebouwd; zie "Te controleren door Paul vóór livegang" bij "Privacyverklaring". Een apart cookiebeleid is niet nodig zolang de meting schoon blijft (sectie "Cookies en tracking" in de verklaring).
 - [ ] **/fotograaf-bruiloft**: (1) intro-tekst laten goedkeuren (`hero.intro`); (2) werkgebied bevestigen of aanvullen (`seo.description` en `schema.werkgebied`: nu Nijmegen en Arnhem); (3) hero-fotostrip: zie het punt hieronder.
 - [ ] **/fotograaf-bruiloft, hero-fotostrip** (`hero.fotos`): alt-teksten laten controleren door Paul, alle drie (`bruiloft 18` bruid in het toilet, `20` aankleden, `16` bruidegom in de auto). Desktop toont alle drie, mobiel de eerste twee (`DESKTOP_AANTAL` en `MOBIEL_AANTAL` in `LandingHero.astro`). Bevestig de keuze: `18` is de eerste foto en dus ook de Open Graph-afbeelding en het LCP-beeld, en `20` en `16` staan alleen in de hero (niet meer in Impressie). De verhoudingen zijn allemaal 3:2; met drie foto's is de strip op 1440 px circa 308 px hoog (circa 21vw), op mobiel circa 32vw. Lever staande bruiloftfoto's aan (600 × 900 of groter) en bronnen van minimaal 1400 px breed voor de liggende; de bronnen zijn 1200 px.
 - [ ] **/fotograaf-bruiloft, Werkwijze** (`werkwijze.tekst`): tekst laten goedkeuren.
@@ -239,6 +271,7 @@ Zoek in de code op `TODO(paul)` voor de actuele lijst. Stand van de site:
   - Collectie: portretsessie (duur en locatie; "vooraf of de dag erna") en kunstafdrukken (formaat, papier, aantal).
   - Controleer of "vanaf €3.250" in `seo.title`, `seo.description` en `hero.intro` en `schema.vanPrijs` (3250) blijft kloppen met de laagste pakketprijs.
 - [ ] **Aanvraagformulier en /bedankt**: (1) Resend instellen (zie "Formulier en e-mail (Resend)"); (2) mailteksten laten goedkeuren (`src/lib/formulieren/bruiloft.ts`); (3) introtekst en privacytekst (`formulier` in `src/data/landing/fotograaf-bruiloft.ts`) laten kloppen met de privacyverklaring die nog geschreven moet worden (`/privacy`); (4) het proces en de reactietijd op `/bedankt` bevestigen (drie stappen). De opdracht noemde op `/bedankt` "binnen 48 uur", maar het formulier, de mails en de projectregels zeggen "binnen 24 uur": de pagina zegt nu ook 24 uur. Pas aan als dat niet klopt.
+- [ ] **/contact**: (1) laat de mailtekst goedkeuren (`src/lib/formulieren/contact.ts`: onderwerp en tekst van de mail naar Paul en van de bevestiging aan de afzender) en de drie bedankstappen voor het contactformulier ("Ik lees je bericht." / "Ik antwoord je binnen 24 uur per e-mail." / "Wil je iets toevoegen? Beantwoord dan de bevestigingsmail.", export `stappen` in `contact.ts`); (2) intro en privacytekst (`formulier` in `src/data/contact.ts`) laten goedkeuren; (3) bevestig of Paul WhatsApp gebruikt voor aanvragen (`WHATSAPP` in `src/data/site.ts`; zonder waarde geen regel); (4) bevestig het adres (komt niet op /contact; zie ook het punt "Adres en openingstijden"); (5) een bestelroute voor de boeken (nu verwijst de pagina naar het formulier).
 - [ ] Bruiloftprijs en vanaf-prijs portretten voor `Service` + `Offer` (de helper bestaat, de bedragen komen van Paul).
 - [ ] **Portfolio, series bevestigen**: de foto's kwamen plat uit `public/` en zijn op bestandsnaam ingedeeld. Zeker: `ASTY` (Asty Mwaka), `GEZICHT` (Het Gezicht van Nijmegen), `Gaarkeuken`, `Take me to the river`, `breuker lent` (Groeten uit Lent), `bruiloft` (Love & Marriage), `Portret 1/2` en `PORTRET BEEK` (samen in Portretten). Onzeker, nu zonder link: `huiskamers`, `tradities` (panoramaformaat: hoort dit bij /panoramas?), `promoties` (bewust geen link). Zonder serie: `L1039810-min-2`, `L1039998-min-dba42075`, `L1039999-min-550ea5c5`.
 - [ ] **Portfolio, grotere bronnen**: de originelen zijn 600 tot 1300 px breed, dus de "1600w" en "2400w" voor de grote weergave zijn nu het origineel. Lever bestanden van minimaal 2400 px breed aan voor een scherpe grote weergave.
@@ -251,4 +284,4 @@ Zoek in de code op `TODO(paul)` voor de actuele lijst. Stand van de site:
 - [ ] **/portretfotos, De Gaarkeuken**: bevestig dat `/de-gaarkeuken` het project is van de portretserie bij een gaarkeuken in Rusland en voeg jaartal en plaats van de serie toe (OverPaul en hero-intro).
 - [ ] **/portretfotos, foto's** (`hero.fotos` en `impressie.fotos` in `src/data/landing/portretfotos.ts`; bronnen in `src/assets/portfolio/portretten/`, allemaal staand 600 × 900 px): (1) alt-teksten laten controleren (beschreven naar wat te zien is; geen plek benoemd, want op deze close-ups is die nauwelijks te zien); (2) foto's van een sessie op locatie (thuis, op het werk, buiten) aanleveren: alle zeven zijn close-ups met een onscherpe achtergrond; (3) bronnen van minimaal 1400 px breed: de Open Graph-afbeelding (1200 × 630, uit de eerste hero-foto) wordt nu uit 600 px opgeschaald, en op desktop staat elke hero-foto op circa 32vw (463 px op 1440 px breed); (4) op mobiel toont de hero alleen de tweede foto (`MOBIEL_FOTOS` in `LandingHero.astro`), rand tot rand; een staande foto is daar 1,5 × de schermbreedte hoog (585 px op 390 px breed), veel hoger dan de liggende foto op de bruiloftpagina. Bevestig dat dat de bedoeling is. (Voor staande foto's is in `LandingHero.astro` de mobiele `flex` op `1 1 0` gezet, zodat de foto de hele breedte vult; voor liggende foto's, dus de bruiloftpagina, verandert er niets: pixel-identiek gecontroleerd.)
 - [ ] **/portretfotos, formulier en /bedankt**: laat de mailtekst (`src/lib/formulieren/portret.ts`), de intro en privacytekst (`formulier` in `portretfotos.ts`) en de drie bedankstappen voor het portret ("Ik lees je aanvraag." / "Ik stuur je een voorstel voor een moment en een plek." / "Daarna maken we de afspraken definitief.", export `stappen` in `portret.ts`) goedkeuren. Het veld "Aantal personen" is optioneel gemaakt (de opdracht noemde het niet als verplicht): bevestig dat dat de bedoeling is.
-- [ ] **Portretingang**: "portret" in de navigatie (`NAV`) en "Portret" in de footer (`FOOTER_NAV`) wijzen naar `/portretfotos`. De dienst "Portretten" bij Diensten, "Portret aanvragen" in `home.cta` (nog niet getoond) en de 404-pagina wijzen nog naar `/zakelijke-portretfoto` (bestaat nog niet, 404). Beslis of die ook naar `/portretfotos` moeten tot die pagina er is.
+- [ ] **Portretingang**: "portret" in de navigatie (`NAV`) en "Portret" in de footer (`FOOTER_NAV`) wijzen naar `/portretfotos`. De dienst "Portretten" bij Diensten wijst naar `/portretfotos`. "Portret aanvragen" in `home.cta` (nog niet getoond) en de 404-pagina wijzen nog naar `/zakelijke-portretfoto` (bestaat nog niet, 404). Beslis of die ook naar `/portretfotos` moeten tot die pagina er is. `Exposities` staat bewust niet in de footer (`FOOTER_NAV`) tot `/exposities` bestaat.

@@ -1,5 +1,5 @@
 /**
- * Test van de aanvraagformulieren (bruiloft en portret) en /api/aanvraag.
+ * Test van de aanvraagformulieren (bruiloft, portret en contact) en /api/aanvraag.
  *
  * Gebruik: `node scripts/aanvraag-test.mjs`. Het script start zelf een dev-server op poort 4398 (`astro dev --ignore-lock`,
  * dus naast een draaiende dev-server) zonder RESEND_API_KEY: de route doet dan een dry-run en logt de mails, en dat
@@ -10,6 +10,11 @@
  * verzending toont fouten, honeypot gevuld logt niets, ongeldig e-mailadres geeft 400, een klik op de cta van
  * "Kunstportret" scrolt naar #aanvragen met dat pakket voorgeselecteerd en het veld "locatie" staat in de gelogde
  * aanvraag. Daarnaast regressiecontroles voor het bruiloftformulier.
+ *
+ * Controles (contact, /contact): geldige aanvraag leidt naar /bedankt?type=contact (met de stappen van het contactformulier)
+ * en wordt gelogd, lege verzending toont fouten en zet de focus op het eerste ongeldige veld, honeypot gevuld logt niets,
+ * ongeldig e-mailadres en een onbekend (of leeg) onderwerp geven 400, en hetzelfde zonder JavaScript geeft een 303 naar
+ * /bedankt?type=contact. /contact toont "Liever bellen of mailen?" en de bewegende titel niet (de landingspagina's wel), en heeft de opbouw H1, formulier, contactregels (telefoon, e-mail, LinkedIn), panorama van rand tot rand tegen de footer.
  */
 import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
@@ -86,6 +91,15 @@ const geldigPortret = {
   bericht: 'Een gezin met twee kinderen.\nGraag in de tuin.',
   tijd: '5000',
 };
+const geldigContact = {
+  type: 'contact',
+  naam: 'Jan de Boer',
+  email: 'jan@example.com',
+  telefoon: '+31 6 12345678',
+  onderwerp: 'boek',
+  bericht: 'Ik wil graag een boek bestellen.\nKan dat ook als cadeau?',
+  tijd: '5000',
+};
 const geldigBruiloft = {
   type: 'bruiloft',
   datum: '2099-06-12',
@@ -155,6 +169,76 @@ await controle('portret API: honeypot gevuld, te snel of vreemde Origin geeft sc
 await controle('onbekend type geeft 400', async () => {
   const antwoord = await postJson({ ...geldigPortret, type: 'studio' });
   eis(antwoord.status === 400, `status ${antwoord.status}`);
+});
+
+await controle('contact API: geldige aanvraag geeft { ok: true } en logt mails met alle velden', async () => {
+  const voor = aantalMails();
+  const antwoord = await postJson(geldigContact);
+  eis(antwoord.status === 200 && antwoord.json?.ok === true, `status ${antwoord.status}`);
+  await wacht(500);
+  eis(aantalMails() === voor + 1, 'er is geen dry-run gelogd');
+  for (const verwacht of [
+    'Onderwerp: Nieuw bericht via contactformulier: Jan de Boer, Een boek of magazine bestellen',
+    'reply-to jan@example.com',
+    'Waar gaat het over?: Een boek of magazine bestellen',
+    'Vertel me waar ik je mee kan helpen: Ik wil graag een boek bestellen.\nKan dat ook als cadeau?',
+    'Verstuurd via paulbreuker.nl/contact',
+    'Onderwerp: Bedankt voor je bericht, ik reageer binnen 24 uur',
+    'Hoi Jan de Boer,\n\nBedankt voor je bericht. Ik heb het ontvangen en reageer binnen 24 uur.\n\nDit heb ik genoteerd:',
+    'Groet,\nPaul Breuker\n+31 6 51 47 54 06 | info@paulbreuker.nl\nhttps://paulbreuker.nl',
+  ]) {
+    eis(log.includes(verwacht), `ontbreekt in het log: ${verwacht}`);
+  }
+});
+
+await controle('contact zonder JavaScript: 303 naar /bedankt?type=contact', async () => {
+  const { tijd: _t, ...velden } = geldigContact;
+  const antwoord = await postFormulier(velden);
+  eis(antwoord.status === 303 && antwoord.location === '/bedankt?type=contact', `${antwoord.status} ${antwoord.location}`);
+});
+
+await controle('contact API: ongeldig e-mailadres geeft 400 met melding bij e-mail en logt niets', async () => {
+  const voor = aantalMails();
+  const antwoord = await postJson({ ...geldigContact, email: 'geen-adres' });
+  eis(antwoord.status === 400 && antwoord.json?.fouten?.email, `status ${antwoord.status} ${JSON.stringify(antwoord.json)}`);
+  await wacht(300);
+  eis(aantalMails() === voor, 'er is toch een mail gelogd');
+});
+
+await controle('contact API: onbekend of leeg onderwerp, leeg of te kort of te lang bericht geven 400', async () => {
+  const onbekend = await postJson({ ...geldigContact, onderwerp: 'studiosessie' });
+  eis(onbekend.status === 400 && onbekend.json?.fouten?.onderwerp, `onbekend: ${JSON.stringify(onbekend.json)}`);
+  const leeg = await postJson({ ...geldigContact, onderwerp: '' });
+  eis(leeg.status === 400 && leeg.json?.fouten?.onderwerp, `leeg: ${JSON.stringify(leeg.json)}`);
+  const kort = await postJson({ ...geldigContact, bericht: 'Hoi' });
+  eis(kort.status === 400 && kort.json?.fouten?.bericht, `kort: ${JSON.stringify(kort.json)}`);
+  const geen = await postJson({ ...geldigContact, bericht: '   ' });
+  eis(geen.status === 400 && geen.json?.fouten?.bericht, `leeg bericht: ${JSON.stringify(geen.json)}`);
+  const lang = await postJson({ ...geldigContact, bericht: 'x'.repeat(2001) });
+  eis(lang.status === 400 && lang.json?.fouten?.bericht, `lang: ${JSON.stringify(lang.json)}`);
+  const naam = await postJson({ ...geldigContact, naam: 'n'.repeat(121) });
+  eis(naam.status === 400 && naam.json?.fouten?.naam, `naam: ${JSON.stringify(naam.json)}`);
+});
+
+await controle('contact API: honeypot gevuld, te snel of vreemde Origin geeft schijnsucces en logt niets', async () => {
+  const voor = aantalMails();
+  const honeypot = await postJson({ ...geldigContact, website: 'https://spam.example' });
+  const snel = await postJson({ ...geldigContact, tijd: '500' });
+  const vreemd = await postJson(geldigContact, { Origin: 'https://spam.example' });
+  for (const antwoord of [honeypot, snel, vreemd]) eis(antwoord.status === 200 && antwoord.json?.ok === true, `status ${antwoord.status}`);
+  await wacht(800);
+  eis(aantalMails() === voor, 'er is toch een mail gelogd');
+});
+
+await controle('contact zonder JavaScript: een fout geeft een foutpagina met een link terug naar /contact#formulier', async () => {
+  const antwoord = await fetch(`${BASE}/api/aanvraag`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ type: 'contact', naam: 'Jan', email: 'geen-adres', onderwerp: 'boek', bericht: 'Een bericht van genoeg tekens.' }),
+  });
+  const html = await antwoord.text();
+  eis(antwoord.status === 400, `status ${antwoord.status}`);
+  eis(html.includes('href="/contact#formulier"'), 'de link terug naar het contactformulier ontbreekt');
 });
 
 await controle('bruiloft API (regressie): geldige aanvraag, 303 zonder JavaScript en validatiefouten', async () => {
@@ -244,6 +328,111 @@ await controle('portret UI: geldige aanvraag (via de cta) leidt naar /bedankt?ty
     eis((await pagina.locator('#main').getAttribute('data-aanvraag-type')) === 'portret', 'data-aanvraag-type ontbreekt');
   } finally {
     await context.close();
+  }
+});
+
+await controle('contact UI: geen blok "Liever bellen of mailen?", anker #formulier en links naar de aanvraagformulieren', async () => {
+  const { context, pagina } = await nieuwePagina('/contact');
+  try {
+    eis((await pagina.locator('#formulier').count()) === 1, 'anker #formulier ontbreekt');
+    eis((await pagina.locator('#aanvragen').count()) === 0, 'er staat een #aanvragen op /contact');
+    eis((await pagina.locator('.formulier__contact-kop').count()) === 0, '"Liever bellen of mailen?" staat op /contact');
+    // `main h1`: de dev-toolbar van Astro heeft zelf ook een h1.
+    eis((await pagina.locator('main h1').count()) === 1, 'niet precies één h1 in main');
+    for (const href of ['/fotograaf-bruiloft#aanvragen', '/portretfotos#aanvragen']) {
+      eis((await pagina.locator(`#formulier a[href="${href}"]`).count()) === 1, `link ${href} ontbreekt in de intro`);
+    }
+    // Opbouw: H1, formulier, contactregels (geen bewegende titel; geen Instagram of Facebook).
+    eis((await pagina.locator('.marquee').count()) === 0, 'er staat een bewegende titel op /contact');
+    eis((await pagina.locator('#formulier > h2.visually-hidden').count()) === 1, 'de verborgen h2 van het formulier ontbreekt');
+    eis((await pagina.locator('[data-conversie="instagram"], [data-conversie="facebook"]').count()) === 0, 'Instagram of Facebook staat nog als regel');
+    const soorten = await pagina.locator('.regel').evaluateAll((els) => els.map((el) => el.getAttribute('data-conversie')));
+    eis(soorten.join(',') === 'telefoon,email,linkedin', `regels: ${soorten.join(',')}`);
+    const volgorde = await pagina.evaluate(() => {
+      const top = (selector) => document.querySelector(selector).getBoundingClientRect().top;
+      return [top('main h1'), top('#formulier'), top('.regels')];
+    });
+    eis(volgorde[0] < volgorde[1] && volgorde[1] < volgorde[2], `volgorde klopt niet: ${volgorde.join(' / ')}`);
+    // Panorama: onder de regels, van rand tot rand en direct tegen de footer.
+    const panorama = await pagina.evaluate(() => {
+      const p = document.querySelector('.panorama').getBoundingClientRect();
+      const f = document.querySelector('footer').getBoundingClientRect();
+      const r = document.querySelector('.regels').getBoundingClientRect();
+      return { links: p.left, rechts: p.right, breedte: innerWidth, naarFooter: Math.round(f.top - p.bottom), naRegels: p.top >= r.bottom };
+    });
+    eis(panorama.links === 0 && panorama.rechts === panorama.breedte, `panorama loopt niet van rand tot rand: ${JSON.stringify(panorama)}`);
+    eis(Math.abs(panorama.naarFooter) <= 1 && panorama.naRegels, `panorama staat niet onder de regels en tegen de footer: ${JSON.stringify(panorama)}`);
+    const knop = (await pagina.locator('form[data-aanvraag] button[type="submit"]').textContent())?.trim();
+    eis(knop === 'Bericht versturen', `verzendlabel is "${knop}"`);
+  } finally {
+    await context.close();
+  }
+});
+
+await controle('contact UI: lege verzending toont fouten, zet de focus op het eerste ongeldige veld en verstuurt niets', async () => {
+  const { context, pagina } = await nieuwePagina('/contact');
+  try {
+    const voor = aantalMails();
+    await pagina.locator('form[data-aanvraag] button[type="submit"]').click();
+    await pagina.waitForTimeout(500);
+    for (const veld of ['naam', 'email', 'onderwerp', 'bericht']) {
+      const tekst = (await pagina.locator(`#aanvraag-${veld}-fout`).textContent()) ?? '';
+      eis(tekst.startsWith('Let op:'), `geen foutmelding bij ${veld}: "${tekst}"`);
+    }
+    eis(((await pagina.locator('#aanvraag-telefoon-fout').textContent()) ?? '') === '', 'het optionele telefoonveld toont een fout');
+    const actief = await pagina.evaluate(() => document.activeElement?.id);
+    eis(actief === 'aanvraag-naam', `focus staat op "${actief}", niet op het eerste ongeldige veld`);
+    eis(new URL(pagina.url()).pathname === '/contact', `url is ${pagina.url()}`);
+    eis(aantalMails() === voor, 'er is toch een mail gelogd');
+    // Een te kort bericht geeft de melding over het minimum, met de focus op dat veld.
+    await pagina.fill('#aanvraag-naam', 'Ine');
+    await pagina.fill('#aanvraag-email', 'ine@example.com');
+    await pagina.selectOption('#aanvraag-onderwerp', 'anders');
+    await pagina.fill('#aanvraag-bericht', 'Hoi');
+    await pagina.locator('form[data-aanvraag] button[type="submit"]').click();
+    await pagina.waitForTimeout(300);
+    eis((await pagina.locator('#aanvraag-bericht-fout').textContent()) === 'Let op: Schrijf minimaal 10 tekens.', 'melding bij een te kort bericht klopt niet');
+    eis((await pagina.evaluate(() => document.activeElement?.id)) === 'aanvraag-bericht', 'focus staat niet op het bericht');
+  } finally {
+    await context.close();
+  }
+});
+
+await controle('contact UI: geldige aanvraag leidt naar /bedankt?type=contact met de stappen van het contactformulier', async () => {
+  const { context, pagina } = await nieuwePagina('/contact');
+  try {
+    const voor = aantalMails();
+    await pagina.fill('#aanvraag-naam', 'Ine Jansen');
+    await pagina.fill('#aanvraag-email', 'ine@example.com');
+    await pagina.selectOption('#aanvraag-onderwerp', 'pers');
+    await pagina.fill('#aanvraag-bericht', 'Een vraag over de expositie in het Valkhof.');
+    await pagina.locator('form[data-aanvraag] button[type="submit"]').click();
+    await pagina.waitForURL(/\/bedankt\?type=contact$/, { timeout: 15000 });
+    eis(aantalMails() === voor + 1, 'geen dry-run gelogd');
+    eis(log.includes('Onderwerp: Nieuw bericht via contactformulier: Ine Jansen, Exposities of pers'), 'onderwerp ontbreekt of klopt niet');
+    const contact = pagina.locator('[data-stappen="contact"]');
+    eis(await contact.isVisible(), 'stappen van het contactformulier zijn niet zichtbaar');
+    eis(!(await pagina.locator('[data-stappen="portret"]').isVisible()), 'stappen van het portret zijn zichtbaar');
+    eis(!(await pagina.locator('[data-stappen="bruiloft"]').isVisible()), 'stappen van de bruiloft zijn zichtbaar');
+    const tekst = (await contact.textContent()) ?? '';
+    for (const stap of ['Ik lees je bericht.', 'Ik antwoord je binnen 24 uur per e-mail.', 'Wil je iets toevoegen? Beantwoord dan de bevestigingsmail.']) {
+      eis(tekst.includes(stap), `stap ontbreekt: ${stap}`);
+    }
+    eis((await pagina.locator('#main').getAttribute('data-aanvraag-type')) === 'contact', 'data-aanvraag-type ontbreekt');
+  } finally {
+    await context.close();
+  }
+});
+
+await controle('landingspagina (regressie): bruiloft en portret tonen "Liever bellen of mailen?" en hebben #aanvragen', async () => {
+  for (const pad of ['/fotograaf-bruiloft', '/portretfotos']) {
+    const { context, pagina } = await nieuwePagina(pad);
+    try {
+      eis((await pagina.locator('#aanvragen').count()) === 1, `${pad}: #aanvragen ontbreekt`);
+      eis((await pagina.locator('.formulier__contact-kop').count()) === 1, `${pad}: "Liever bellen of mailen?" ontbreekt`);
+    } finally {
+      await context.close();
+    }
   }
 });
 

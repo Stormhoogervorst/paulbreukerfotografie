@@ -4,11 +4,12 @@
  * deze map (met de onderdelen uit gedeeld.ts) en een regel hieronder.
  */
 import * as bruiloft from './bruiloft';
+import * as contact from './contact';
 import * as portret from './portret';
 import type { Formulier } from './types';
 
 // `satisfies` controleert bij het compileren dat elk bestand aan het formuliertype voldoet.
-export const formulieren = { bruiloft, portret } satisfies Record<string, Formulier>;
+export const formulieren = { bruiloft, portret, contact } satisfies Record<string, Formulier>;
 
 export type FormulierType = keyof typeof formulieren;
 

@@ -1,5 +1,5 @@
 /**
- * POST /api/aanvraag: verwerkt een aanvraag uit het formulier (type "bruiloft" of "portret", zie src/lib/formulieren/).
+ * POST /api/aanvraag: verwerkt een aanvraag uit het formulier (type "bruiloft", "portret" of "contact", zie src/lib/formulieren/).
  *
  * Dit is het enige on-demand deel van de site (`prerender = false`); de rest is statisch.
  *
@@ -120,6 +120,7 @@ export const POST: APIRoute = async ({ request, site }) => {
       titel: 'Controleer je aanvraag',
       uitleg: 'Een of meer velden zijn niet goed ingevuld.',
       fouten,
+      terug: formulier.terug,
     });
   }
   const data = resultaat.data;
@@ -148,11 +149,11 @@ export const POST: APIRoute = async ({ request, site }) => {
       return succes(request, formulier.type);
     }
     console.error('[aanvraag] RESEND_API_KEY ontbreekt: aanvraag niet verwerkt.');
-    return notConfigured(request);
+    return notConfigured(request, formulier.terug);
   }
   if (!van) {
     console.error('[aanvraag] FORM_FROM_EMAIL ontbreekt: aanvraag niet verwerkt.');
-    return notConfigured(request);
+    return notConfigured(request, formulier.terug);
   }
 
   const resend = new Resend(sleutel);
@@ -171,6 +172,7 @@ export const POST: APIRoute = async ({ request, site }) => {
       code: 'verzenden_mislukt',
       titel: 'Het versturen is niet gelukt',
       uitleg: 'Je aanvraag is niet aangekomen. Probeer het later nog eens, of neem direct contact met me op.',
+      terug: formulier.terug,
     });
   }
 
@@ -187,11 +189,12 @@ export const POST: APIRoute = async ({ request, site }) => {
   return succes(request, formulier.type);
 };
 
-function notConfigured(request: Request): Response {
+function notConfigured(request: Request, terug?: string): Response {
   return fout(request, {
     status: 503,
     code: 'niet_geconfigureerd',
     titel: 'Het formulier werkt nu nog niet',
     uitleg: 'Het versturen van aanvragen is nog niet ingesteld op deze website. Je aanvraag is niet verstuurd.',
+    terug,
   });
 }

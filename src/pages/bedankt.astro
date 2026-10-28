@@ -1,12 +1,12 @@
 ---
 /**
- * /bedankt: de pagina na een verzonden aanvraag (src/pages/api/aanvraag.ts stuurt hierheen met `?type=bruiloft` of
- * `?type=portret`).
+ * /bedankt: de pagina na een verzonden aanvraag (src/pages/api/aanvraag.ts stuurt hierheen met `?type=bruiloft`,
+ * `?type=portret` of `?type=contact`).
  *
  * - `noindex`, niet in de sitemap (filter in astro.config.mjs), niet gelinkt vanuit navigatie of footer. Canonical zonder
  *   querystring. Robots.txt laat de pagina crawlbaar, zodat de noindex gelezen wordt.
  * - De pagina is statisch, dus de querystring `type` is alleen in de browser bekend. De drie stappen staan per formuliertype
- *   in de HTML (uit `src/lib/formulieren/<type>.ts`, export `stappen`), verborgen; een klein inline script toont het blok
+ *   in de HTML (uit `src/lib/formulieren/<type>.ts`, export `stappen`; toegestane waarden zijn de typen uit het register: bruiloft, portret en contact), verborgen; een klein inline script toont het blok
  *   van het type uit de querystring en zet `data-aanvraag-type` op <main> (alleen bekende typen), zodat conversiemeting
  *   er later op kan aansluiten. Er is hier geen analytics gebouwd. Zonder JavaScript of met een onbekend type blijft het
  *   blok "Wat gebeurt er nu?" verborgen; de tekst erboven noemt de reactietijd al.

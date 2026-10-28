@@ -199,11 +199,12 @@ export interface LandingVragen {
 /**
  * Aanvraagformulier: na Reviews en vóór Beeld (component: src/components/landing/LandingFormulier.astro).
  * Het anker #aanvragen verwijst naar deze sectie. De velden, de validatie en de mails staan per type in
- * `src/lib/formulieren/` (register in index.ts); hier alleen de teksten van de sectie. Types: "bruiloft" en "portret".
+ * `src/lib/formulieren/` (register in index.ts); hier alleen de teksten van de sectie. Types: "bruiloft", "portret" en
+ * "contact" (/contact, zie src/data/contact.ts).
  */
 export interface LandingFormulier {
   /** Formuliertype: kiest de velden, het schema en de mails uit het register in `src/lib/formulieren/index.ts`. */
-  type: 'bruiloft' | 'portret';
+  type: 'bruiloft' | 'portret' | 'contact';
   /** Titel in de marquee; de eerste herhaling is de <h2> van de sectie. */
   titel: string;
   /** Alinea's van het introblok links (ik-vorm van Paul). Daaronder komen "Liever bellen of mailen?" en de contactgegevens. */

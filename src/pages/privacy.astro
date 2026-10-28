@@ -1,0 +1,211 @@
+---
+/**
+ * /privacy: de privacyverklaring. Vaste opbouw (verandert nooit): header, H1 "Privacyverklaring" (PaginaKop, gedeeld met
+ * /series en /contact), korte inleiding, secties (elk met haarlijn, titel links, tekst rechts), Panorama (foto van rand
+ * tot rand, geen kop, tegen de footer aan), footer. Geen formulier. Tekst, SEO, secties en panorama: src/data/privacy.ts
+ * (sitegegevens uit src/data/site.ts).
+ *
+ * Elk blok zit in een eigen wrapper met alleen padding; geen margins die van buren afhangen.
+ * Desktop (vanaf 700px): titel op --gutter, tekst op --kolom-statement (zelfde kolom als de contactregels op /contact),
+ * de inleiding op --kolom-tekst (zoals de inleiding in de hero van een landingspagina). Mobiel: één kolom.
+ * JSON-LD: WebSite (automatisch via BaseLayout) en BreadcrumbList.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PaginaKop from '../components/PaginaKop.astro';
+import Segmenten from '../components/Segmenten.astro';
+import Panorama from '../components/Panorama.astro';
+import { seo, breadcrumb, h1, inleiding, secties, panorama, type Blok } from '../data/privacy';
+import { breadcrumbList } from '../lib/schema';
+import type { Segment } from '../data/landing/types';
+
+const PAD = '/privacy';
+
+const jsonLd = [
+  breadcrumbList([
+    { name: 'Home', path: '/' },
+    { name: breadcrumb, path: PAD },
+  ]),
+];
+
+const isLijst = (blok: Blok): blok is Segment[][] => Array.isArray(blok[0]);
+---
+
+<BaseLayout title={seo.title} description={seo.description} canonical={PAD} jsonLd={jsonLd}>
+  <PaginaKop titel={h1} />
+
+  <div class="privacy-intro">
+    <p class="privacy-intro__tekst"><Segmenten segmenten={inleiding} /></p>
+  </div>
+
+  <div class="privacy-secties">
+    {
+      secties.map((sectie) => (
+        <section class="sectie" id={sectie.id} aria-labelledby={`${sectie.id}-titel`}>
+          <div class="sectie__rij">
+            <h2 class="sectie__titel" id={`${sectie.id}-titel`}>
+              {sectie.titel}
+            </h2>
+            <div class="sectie__tekst">
+              {sectie.blokken.map((blok) =>
+                isLijst(blok) ? (
+                  <ul class="sectie__lijst" role="list">
+                    {blok.map((item) => (
+                      <li>
+                        <Segmenten segmenten={item} />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>
+                    <Segmenten segmenten={blok} />
+                  </p>
+                ),
+              )}
+            </div>
+          </div>
+        </section>
+      ))
+    }
+  </div>
+
+  <div class="privacy-panorama">
+    <Panorama bron={panorama.afbeelding} alt={panorama.alt} />
+  </div>
+</BaseLayout>
+
+<style>
+  /* De kop (H1) staat in PaginaKop.astro, gedeeld met /series en /contact. */
+
+  /* ---------- Inleiding (mobiel eerst) ---------- */
+  /* Tekststijl van de hero-inleiding op een landingspagina (.landing-hero__tekst p): lettergrootte van de lopende tekst en
+     --intro-lh. Ruimte onder de inleiding: 6vw (de ruimte boven komt uit PaginaKop). */
+  .privacy-intro {
+    padding: 0 var(--gutter) 6vw;
+  }
+
+  .privacy-intro__tekst {
+    max-width: none;
+    margin: 0;
+    font-size: var(--font-size-body);
+    line-height: var(--intro-lh);
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  /* ---------- Secties (mobiel: één kolom, titel boven de tekst) ---------- */
+  /* Onder de laatste haarlijn een halve --sectie-ruimte; de andere helft zit boven het panorama. Alleen padding. */
+  .privacy-secties {
+    padding-bottom: calc(var(--sectie-ruimte) / 2);
+  }
+
+  /* ---------- Panorama ---------- */
+  /* Van rand tot rand (geen horizontale padding) en onderaan direct tegen de footer: geen ruimte eronder, zoals op /contact. */
+  .privacy-panorama {
+    padding-block: calc(var(--sectie-ruimte) / 2) 0;
+  }
+
+  /* Eigen wrapper per sectie: alleen horizontale padding (de gutters); het anker (#wie, #bewaren, ...) staat hier. */
+  .sectie {
+    padding-inline: var(--gutter);
+    scroll-margin-top: 1.5rem;
+  }
+
+  /* Haarlijn van 1px in --ink boven elke sectie (zoals de contactregels op /contact) en onder de laatste. Op mobiel 4vw
+     boven en onder: samen ongeveer 8vw tussen twee secties. */
+  .sectie__rij {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 3vw;
+    padding-block: 4vw;
+    border-top: 1px solid var(--ink);
+  }
+
+  .sectie:last-child .sectie__rij {
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .sectie__titel {
+    margin: 0;
+    font-size: max(1.125rem, 4.8vw);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0;
+    color: var(--ink);
+    overflow-wrap: break-word;
+  }
+
+  .sectie__tekst {
+    min-width: 0;
+    display: grid;
+    gap: 1em; /* tussen alinea's en lijsten */
+    font-size: max(1rem, 4.2vw);
+    line-height: 1.55;
+    color: var(--ink);
+    overflow-wrap: anywhere; /* e-mailadres en URL's wrappen netjes; geen horizontale scroll */
+  }
+
+  .sectie__tekst p {
+    max-width: none;
+    margin: 0;
+  }
+
+  /* Lijsten: geen opsommingstekens, alleen witruimte tussen de items (de haarlijnen tussen de secties blijven de enige
+     lijnen op de pagina). */
+  .sectie__lijst {
+    display: grid;
+    gap: 0.9em;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sectie__lijst li {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ---------- Links (in het kindcomponent Segmenten, dus :global) ---------- */
+  .privacy-intro :global(a),
+  .sectie__tekst :global(a) {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .privacy-intro :global(a:hover),
+  .sectie__tekst :global(a:hover) {
+    text-decoration-thickness: 2px;
+  }
+
+  .privacy-intro :global(a:focus-visible),
+  .sectie__tekst :global(a:focus-visible) {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 0;
+  }
+
+  /* ---------- Desktop ---------- */
+  @media (min-width: 700px) {
+    /* Inleiding in de tekstkolom van de hero van een landingspagina: begint op --kolom-tekst (vanaf de schermrand), de
+       wrapper heeft de gutter als padding. */
+    .privacy-intro__tekst {
+      margin-left: calc(var(--kolom-tekst) - var(--gutter));
+    }
+
+    /* Titel links op de gutter, tekst rechts vanaf --kolom-statement (dezelfde kolom als de contactregels op /contact). */
+    .sectie__rij {
+      grid-template-columns: calc(var(--kolom-statement) - var(--gutter)) minmax(0, 52vw);
+      row-gap: 0;
+      padding-block: 3vw;
+    }
+
+    .sectie__titel {
+      padding-right: 2vw; /* lucht tussen een lange titel en de tekstkolom */
+      font-size: max(1.125rem, 1.6vw);
+    }
+
+    .sectie__tekst {
+      font-size: max(1rem, 1.15vw);
+    }
+  }
+</style>

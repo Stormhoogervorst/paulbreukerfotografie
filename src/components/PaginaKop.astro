@@ -1,0 +1,41 @@
+---
+/**
+ * Paginakop: de grote H1 bovenaan een overzichtspagina (gedeeld door /series, /contact en /privacy). Uitgelijnd op --gutter, geen
+ * eigen marges buiten de padding van de wrapper.
+ *
+ * - Mobiel (onder 700px): 8vw boven, 6vw onder. Desktop: 4vw onder, tenzij een omringend element
+ *   `--pagina-kop-onder` zet (zo geeft /contact 6vw tussen de H1 en de eerste haarlijn).
+ * - De stijl is ongewijzigd overgenomen uit /series (voorheen `.series-kop`); /series moet pixel-identiek blijven.
+ */
+interface Props {
+  titel: string;
+}
+
+const { titel } = Astro.props;
+---
+
+<div class="pagina-kop">
+  <h1 class="pagina-kop__titel">{titel}</h1>
+</div>
+
+<style>
+  .pagina-kop {
+    padding: 8vw var(--gutter) 6vw; /* mobiel: iets minder ruimte onder de kop dan op desktop */
+  }
+
+  .pagina-kop__titel {
+    margin: 0;
+    font-size: 14vw;
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+    text-wrap: balance; /* een lange titel (met zachte afbreking, zoals "Privacy­verklaring") past op maximaal twee even lange regels; korte titels veranderen niet */
+  }
+
+  @media (min-width: 700px) {
+    .pagina-kop {
+      padding-bottom: var(--pagina-kop-onder, 4vw);
+    }
+  }
+</style>

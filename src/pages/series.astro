@@ -1,11 +1,12 @@
 ---
 /**
- * /series: overzicht van Pauls projecten. Vaste opbouw (verandert nooit): header, H1 "Series", raster met kaarten, footer.
+ * /series: overzicht van Pauls projecten. Vaste opbouw (verandert nooit): header, H1 "Series" (PaginaKop), raster met kaarten, footer.
  * Geen filters, geen introtekst, geen andere secties. Data en volgorde: src/data/series.ts.
  * Elk blok zit in een eigen wrapper met alleen padding; geen margins die van buren afhangen.
  */
 import { Picture } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import PaginaKop from '../components/PaginaKop.astro';
 import { serieLijst, serieHref } from '../data/series';
 import { breadcrumbList, collectionPage } from '../lib/schema';
 
@@ -32,9 +33,7 @@ const breedtes = (bron: number) => [...new Set([...BREEDTES.filter((breedte) => 
 ---
 
 <BaseLayout title={title} description={description} canonical="/series" jsonLd={jsonLd}>
-  <div class="series-kop">
-    <h1 class="series-kop__titel">Series</h1>
-  </div>
+  <PaginaKop titel="Series" />
 
   <div class="series-raster">
     <ul class="series-raster__lijst" role="list">
@@ -67,19 +66,7 @@ const breedtes = (bron: number) => [...new Set([...BREEDTES.filter((breedte) => 
 </BaseLayout>
 
 <style>
-  /* ---------- Kop ---------- */
-  .series-kop {
-    padding: 8vw var(--gutter) 6vw; /* mobiel: iets minder ruimte onder de kop dan op desktop */
-  }
-
-  .series-kop__titel {
-    margin: 0;
-    font-size: 14vw;
-    font-weight: 700;
-    line-height: 0.9;
-    letter-spacing: -0.04em;
-    color: var(--ink);
-  }
+  /* De kop (H1) staat in PaginaKop.astro, gedeeld met /contact. */
 
   /* ---------- Raster (mobiel: één kolom) ---------- */
   .series-raster {
@@ -149,10 +136,6 @@ const breedtes = (bron: number) => [...new Set([...BREEDTES.filter((breedte) => 
 
   /* ---------- Desktop ---------- */
   @media (min-width: 700px) {
-    .series-kop {
-      padding-bottom: 4vw;
-    }
-
     /* Twee kolommen waarin de kaarten direct op elkaar aansluiten (met 4vw witruimte ertussen), ongeacht de hoogte van
        de foto's. De browser verdeelt de kaarten zo gelijk mogelijk over de kolommen; de volgorde loopt per kolom van
        boven naar beneden (eerst de linkerkolom, dan de rechter). */

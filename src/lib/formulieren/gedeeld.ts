@@ -1,5 +1,5 @@
 /**
- * Gedeelde bouwstenen van de aanvraagformulieren (bruiloft.ts, portret.ts): validatiehulpen, de velden die in elk
+ * Gedeelde bouwstenen van de aanvraagformulieren (bruiloft.ts, portret.ts, contact.ts): validatiehulpen, de velden die in elk
  * formulier hetzelfde zijn (e-mail, telefoon, "Hoe ken je mij?") en de hulpfuncties voor de mails.
  *
  * Wijzig hier niets zonder beide formulieren te controleren: het gedrag van het bruiloftformulier mag niet veranderen.
@@ -85,6 +85,18 @@ export function enkeleRegel(max: number, leeg: string, teLang: string) {
     .min(1, leeg)
     .max(max, teLang)
     .transform(eenRegel);
+}
+
+/** Vrije tekst: regeleinden blijven staan (\r\n wordt \n), overige stuurtekens vallen weg. */
+export function meerdereRegelsTekst(tekst: string): string {
+  return tekst
+    .replace(/\r\n?/g, '\n')
+    .replace(/[\u0000-\u0009\u000b-\u001f\u007f\u2028\u2029]+/g, ' ')
+    .trim();
+}
+
+export function meerdereRegels(max: number, teLang: string) {
+  return z.string().trim().max(max, teLang).transform(meerdereRegelsTekst);
 }
 
 /** Leeg of ontbrekend telt als niet ingevuld; anders gaat de waarde door het schema. */

@@ -77,6 +77,11 @@
   /* Linkerrand van de tekstkolom op desktop (vanaf 900px), vanaf de linkerrand van het scherm: de inleiding in de hero van
      een landingspagina en de antwoorden in Vragen (later ook Uitleg). Alleen de waarde, geen kolom. */
   --kolom-tekst: 53.2vw;
+  /* Linkerrand van de tekstkolom van Werkwijze (Statement), vanaf de linkerrand van het scherm: gutter + eerste kolom
+     (3fr van 3fr 7fr, na aftrek van twee gutters padding en één gutter column-gap) + gutter. Zelfde berekening als
+     `--statement-kolommen` en de `column-gap` in Statement.astro, in vw (zoals --kolom-tekst). Alleen de waarde, geen
+     kolom; gebruikt door de contactregels op /contact. */
+  --kolom-statement: calc(2 * var(--gutter) + (100vw - 3 * var(--gutter)) * 0.3);
 }
 
 @media (min-width: 900px) {

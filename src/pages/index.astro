@@ -66,7 +66,7 @@ const fotoC = heroFoto('C');
           width={1200}
           height={1800}
           widths={[320, 480, 800, 1200]}
-          sizes="(min-width: 900px) 25vw, calc(100vw - 5.5vw)"
+          sizes="(min-width: 900px) 25vw, calc(100vw - 11vw)"
           loading="eager"
           fetchpriority="high"
         />
@@ -191,10 +191,10 @@ const fotoC = heroFoto('C');
     margin-top: calc(var(--wordmark-size) * var(--overlap) * -1);
   }
 
-  /* Links tegen de schermrand: de hero-marge wordt teruggenomen, rechts blijft de marge staan. */
+  /* Binnen de marges: de linkerrand van de foto ligt op de gutter, op één lijn met de linkerkant van de H1 (de P). */
   .hero__photo {
-    width: calc(100% + var(--gutter));
-    margin-left: calc(var(--gutter) * -1);
+    width: 100%;
+    margin-left: 0;
   }
 
   /* B en C: alleen vanaf 900 px (zie desktop-blok). */
@@ -277,7 +277,7 @@ const fotoC = heroFoto('C');
        letters beginnen 0,587em boven T, de basislijn (geen staarten) ligt 0,157em onder T.
        Het wordmark loopt van gutter tot gutter (89vw bij 5,5vw gutter; voorheen 83vw). Alle foto's zijn met dezelfde
        factor (89/83 = 1,072) meegeschaald, zodat de verhoudingen van de zigzag gelijk blijven.
-       - A: 24,3vw breed, 4 / 5, links tegen de schermrand, overlapt het wordmark in dezelfde verhouding als voorheen.
+       - A: 24,3vw breed, 4 / 5, links op de gutter (op één lijn met de linkerkant van de H1), overlapt het wordmark in dezelfde verhouding als voorheen.
        - B: 13,9vw breed, 5 / 4, gecentreerd boven "reu" van Breuker (die staat nu op 48,7 tot 72vw: B links op 53,2vw),
          onderkant 2,5vw boven de letters van het wordmark.
        - C: 12,9vw breed, 4 / 5, rechterrand op de rechtergutter (= rechterrand van de r en van de navigatie),
@@ -306,8 +306,7 @@ const fotoC = heroFoto('C');
     .hero__photo--a {
       grid-area: 1 / 1;
       width: var(--foto-a);
-      margin-left: calc(var(--gutter) * -1); /* tegen de linkerrand van het scherm */
-      margin-top: var(--foto-a-zak);
+      margin-top: var(--foto-a-zak); /* links op de gutter, op één lijn met de H1 */
     }
 
     .hero__photo--a :global(.photo) {

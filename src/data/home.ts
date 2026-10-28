@@ -157,7 +157,7 @@ export const home = {
       {
         nummer: '02',
         title: 'Portretten',
-        href: '/zakelijke-portretfoto',
+        href: '/portretfotos',
         extern: false,
       },
       {

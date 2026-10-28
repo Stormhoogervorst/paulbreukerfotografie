@@ -19,6 +19,7 @@ import {
   emailVeld,
   enkeleRegel,
   keuze,
+  meerdereRegels,
   optieLabel,
   optioneel,
   regels,
@@ -114,20 +115,6 @@ export const velden: VeldConfig[] = [
 // ---------------------------------------------------------------------------
 // Schema
 // ---------------------------------------------------------------------------
-
-/** Vrije tekst: regeleinden blijven staan (\r\n wordt \n), overige stuurtekens vallen weg. */
-function meerdereRegels(max: number, teLang: string) {
-  return z
-    .string()
-    .trim()
-    .max(max, teLang)
-    .transform((tekst) =>
-      tekst
-        .replace(/\r\n?/g, '\n')
-        .replace(/[\u0000-\u0009\u000b-\u001f\u007f\u2028\u2029]+/g, ' ')
-        .trim(),
-    );
-}
 
 export const schema = z.object({
   naam: enkeleRegel(120, MELDING.naamLeeg, MELDING.naamLang),

@@ -141,6 +141,15 @@ export interface PostalAddressSchema {
   addressCountry: string;
 }
 
+export interface ContactPointSchema {
+  '@type': 'ContactPoint';
+  contactType: string;
+  telephone?: string;
+  email?: string;
+  availableLanguage?: string;
+  areaServed?: string[];
+}
+
 export interface LocalBusinessSchema extends JsonLdNode {
   '@type': 'ProfessionalService' | 'LocalBusiness';
   name: string;
@@ -153,6 +162,7 @@ export interface LocalBusinessSchema extends JsonLdNode {
   areaServed?: string[];
   sameAs?: string[];
   priceRange?: string;
+  contactPoint?: ContactPointSchema;
 }
 
 export interface LocalBusinessInput {
@@ -167,6 +177,8 @@ export interface LocalBusinessInput {
   areaServed?: string[];
   sameAs?: string[];
   priceRange?: string;
+  /** Contactpunt (alleen op /contact): telefoon, e-mail, taal en werkgebied als `ContactPoint`. */
+  contactPoint?: Omit<ContactPointSchema, '@type'>;
   /** Standaard het Person-node van Paul. */
   founderId?: string;
 }
@@ -186,6 +198,46 @@ export function localBusiness(input: LocalBusinessInput = {}): LocalBusinessSche
     ...(input.areaServed?.length ? { areaServed: input.areaServed } : {}),
     ...(input.sameAs?.length ? { sameAs: input.sameAs } : {}),
     ...(input.priceRange ? { priceRange: input.priceRange } : {}),
+    ...(input.contactPoint ? { contactPoint: { '@type': 'ContactPoint', ...input.contactPoint } } : {}),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// ContactPage
+// ---------------------------------------------------------------------------
+
+export interface ContactPageSchema extends JsonLdNode {
+  '@type': 'ContactPage';
+  name: string;
+  description: string;
+  url: string;
+  inLanguage: 'nl-NL';
+  isPartOf: IdRef;
+  /** Het bedrijf waar de pagina over gaat, via @id (het node zelf staat op de homepage en op deze pagina). */
+  mainEntity: IdRef;
+}
+
+export interface ContactPageInput {
+  name: string;
+  description: string;
+  /** Pad of URL van de contactpagina. */
+  path: string;
+  /** Standaard het LocalBusiness van de homepage. */
+  businessId?: string;
+}
+
+/** Contactpagina die via @id naar het bedrijf verwijst. Geen adres, AggregateRating of Review. */
+export function contactPage(input: ContactPageInput): ContactPageSchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    '@id': `${absoluteUrl(input.path)}#contactpagina`,
+    name: input.name,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    inLanguage: 'nl-NL',
+    isPartOf: { '@id': WEBSITE_ID },
+    mainEntity: { '@id': input.businessId ?? BUSINESS_ID },
   };
 }
 
@@ -496,6 +548,7 @@ export type AnySchema =
   | BreadcrumbListSchema
   | PersonSchema
   | LocalBusinessSchema
+  | ContactPageSchema
   | ServiceSchema
   | ImageObjectSchema
   | ImageGallerySchema
