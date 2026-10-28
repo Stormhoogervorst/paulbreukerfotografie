@@ -1,0 +1,167 @@
+---
+/**
+ * OverPaul (landingspagina): haarlijn bovenaan, links een foto van Paul, rechts de openingsalinea en de gewone
+ * alinea's in één en dezelfde tekstgrootte, en een kleine link. Het label is alleen een visueel verborgen <h2> (voor de paginastructuur en schermlezers). Staat direct na Impressie en vóór Uitleg (zie LandingLayout.astro).
+ *
+ * - Typografie: alle alinea's (lead en gewone alinea's) hebben de tekststijl van de inleiding in de hero
+ *   (--font-size-body, --intro-lh), dus allemaal even groot; geen grote statement-tekst en geen ingesprongen eerste regel.
+ *   De kleine link gebruikt .statement-link uit global.css, zoals Statement.
+ * - Desktop (vanaf 900px): grid met dezelfde kolommen, gutter en column-gap als Statement (--statement-kolommen), dus de
+ *   tekstkolom begint op exact dezelfde horizontale positie als in Werkwijze. De foto staat links, in zijn natuurlijke
+ *   verhouding (geen uitsnede), niet sticky. De bovenkant van de eerste tekstregel (de hoofdletters van de lead) ligt
+ *   op één lijn met de bovenkant van de foto (gecorrigeerd voor de regelafstand van de tekst).
+ * - Mobiel: één kolom, eerst de foto, dan de tekst.
+ * - De <h2> heeft de tekst uit de data ("Over Paul") en is zichtbaar verborgen (.visually-hidden uit global.css).
+ * - Segmenten met een href worden <a> (standaard linkstijl van de site); strings zijn tekst. Geen set:html.
+ * - Geen overlay, schaduw, afgeronde hoeken, hover op de foto, animatie of client-JavaScript.
+ * - Geen eigen buitenmarges: de verticale ruimte rond de sectie komt van de .sectie-wrapper in LandingLayout.astro.
+ *
+ * Content: `pagina.overPaul` (zie src/data/landing/types.ts en src/data/paul.ts).
+ */
+import { Picture } from 'astro:assets';
+import type { LandingOverPaul, Segment } from '../../data/landing/types';
+
+interface Props {
+  overPaul: LandingOverPaul;
+}
+
+const { overPaul } = Astro.props;
+const { afbeelding, alt } = overPaul.foto;
+
+/** Bronbestand is klein (400 × 400): breedtes aanpassen op het origineel, niet opschalen. */
+const WIDTHS = [200, 320, afbeelding.width];
+
+const KOP_ID = 'over-paul-landing-titel';
+---
+
+<section class="over-paul" aria-labelledby={KOP_ID}>
+  <div class="over-paul__inner">
+    <div class="over-paul__foto">
+      <Picture
+        src={afbeelding}
+        alt={alt}
+        width={afbeelding.width}
+        height={afbeelding.height}
+        widths={WIDTHS}
+        sizes="(min-width: 900px) 17vw, 40vw"
+        formats={['avif', 'webp']}
+        fallbackFormat="jpg"
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+
+    <div class="over-paul__tekst">
+      <h2 id={KOP_ID} class="visually-hidden">{overPaul.label}</h2>
+
+      <div class="over-paul__alineas">
+        <p>
+          {overPaul.lead.map((segment: Segment) => (typeof segment === 'string' ? segment : <a href={segment.href}>{segment.tekst}</a>))}
+        </p>
+        {
+          overPaul.alineas.map((alinea) => (
+            <p>
+              {alinea.map((segment: Segment) => (typeof segment === 'string' ? segment : <a href={segment.href}>{segment.tekst}</a>))}
+            </p>
+          ))
+        }
+      </div>
+
+      {
+        overPaul.links.length > 0 && (
+          <ul class="over-paul__links" role="list">
+            {overPaul.links.map((link) => (
+              <li>
+                <a class="statement-link" href={link.href}>
+                  {link.label} <span aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---------- OverPaul (mobiel eerst) ---------- */
+  .over-paul {
+    /* Ruimte tussen de blokken van de tekst (lead, alinea's, links). Desktop: ongeveer 3vw. */
+    --blok-ruimte: var(--space-4);
+    padding: 0 var(--gutter);
+  }
+
+  /* Dezelfde haarlijn en dezelfde ruimte eronder als Statement. */
+  .over-paul__inner {
+    padding-top: var(--statement-boven);
+    border-top: var(--haarlijn);
+  }
+
+  /* Foto: ongeveer 40% van de contentbreedte, links, natuurlijke verhouding. */
+  .over-paul__foto {
+    width: 40%;
+    margin: 0 0 8vw;
+  }
+
+  .over-paul__foto :global(picture) {
+    display: block;
+  }
+
+  .over-paul__foto :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Alle alinea's (lead en gewone): tekststijl van de hero-inleiding, over de volle breedte van de tekstkolom. */
+
+  .over-paul__alineas p {
+    max-width: none;
+    margin: 0 0 1em;
+    font-size: var(--font-size-body);
+    line-height: var(--intro-lh);
+  }
+
+  .over-paul__alineas p:last-child {
+    margin-bottom: 0;
+  }
+
+  .over-paul__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.5em;
+    margin-top: calc(var(--blok-ruimte) - 0.4rem); /* min het raakvlak (padding) van de link */
+  }
+
+  /* ---------- OverPaul (desktop) ---------- */
+  @media (min-width: 900px) {
+    .over-paul {
+      --blok-ruimte: 3vw;
+    }
+
+    .over-paul__inner {
+      display: grid;
+      grid-template-columns: var(--statement-kolommen); /* dezelfde kolommen als Statement */
+      column-gap: var(--gutter);
+      align-items: start;
+    }
+
+    .over-paul__foto {
+      width: min(17vw, 100%);
+      margin: 0;
+    }
+
+    /* Bovenkant van de hoofdletters van de eerste regel op de bovenkant van de foto: de regelbox begint iets hoger. */
+    .over-paul__alineas {
+      margin-top: calc(
+        -1 * ((var(--intro-lh) - var(--font-opstijging) - var(--font-daling)) / 2 + var(--font-opstijging) -
+              var(--hoofdletter-gewoon)) * var(--font-size-body)
+      );
+    }
+
+    .over-paul__links {
+      column-gap: 2vw;
+    }
+  }
+</style>

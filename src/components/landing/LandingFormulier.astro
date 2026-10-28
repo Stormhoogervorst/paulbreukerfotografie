@@ -1,0 +1,511 @@
+---
+/**
+ * Aanvraagformulier (landingspagina): staat na Reviews en vóór Beeld, anker #aanvragen. Titel in de gedeelde Marquee
+ * (eerste herhaling is de <h2>), daaronder twee kolommen (desktop, vanaf 900px): links het introblok met de
+ * contactgegevens, rechts het formulier op dezelfde horizontale positie als de tekstkolom in Vragen en de hero-inleiding
+ * (`--kolom-tekst`, minstens 24rem breed). Mobiel: één kolom.
+ *
+ * - De velden komen uit het register (`src/lib/formulieren/`, nu `bruiloft.ts`); dit component rendert alleen. Het
+ *   formulier werkt zonder JavaScript als gewone POST naar /api/aanvraag; het script (src/scripts/formulier.ts) voegt
+ *   validatie, verzenden via fetch en de pakketkeuze toe.
+ * - Velden: alleen een onderlijn in --ink, label klein erboven, "(optioneel)" achter optionele labels. Echte
+ *   <label for>; radiogroepen in een <fieldset> met <legend>. Foutmeldingen staan onder het veld in een
+ *   aria-live="polite"-element (leeg tot het script er iets in zet).
+ * - Spamwering: honeypot "website" (verborgen met CSS, niet bereikbaar met het toetsenbord) en een tijdstempelveld dat
+ *   het script invult. Zie src/pages/api/aanvraag.ts.
+ * - Geen eigen buitenmarges: de verticale ruimte rond de sectie komt van de .sectie-wrapper in LandingLayout.astro.
+ *
+ * Content: `pagina.formulier` (zie src/data/landing/types.ts).
+ */
+import Marquee from '../Marquee.astro';
+import { CONTACT } from '../../data/site';
+import { formulieren } from '../../lib/formulieren';
+import type { LandingFormulier, Segment } from '../../data/landing/types';
+
+interface Props {
+  formulier: LandingFormulier;
+}
+
+const { formulier } = Astro.props;
+const definitie = formulieren[formulier.type];
+
+/** Id van de <h2> (de eerste herhaling in de marquee); de sectie verwijst ernaar met aria-labelledby. */
+const KOP_ID = 'aanvragen-titel';
+const veldId = (naam: string) => `aanvraag-${naam}`;
+---
+
+<section class="formulier" id="aanvragen" aria-labelledby={KOP_ID}>
+  <Marquee woord={formulier.titel} kopId={KOP_ID} />
+
+  <div class="formulier__inhoud">
+    <div class="formulier__intro">
+      {
+        formulier.intro.map((alinea) => (
+          <p class="formulier__tekst">
+            {alinea.map((segment: Segment) => (typeof segment === 'string' ? segment : <a href={segment.href}>{segment.tekst}</a>))}
+          </p>
+        ))
+      }
+      <p class="formulier__tekst formulier__contact-kop">Liever bellen of mailen?</p>
+      <ul class="formulier__contact" role="list">
+        <li>
+          <span class="visually-hidden">Telefoon: </span>
+          <a class="formulier__tekst" href={CONTACT.phoneHref}>{CONTACT.phoneDisplay}</a>
+        </li>
+        <li>
+          <span class="visually-hidden">E-mail: </span>
+          <a class="formulier__tekst" href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+        </li>
+      </ul>
+    </div>
+
+    <form class="formulier__form" method="post" action="/api/aanvraag" data-aanvraag>
+      <input type="hidden" name="type" value={definitie.type} />
+      <!-- Milliseconden tussen laden en verzenden; vult het script in. Zonder JavaScript blijft het leeg (de server slaat dan de controle over). -->
+      <input type="hidden" name="tijd" value="" />
+      <!-- Honeypot: verborgen met CSS (.valstrik), niet bereikbaar met het toetsenbord of een schermlezer. -->
+      <div class="valstrik" aria-hidden="true">
+        <label for="aanvraag-website">Niet invullen</label>
+        <input type="text" id="aanvraag-website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <div class="velden">
+        {
+          definitie.velden.map((veld) => {
+            const id = veldId(veld.naam);
+            const hulpId = veld.hulptekst ? `${id}-hulp` : undefined;
+            const foutId = `${id}-fout`;
+            const optioneel = !veld.verplicht;
+            // Voorwaardelijk verplichte velden (datum) krijgen `required` van het script; zonder JavaScript controleert de server.
+            const required = veld.verplicht && !veld.nietVerplichtAls;
+
+            if (veld.type === 'checkbox') {
+              return (
+                <div class="veld veld--vink">
+                  <input class="veld__vink" type="checkbox" id={id} name={veld.naam} />
+                  <label class="veld__vink-label" for={id}>
+                    {veld.label}
+                  </label>
+                </div>
+              );
+            }
+
+            if (veld.type === 'radio') {
+              return (
+                <fieldset class="veld veld--groep">
+                  <legend class="veld__label">
+                    {veld.label}
+                    {optioneel && ' '}
+                    {optioneel && <span class="veld__optioneel">(optioneel)</span>}
+                  </legend>
+                  <div class="veld__opties">
+                    {veld.opties?.map((optie) => (
+                      <div class="optie">
+                        <input class="optie__invoer" type="radio" id={`${id}-${optie.waarde}`} name={veld.naam} value={optie.waarde} />
+                        <label class="optie__label" for={`${id}-${optie.waarde}`}>
+                          {optie.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </fieldset>
+              );
+            }
+
+            return (
+              <div class="veld">
+                <label class="veld__label" for={id}>
+                  {veld.label}
+                  {optioneel && ' '}
+                  {optioneel && <span class="veld__optioneel">(optioneel)</span>}
+                </label>
+                {veld.hulptekst && (
+                  <p class="veld__hulp" id={hulpId}>
+                    {veld.hulptekst}
+                  </p>
+                )}
+                {veld.type === 'select' ? (
+                  <div class="veld__select">
+                    <select
+                      class="veld__invoer"
+                      id={id}
+                      name={veld.naam}
+                      aria-describedby={hulpId}
+                      data-hulp={hulpId}
+                    >
+                      <option value="">Maak een keuze</option>
+                      {veld.opties?.map((optie) => <option value={optie.waarde}>{optie.label}</option>)}
+                    </select>
+                  </div>
+                ) : veld.type === 'textarea' ? (
+                  <textarea
+                    class="veld__invoer"
+                    id={id}
+                    name={veld.naam}
+                    rows={veld.rijen ?? 4}
+                    maxlength={veld.maxlength}
+                    aria-describedby={hulpId}
+                    data-hulp={hulpId}
+                    data-fout-ongeldig={veld.meldingen?.ongeldig}
+                  />
+                ) : (
+                  <input
+                    class="veld__invoer"
+                    id={id}
+                    name={veld.naam}
+                    type={veld.type}
+                    required={required}
+                    autocomplete={veld.autocomplete}
+                    inputmode={veld.inputmode}
+                    maxlength={veld.maxlength}
+                    pattern={veld.pattern}
+                    aria-describedby={hulpId}
+                    data-hulp={hulpId}
+                    data-fout-leeg={veld.meldingen?.leeg}
+                    data-fout-ongeldig={veld.meldingen?.ongeldig}
+                    data-uitgeschakeld-door={veld.nietVerplichtAls ? veldId(veld.nietVerplichtAls) : undefined}
+                  />
+                )}
+                <p class="veld__fout" id={foutId} aria-live="polite" />
+              </div>
+            );
+          })
+        }
+      </div>
+
+      <div class="formulier__acties">
+        <div class="formulier__melding" data-serverfout role="alert" hidden>
+          Het versturen lukt nu niet. Mail of bel me gerust: <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a> of <a href={CONTACT.phoneHref}>{CONTACT.phoneDisplay}</a>.
+        </div>
+        <button class="formulier__knop" type="submit" data-label={formulier.verzendLabel}>{formulier.verzendLabel}</button>
+        <p class="formulier__privacy">
+          {formulier.privacy.map((segment: Segment) => (typeof segment === 'string' ? segment : <a href={segment.href}>{segment.tekst}</a>))}
+        </p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<script>
+  import '../../scripts/formulier';
+</script>
+
+<style>
+  /* ---------- Formulier (mobiel eerst) ---------- */
+  .formulier {
+    --marquee-onder: clamp(3rem, 7vw, 8rem); /* margin-bottom van de gedeelde Marquee (Marquee.astro); alleen voor de desktop-compensatie */
+    --veld-ruimte: var(--space-4); /* verticale ruimte tussen velden */
+    /* De kop staat bij een sprong naar #aanvragen niet strak tegen de bovenrand van het scherm. */
+    scroll-margin-top: clamp(2rem, 5vw, 6rem);
+  }
+
+  .formulier__inhoud {
+    display: grid;
+    row-gap: 10vw;
+    padding-inline: var(--gutter);
+  }
+
+  /* ----- Introblok ----- */
+  /* Tekststijl en regelafstand van de inleiding in de hero. */
+  .formulier__tekst {
+    max-width: none;
+    margin: 0 0 var(--space-3);
+    font-size: var(--font-size-body);
+    line-height: var(--intro-lh);
+  }
+
+  .formulier__contact-kop {
+    margin-top: var(--space-5);
+    margin-bottom: var(--space-2);
+  }
+
+  .formulier__contact {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Raakvlak van minstens 44px hoog. */
+  .formulier__contact a {
+    display: inline-block;
+    margin: 0;
+    padding-block: 0.6rem;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .formulier__contact a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  /* ----- Formulier ----- */
+  .velden {
+    display: grid;
+    gap: var(--veld-ruimte);
+  }
+
+  .veld {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .veld__label {
+    display: block;
+    padding: 0;
+    margin: 0 0 var(--space-1);
+    font-size: var(--font-size-small);
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+
+  .veld__optioneel {
+    color: var(--ink-zacht);
+  }
+
+  .veld__hulp {
+    max-width: none;
+    margin: 0 0 var(--space-1);
+    font-size: var(--font-size-small);
+    line-height: 1.3;
+    color: var(--ink-zacht);
+  }
+
+  /* Alleen een onderlijn van 1px in --ink: geen kader, afgeronde hoeken, schaduw of achtergrond. Minstens 44px hoog en
+     16px of groter (voorkomt inzoomen op iOS). */
+  .veld__invoer {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 0.55rem 0;
+    border: 0;
+    border-bottom: 1px solid var(--ink);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--font-size-body);
+    line-height: 1.25;
+    box-shadow: none;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  textarea.veld__invoer {
+    min-height: 0;
+    resize: vertical;
+  }
+
+  /* Datumveld: eigen uiterlijk, ook op iOS (links uitgelijnd, geen grijze pil). */
+  .veld__invoer[type='date']::-webkit-date-and-time-value {
+    min-height: 1.25em;
+    text-align: left;
+  }
+
+  /* Dikkere onderlijn bij focus en bij een fout; de 1px extra gaat van de padding af, zodat er niets verspringt. */
+  .veld__invoer:focus-visible,
+  .veld__invoer[aria-invalid='true'] {
+    border-bottom-width: 2px;
+    padding-bottom: calc(0.55rem - 1px);
+  }
+
+  .veld__invoer:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 0;
+  }
+
+  .veld__invoer:disabled {
+    opacity: 0.45;
+  }
+
+  /* Chrome kleurt automatisch ingevulde velden geel; houd ze wit. */
+  .veld__invoer:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 100vh var(--paper) inset;
+    -webkit-text-fill-color: var(--ink);
+  }
+
+  /* Select: eigen kleine pijl van twee CSS-lijnen. */
+  .veld__select {
+    position: relative;
+  }
+
+  .veld__select .veld__invoer {
+    padding-right: 2rem;
+    cursor: pointer;
+  }
+
+  .veld__select::after {
+    content: '';
+    position: absolute;
+    right: 0.35rem;
+    top: 50%;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-right: 1.5px solid var(--ink);
+    border-bottom: 1.5px solid var(--ink);
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+
+  /* Foutmelding onder het veld; leeg tot het script er iets in zet. */
+  .veld__fout {
+    max-width: none;
+    margin: var(--space-2) 0 0;
+    font-size: var(--font-size-small);
+    line-height: 1.3;
+    color: var(--ink);
+  }
+
+  .veld__fout:empty {
+    display: none;
+  }
+
+  /* Checkbox en radio: native bediening in --ink, labels met een raakvlak van minstens 44px. */
+  .veld--vink {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    /* Hoort bij het datumveld erboven: minder ruimte dan tussen twee velden. */
+    margin-top: calc(var(--veld-ruimte) * -0.6);
+  }
+
+  .veld__vink,
+  .optie__invoer {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+    accent-color: var(--ink);
+  }
+
+  .veld__vink:focus-visible,
+  .optie__invoer:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 0;
+  }
+
+  .veld__vink-label,
+  .optie__label {
+    display: block;
+    flex: 1;
+    min-height: 44px;
+    padding-block: 0.6rem;
+    font-size: var(--font-size-small);
+    line-height: 1.3;
+    cursor: pointer;
+  }
+
+  .veld__opties {
+    display: grid;
+  }
+
+  .optie {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .valstrik {
+    display: none;
+  }
+
+  /* ----- Verzenden ----- */
+  .formulier__acties {
+    margin-top: calc(var(--veld-ruimte) * 1.5);
+  }
+
+  /* Melding bij een serverfout, boven de knop. */
+  .formulier__melding {
+    max-width: none;
+    margin: 0 0 var(--space-4);
+    padding: 0 0 var(--space-3);
+    border-bottom: 1px solid var(--ink);
+    font-size: var(--font-size-small);
+    line-height: 1.4;
+    color: var(--ink);
+  }
+
+  .formulier__melding[hidden] {
+    display: none;
+  }
+
+  .formulier__knop {
+    display: inline-block;
+    min-height: 44px;
+    margin: 0;
+    padding: 1em 1.75em;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    background: var(--ink);
+    color: var(--paper);
+    font: inherit;
+    font-size: var(--font-size-body);
+    font-weight: 700;
+    line-height: 1.1;
+    box-shadow: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .formulier__knop:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 0;
+  }
+
+  .formulier__knop:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  /* Hover alleen waar er echt een aanwijzer is: omgekeerde kleuren, rand van 1px (staat er al). */
+  @media (hover: hover) {
+    .formulier__knop:not(:disabled):hover {
+      background: var(--paper);
+      color: var(--ink);
+    }
+  }
+
+  .formulier__privacy {
+    max-width: 32em;
+    margin: var(--space-3) 0 0;
+    font-size: var(--font-size-small);
+    line-height: 1.4;
+    color: var(--ink-zacht);
+  }
+
+  /* ---------- Formulier (desktop) ---------- */
+  @media (min-width: 900px) {
+    .formulier {
+      --veld-ruimte: clamp(1.25rem, 1.75vw, 2.5rem);
+      /* Begin van het formulier vanaf de gutter: --kolom-tekst (vanaf de schermrand) min de gutter; de kolom is minstens
+         24rem breed (valt hij smaller uit, dan schuift het begin naar links, zoals bij Vragen). */
+      --formulier-begin: min(calc(var(--kolom-tekst) - var(--gutter)), calc(100% - 24rem));
+    }
+
+    /* Ongeveer 5vw tussen de titel en de inhoud: de Marquee heeft zelf al ruimte eronder, dus compenseren. */
+    .formulier__inhoud {
+      grid-template-columns: var(--formulier-begin) minmax(0, 1fr);
+      align-items: start;
+      row-gap: 0;
+      margin-top: calc(5vw - var(--marquee-onder));
+    }
+
+    /* Introblok: begint op de gutter en loopt tot ongeveer 40vw (en laat altijd wat ruimte voor het formulier). */
+    .formulier__intro {
+      grid-column: 1;
+      max-width: min(calc(40vw - var(--gutter)), calc(100% - 3vw));
+    }
+
+    .formulier__form {
+      grid-column: 2;
+    }
+  }
+</style>

@@ -23,9 +23,10 @@ export const WORDMARK = 'Paul Breuker Fotografie';
 /** Hoofdnavigatie (kleine letters, max. 6 items). Geen "home": het wordmark is de homelink. Geen /promoties. */
 export const NAV = [
   // TODO(paul): placeholder-links; de echte pagina's volgen in een latere ronde.
-  { label: 'bruiloft', href: '/trouwfotograaf-nijmegen' },
+  { label: 'bruiloft', href: '/fotograaf-bruiloft' },
   { label: 'portret', href: '/zakelijke-portretfoto' },
   { label: 'werk', href: '/werk' },
+  { label: 'portfolio', href: '/portfolio' },
   { label: 'over paul', href: '/over-paul' },
   { label: 'contact', href: '/contact' },
 ] as const;
@@ -46,7 +47,7 @@ export const FOOTER_TEKST_BREUK_NA = 'een portret,';
 
 /** Voettekstnavigatie (zes links, met hoofdletter). Geen /promoties. */
 export const FOOTER_NAV = [
-  { label: 'Bruiloft', href: '/trouwfotograaf-nijmegen' },
+  { label: 'Bruiloft', href: '/fotograaf-bruiloft' },
   { label: 'Portret', href: '/zakelijke-portretfoto' },
   { label: 'Werk', href: '/werk' },
   { label: 'Over Paul', href: '/over-paul' },

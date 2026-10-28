@@ -24,6 +24,16 @@ const jsonLd = [
 
 // H1 is alleen de naam. Op mobiel staat elk woord op een eigen regel.
 const titleWords = home.hero.h1.split(' ');
+
+// Hero-foto's op rol: A (groot, LCP), B (middel, liggend), C (klein, staand).
+const heroFoto = (rol: 'A' | 'B' | 'C') => {
+  const foto = home.hero.fotos.find((f) => f.rol === rol);
+  if (!foto) throw new Error(`home.hero.fotos mist de foto met rol ${rol}`);
+  return foto;
+};
+const fotoA = heroFoto('A');
+const fotoB = heroFoto('B');
+const fotoC = heroFoto('C');
 ---
 
 <BaseLayout title={home.seo.title} description={home.seo.description} jsonLd={jsonLd}>
@@ -47,17 +57,45 @@ const titleWords = home.hero.h1.split(' ');
     </h1>
 
     <div class="hero__media">
-      <div class="hero__photo">
+      <div class="hero__photo hero__photo--a">
         <!-- Het hero-beeld is het LCP-beeld, staand (2:3) en ongecropt. `sizes` zonder var(): die wordt in dit attribuut niet ondersteund (5,5vw = --gutter). -->
+        <!-- Vanaf 900 px is dit blok 4 / 5 (CSS snijdt de staande bron bij); de gegenereerde afbeelding blijft 2:3 zodat mobiel ongewijzigd is. -->
         <Photo
-          name={home.hero.photo.name}
-          alt={home.hero.photo.alt}
+          name={fotoA.afbeelding}
+          alt={fotoA.alt}
           width={1200}
           height={1800}
-          widths={[480, 800, 1200]}
-          sizes="(min-width: 900px) 36vw, calc(100vw - 5.5vw)"
+          widths={[320, 480, 800, 1200]}
+          sizes="(min-width: 900px) 25vw, calc(100vw - 5.5vw)"
           loading="eager"
           fetchpriority="high"
+        />
+      </div>
+
+      <!-- B en C: alleen vanaf 900 px (daaronder display: none; lazy, dus geen download). Decoratieve opstelling zonder bijschrift. -->
+      <div class="hero__photo hero__photo--b">
+        <Photo
+          name={fotoB.afbeelding}
+          alt={fotoB.alt}
+          width={1000}
+          height={800}
+          widths={[240, 400, 640, 960]}
+          sizes="(min-width: 900px) 14vw, 1px"
+          loading="lazy"
+          fetchpriority="low"
+          position="left"
+        />
+      </div>
+      <div class="hero__photo hero__photo--c">
+        <Photo
+          name={fotoC.afbeelding}
+          alt={fotoC.alt}
+          width={800}
+          height={1000}
+          widths={[200, 320, 480, 800]}
+          sizes="(min-width: 900px) 13vw, 1px"
+          loading="lazy"
+          fetchpriority="low"
         />
       </div>
 
@@ -154,6 +192,12 @@ const titleWords = home.hero.h1.split(' ');
     margin-left: calc(var(--gutter) * -1);
   }
 
+  /* B en C: alleen vanaf 900 px (zie desktop-blok). */
+  .hero__photo--b,
+  .hero__photo--c {
+    display: none;
+  }
+
   .hero__text {
     margin-top: var(--space-4);
   }
@@ -204,27 +248,107 @@ const titleWords = home.hero.h1.split(' ');
   /* ---------- Hero (desktop) ---------- */
   @media (min-width: 900px) {
     .hero {
-      /* "Paul Breuker" is 5,36em ink breed bij -0,04em letter-spacing: 15,5vw geeft 83vw. */
-      --wordmark-size: clamp(4rem, 15.5vw, 26rem);
+      /* "Paul Breuker" is 5,363em ink breed (P-vorm tot r-vorm) bij -0,04em letter-spacing. Het font-size is
+         de breedte tussen de twee gutters gedeeld door die 5,363em: fluïde en zonder maximum, dus de vorm van de
+         P ligt op de linkergutter en de vorm van de r op de rechtergutter, op elke breedte vanaf 900px. */
+      --wordmark-ink: 5.363;
+      --wordmark-size: calc(var(--wordmark-width) / var(--wordmark-ink));
       --overlap: 0.2;
-      padding-top: 5vw;
+      /* Ruimte voor foto B boven het wordmark. B steekt boven de header-rand uit, de lege strook onder de
+         contactgegevens in (zie .hero__photo--b). De bovenkant van B ligt 2vw onder de contactgegevens
+         (die eindigen 7,5rem boven de onderkant van de header: de hoogte van het menu is vast in px);
+         B is 10,4vw hoog en blijft 2,5vw boven de letters. Dat geeft 14,9vw - 7,5rem - 0,063em
+         (0,063em = bovenkant titelregel tot letters). Minimaal 3vw, zodat het wordmark niet tegen het menu zit.
+         15,72vw = 2vw + 2,6vw (2,5vw plus marge voor de bovenhoogte van l/k/B) + B-hoogte (13,9vw * 4/5 = 11,12vw). */
+      padding-top: max(3vw, calc(15.72vw - 7.5rem - var(--wordmark-size) * 0.063));
     }
 
     .hero__title span {
       display: inline;
     }
 
-    .hero__photo {
-      width: 36vw;
+    /* Zigzag rond het wordmark. Alle maten in vw (de verhoudingen schalen mee, geen layoutverschuiving).
+       T = bovenkant van A (en van hero__media). Gemeten voor Satoshi 700, in em van het wordmark:
+       letters beginnen 0,587em boven T, de basislijn (geen staarten) ligt 0,157em onder T.
+       Het wordmark loopt van gutter tot gutter (89vw bij 5,5vw gutter; voorheen 83vw). Alle foto's zijn met dezelfde
+       factor (89/83 = 1,072) meegeschaald, zodat de verhoudingen van de zigzag gelijk blijven.
+       - A: 24,3vw breed, 4 / 5, links tegen de schermrand, overlapt het wordmark in dezelfde verhouding als voorheen.
+       - B: 13,9vw breed, 5 / 4, gecentreerd boven "reu" van Breuker (die staat nu op 48,7 tot 72vw: B links op 53,2vw),
+         onderkant 2,5vw boven de letters van het wordmark.
+       - C: 12,9vw breed, 4 / 5, rechterrand op de rechtergutter (= rechterrand van de r en van de navigatie),
+         bovenkant 2,2vw onder de basislijn.
+       - Alinea: links op dezelfde 53,2vw als B, 23,6vw breed, onderkant gelijk aan de onderkant van C. */
+    .hero__media {
+      --foto-a: 24.3vw;
+      --foto-b: 13.9vw;
+      --foto-b-links: 53.2vw;
+      --foto-c: 12.9vw;
+      --foto-a-hoogte: calc(var(--foto-a) * 5 / 4);
+      --foto-b-hoogte: calc(var(--foto-b) * 4 / 5);
+      --foto-c-hoogte: calc(var(--foto-c) * 5 / 4);
+      --letters-boven-t: calc(var(--wordmark-size) * 0.587);
+      --basislijn-onder-t: calc(var(--wordmark-size) * 0.157);
+      --foto-c-top: calc(var(--basislijn-onder-t) + 2.3vw); /* 2,3vw: de ronde letters steken iets onder de basislijn uit */
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      /* A staat lager: de bovenkant ligt 7vw onder de bovenkant van C (die zelf onder het wordmark staat),
+         afmetingen ongewijzigd. Pas --foto-a-zak aan om A hoger of lager te zetten. */
+      --foto-a-zak: calc(var(--foto-c-top) + 7vw);
+      min-height: calc(var(--foto-a-zak) + var(--foto-a-hoogte));
+    }
+
+    .hero__photo--a {
+      grid-area: 1 / 1;
+      width: var(--foto-a);
       margin-left: calc(var(--gutter) * -1); /* tegen de linkerrand van het scherm */
+      margin-top: var(--foto-a-zak);
+    }
+
+    .hero__photo--a :global(.photo) {
+      aspect-ratio: 4 / 5; /* de bron is 2:3: object-fit snijdt bij, alleen op desktop */
+    }
+
+    .hero__photo--b,
+    .hero__photo--c {
+      display: block;
+      position: absolute;
+      margin-left: 0;
+    }
+
+    .hero__photo--b {
+      width: var(--foto-b);
+      top: calc(-1 * (var(--letters-boven-t) + 2.6vw + var(--foto-b-hoogte)));
+      left: calc(var(--foto-b-links) - var(--gutter));
+      z-index: 21; /* boven de header (z-index 20, eigen achtergrond): B staat deels in de lege strook van de header */
+    }
+
+    .hero__photo--c {
+      width: var(--foto-c);
+      top: var(--foto-c-top);
+      /* rechterrand op de rechtergutter: hero__media begint op de linkergutter, dus de breedte tussen de gutters minus C */
+      left: calc(var(--wordmark-width) - var(--foto-c));
     }
 
     .hero__text {
-      position: absolute;
-      top: 33%;
-      left: calc(62vw - var(--gutter));
-      width: 22vw;
-      margin-top: 0;
+      grid-area: 1 / 1;
+      align-self: end;
+      justify-self: start;
+      /* Onderkant gelijk aan de onderkant van C (de onderstreping van de link, vandaar de 0,2rem). Boven de alinea
+         blijft minstens de ruimte tot de basislijn van het wordmark + 2,2vw; is de tekst hoger (smaller scherm,
+         meer regels), dan groeit de rij naar beneden in plaats van dat de alinea het wordmark raakt. */
+      margin: var(--foto-c-top) 0
+        calc(var(--foto-a-zak) + var(--foto-a-hoogte) - var(--foto-c-top) - var(--foto-c-hoogte) - 0.2rem)
+        calc(var(--foto-b-links) - var(--gutter));
+      width: 23.6vw;
+    }
+
+    /* Onder 1200 px past de alinea (meer regels) niet tussen de basislijn en de onderkant van C:
+       dan onderaan gelijk aan A, zodat de rij niet onnodig hoger wordt. */
+    @media (max-width: 1199px) {
+      .hero__text {
+        margin-bottom: -0.2rem;
+      }
     }
 
     .hero__lead {

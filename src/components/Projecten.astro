@@ -1,36 +1,39 @@
 ---
 /**
- * Sectie "Projecten": titel die met het scrollen meebeweegt (gedeelde Marquee), twee verspringende kaarten en een brede kaart met "alle series".
+ * Sectie "Projecten": titel die met het scrollen meebeweegt (gedeelde Marquee) en drie kaarten in één rij met verschillende formaten, plus "alle projecten".
  * Onafhankelijk van de buren: geen eigen buitenmarges (die komen van de .sectie-wrapper in index.astro), geen aannames over wat erboven of eronder staat.
  * Content: home.projecten in src/data/home.ts.
  */
 import Marquee from './Marquee.astro';
 import Photo from './Photo.astro';
 import { home } from '../data/home';
+import { getHomeImage } from '../lib/images';
 
 const { titel, items, allLink } = home.projecten;
 
-// Maten per positie. Breedte en hoogte bepalen de uitsnede (fit: cover) en voorkomen layoutverschuiving.
+// Hoge foto (rechts): natuurlijke verhouding uit het bestand, geen uitsnede. Ontbreekt het bestand, dan valt de placeholder terug op 2 / 3.
+const rechtsFoto = items.find((project) => project.positie === 'rechts')?.photo.name;
+const rechtsBron = rechtsFoto ? getHomeImage(rechtsFoto) : undefined;
+const rechtsBreedte = rechtsBron?.width ?? 600;
+const rechtsHoogte = rechtsBron?.height ?? 900;
+
+// Maten per positie. Breedte en hoogte bepalen de verhouding en voorkomen layoutverschuiving.
+// `sizes` op desktop = de kolombreedte uit de CSS (24vw, 36vw, max 18vw); mobiel = de huidige breedte van de kaart.
 const kaart = {
-  links: { width: 1200, height: 1440, sizes: '(min-width: 900px) 36vw, 85vw' }, // 5 / 6
-  rechts: { width: 1200, height: 1000, sizes: '(min-width: 900px) 48vw, 70vw' }, // 6 / 5
-  onder: { width: 1600, height: 1200, sizes: '(min-width: 900px) 55vw, 100vw' }, // 4 / 3
+  links: { width: 1200, height: 1440, widths: [480, 800, 1200, 1600], sizes: '(min-width: 900px) 24vw, 85vw' }, // 5 / 6
+  midden: { width: 1200, height: 1000, widths: [480, 800, 1200, 1600], sizes: '(min-width: 900px) 36vw, 70vw' }, // 6 / 5
+  rechts: { width: rechtsBreedte, height: rechtsHoogte, widths: [300, 450, rechtsBreedte], sizes: '(min-width: 900px) 18vw, 56vw' }, // natuurlijk
 } as const;
-
-const widths = { links: [480, 800, 1200, 1600], rechts: [480, 800, 1200, 1600], onder: [480, 800, 1200, 1600, 2400] };
-
-// Rij 1: verspringende kaarten; rij 2: brede kaart met "alle series" rechts.
-const rij1 = items.filter((project) => project.positie !== 'onder');
-const rij2 = items.filter((project) => project.positie === 'onder');
 ---
 
-<section class="projecten" aria-labelledby="projecten-titel">
+<section class="projecten" aria-labelledby="projecten-titel" style={`--rechts-verhouding: ${rechtsBreedte / rechtsHoogte}`}>
   <Marquee woord={titel} kopId="projecten-titel" />
 
   <div class="projecten__inhoud">
-    <ul class="projecten__rij1">
+    <!-- Desktop: `display: contents`, zodat de kaarten en de link in hetzelfde grid staan. role="list" houdt de lijstsemantiek in alle browsers. -->
+    <ul class="projecten__rij" role="list">
       {
-        rij1.map((project) => (
+        items.map((project) => (
           <li class={`kaart kaart--${project.positie}`}>
             <a class="kaart__link" href={project.href}>
               <Photo
@@ -38,61 +41,38 @@ const rij2 = items.filter((project) => project.positie === 'onder');
                 alt={project.photo.alt}
                 width={kaart[project.positie].width}
                 height={kaart[project.positie].height}
-                widths={widths[project.positie]}
+                widths={[...kaart[project.positie].widths]}
                 sizes={kaart[project.positie].sizes}
                 loading="lazy"
               />
               <span class="kaart__titel">{project.title}</span>
+              {project.jaar && <span class="kaart__jaar">{project.jaar}</span>}
             </a>
           </li>
         ))
       }
     </ul>
 
-    <!-- Rij 2: brede kaart links, "alle series" rechts op de regel van het bijschrift. -->
-    <div class="projecten__rij2">
-      <ul>
-        {
-          rij2.map((project) => (
-          <li class={`kaart kaart--${project.positie}`}>
-            <a class="kaart__link" href={project.href}>
-              <Photo
-                name={project.photo.name}
-                alt={project.photo.alt}
-                width={kaart[project.positie].width}
-                height={kaart[project.positie].height}
-                widths={widths[project.positie]}
-                sizes={kaart[project.positie].sizes}
-                loading="lazy"
-              />
-              <span class="kaart__titel">{project.title}</span>
-            </a>
-          </li>
-          ))
-        }
-      </ul>
-
-      <p class="projecten__alle">
-        <a class="projecten__alle-link" href={allLink.href}>
-          <span class="projecten__alle-tekst">{allLink.label}</span>
-          <svg
-            class="projecten__pijl"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="square"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path d="M3 12h17M14 5.5l6.5 6.5-6.5 6.5"></path>
-          </svg>
-        </a>
-      </p>
-    </div>
+    <p class="projecten__alle">
+      <a class="projecten__alle-link" href={allLink.href}>
+        <span class="projecten__alle-tekst">{allLink.label}</span>
+        <svg
+          class="projecten__pijl"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="square"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M3 12h17M14 5.5l6.5 6.5-6.5 6.5"></path>
+        </svg>
+      </a>
+    </p>
   </div>
 </section>
 
@@ -108,9 +88,12 @@ const rij2 = items.filter((project) => project.positie === 'onder');
     padding-inline: var(--gutter);
   }
 
-  .projecten__rij1 {
+  .projecten__rij {
     display: flex;
     flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   .kaart--links {
@@ -118,15 +101,17 @@ const rij2 = items.filter((project) => project.positie === 'onder');
   }
 
   /* Mobiel: kleiner en rechts uitgelijnd, zodat er links meer witruimte staat. */
-  .kaart--rechts {
+  .kaart--midden {
     width: 70%;
     margin-top: 2rem;
     margin-left: auto;
   }
 
-  .kaart--onder {
-    width: 100%;
+  /* Hoge foto: 56% van de contentbreedte, rechts, natuurlijke verhouding (de hoogte volgt uit de breedte). */
+  .kaart--rechts {
+    width: 56%;
     margin-top: 2rem;
+    margin-left: auto;
   }
 
   .kaart__link {
@@ -141,6 +126,14 @@ const rij2 = items.filter((project) => project.positie === 'onder');
     font-weight: 400;
     line-height: 1.15;
     letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .kaart__jaar {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: var(--font-size-small);
+    line-height: 1.3;
     color: var(--ink);
   }
 
@@ -166,7 +159,8 @@ const rij2 = items.filter((project) => project.positie === 'onder');
     text-decoration: none;
   }
 
-  .projecten__alle-link:hover .projecten__alle-tekst {
+  /* Altijd onderstreept, zoals de kaarttitels bij hover. */
+  .projecten__alle-tekst {
     text-decoration-line: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 0.2em;
@@ -180,48 +174,52 @@ const rij2 = items.filter((project) => project.positie === 'onder');
 
   /* ---------- Projecten (desktop) ---------- */
   @media (min-width: 900px) {
-    .projecten__rij1 {
+    /* Eén rij van gutter tot gutter (89vw). De drie kolommen zijn samen 78vw breed; space-between verdeelt de rest (11vw)
+       gelijkmatig over twee gaten (5,5vw, nooit minder dan 5vw zolang de scrollbalk smaller is dan 1vw).
+       Kolom 3: 40vw hoog volgens de verhouding van de foto, maar nooit breder dan 18vw. */
+    .projecten__inhoud {
+      --kolom-3: min(18vw, calc(40vw * var(--rechts-verhouding)));
       display: grid;
-      grid-template-columns: 40% 53.5%;
+      grid-template-columns: 24vw 36vw var(--kolom-3);
+      /* Rij 1 is zo hoog als kaart 3 (met bijschrift); de rest van de rij gaat naar rij 2. Zo staat de link onder het bijschrift van kaart 3. */
+      grid-template-rows: auto 1fr;
       justify-content: space-between;
       align-items: start;
     }
 
-    .kaart--links,
-    .kaart--rechts {
-      width: auto;
-      margin-top: 0;
-      margin-left: 0;
+    .projecten__rij {
+      display: contents;
     }
 
-    /* De positie uit de data bepaalt de kolom, ongeacht de volgorde in de lijst. */
+    .kaart--links,
+    .kaart--midden,
+    .kaart--rechts {
+      margin-left: 0;
+      width: auto;
+      grid-row: 1 / span 2; /* span: de hoogte van kaart 1 en 2 bepaalt rij 1 niet */
+    }
+
     .kaart--links {
       grid-column: 1;
-      grid-row: 1;
+      margin-top: 0; /* bovenkant = rij-top */
+    }
+
+    .kaart--midden {
+      grid-column: 2;
+      margin-top: 9vw; /* grootste kaart, het laagst */
     }
 
     .kaart--rechts {
-      grid-column: 2;
+      grid-column: 3;
       grid-row: 1;
-      margin-top: 18vw; /* verspringing ten opzichte van de linkerkaart */
-    }
-
-    /* Rij 2: de ruimte wordt gemeten vanaf de onderkant van het bijschrift van de (lagere) rechterkaart. */
-    .projecten__rij2 {
-      display: grid;
-      grid-template-columns: 62% auto;
-      justify-content: space-between;
-      align-items: end; /* link onderaan, basislijn gelijk aan het bijschrift */
-      margin-top: clamp(4rem, 7vw, 8rem);
-    }
-
-    .kaart--onder {
-      width: auto;
-      margin-top: 0;
+      margin-top: 3vw;
     }
 
     .projecten__alle {
-      margin: 0 0 -0.4rem; /* compenseert het raakvlak, zodat de tekstbasis op het bijschrift ligt */
+      grid-column: 3;
+      grid-row: 2;
+      justify-self: end; /* rechterrand op --gutter */
+      margin: 9vw 0 0; /* afstand onder het bijschrift van kaart 3: de link staat daarmee onder het bijschrift van kaart 2 */
     }
   }
 </style>

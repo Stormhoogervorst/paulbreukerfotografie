@@ -18,6 +18,15 @@ export interface HomePhoto {
   alt: string;
 }
 
+export interface HomeHeroFoto {
+  /** Bestandsnaam zonder extensie, in src/assets/home/. */
+  afbeelding: string;
+  /** Nederlandse, beschrijvende alt-tekst (wie/wat/waar). */
+  alt: string;
+  /** "A": groot (LCP), "B": middel (liggend), "C": klein (staand). */
+  rol: 'A' | 'B' | 'C';
+}
+
 export interface HomeLink {
   label: string;
   href: string;
@@ -38,13 +47,15 @@ export interface HomeProject {
   title: string;
   href: string;
   photo: HomePhoto;
+  /** Optioneel, onder de titel (bijvoorbeeld "2018 – 2021"). Leeg of weggelaten: het veld wordt niet getoond. */
+  jaar?: string;
   /**
-   * Kaartpositie in de verspringende opstelling (component: src/components/Projecten.astro).
-   * Rij 1: "links" = staande foto (5 / 6) op de linkermarge, "rechts" = liggende foto (6 / 5) op de rechtermarge, lager.
-   * Rij 2: "onder" = brede liggende foto (4 / 3) op de linkermarge, met rechts ervan de link "alle series".
+   * Kaartpositie in de rij van drie (component: src/components/Projecten.astro), van links naar rechts:
+   * "links" = staande foto (5 / 6) op de linkermarge, "midden" = liggende foto (6 / 5, de grootste), lager,
+   * "rechts" = hoge, smalle foto in natuurlijke verhouding op de rechtermarge.
    * De volgorde in de lijst is ook de volgorde op mobiel (onder elkaar).
    */
-  positie: 'links' | 'rechts' | 'onder';
+  positie: 'links' | 'midden' | 'rechts';
 }
 
 export interface HomeBeeldDuoItem {
@@ -80,7 +91,7 @@ export const home = {
   seo: {
     title: 'Paul Breuker | Bruiloft, portret en kunst in Nijmegen',
     description:
-      'Paul Breuker fotografeert bruiloften, portretten en kunstseries. Al 35 jaar werk, getoond in onder meer de Kunsthal en het Valkhof. Bruiloften vanaf €2.450.',
+      'Paul Breuker fotografeert bruiloften, portretten en kunstseries. Al 35 jaar werk, getoond in onder meer de Kunsthal en het Valkhof. Bruiloften vanaf €3.250.',
   },
 
   hero: {
@@ -88,17 +99,37 @@ export const home = {
     h1: 'Paul Breuker',
     lead: 'Fotograaf in Nijmegen. Ik fotografeer bruiloften, portretten en kunstseries. Al 35 jaar maak ik beelden van mensen en plekken.',
     /** Knop onder de lead. De commerciële pagina's staan in de sectie "Diensten". */
-    knop: { label: 'Portfolio', href: '/werk' } satisfies HomeLink,
+    knop: { label: 'Portfolio', href: '/portfolio' } satisfies HomeLink,
     /**
-     * LCP-beeld (eager, fetchpriority high), staand en ongecropt (2:3), links tegen de schermrand.
-     * Bron: src/assets/home/hero-take-me-to-the-river-1.jpg (was public/Take me to the river 1.jpg).
-     * De vorige hero-foto staat als src/assets/home/gaarkeuken-3.jpg.
-     * TODO(paul): controleer alt (beschrijving gebaseerd op wat op de foto te zien is).
+     * Drie foto's in de hero (component: hero in src/pages/index.astro), links tegen de schermrand.
+     * rol "A": groot, LCP-beeld (eager, fetchpriority high). Mobiel staand (2:3, ongecropt), desktop 4 / 5.
+     *   Bron: src/assets/home/hero-take-me-to-the-river-1.jpg (was public/Take me to the river 1.jpg).
+     *   De vorige hero-foto staat als src/assets/home/gaarkeuken-3.jpg.
+     * rol "B": middel, liggend (5 / 4). Alleen vanaf 900 px zichtbaar (daaronder display: none, dus geen download).
+     *   Bron: src/assets/home/hero-bruiloft-2.jpg (was public/bruiloft 2.jpg).
+     * rol "C": klein, staand (4 / 5). Alleen vanaf 900 px zichtbaar.
+     *   Bron: src/assets/home/hero-portret-1.jpg (was public/Portret 1.jpg).
+     * De volgorde in de lijst is de volgorde in de HTML. Niet in Projecten of BeeldDuo gebruikt.
+     * TODO(paul): controleer de alt-teksten (beschreven naar wat op de foto te zien is); vul naam, plaats en jaar in
+     * als je die wilt noemen. Bij B en C ontbreekt ook de serie (B hoort waarschijnlijk bij Love & Marriage, C bij Portretten).
      */
-    photo: {
-      name: 'hero-take-me-to-the-river-1',
-      alt: 'Bovenaanzicht van rood poeder in een lange, smalle bak met witte wanden: donkerrode heuvels met daartussen een roze, tegelachtig oppervlak.',
-    } satisfies HomePhoto,
+    fotos: [
+      {
+        afbeelding: 'hero-take-me-to-the-river-1',
+        alt: 'Bovenaanzicht van rood poeder in een lange, smalle bak met witte wanden: donkerrode heuvels met daartussen een roze, tegelachtig oppervlak.',
+        rol: 'A',
+      },
+      {
+        afbeelding: 'hero-bruiloft-2',
+        alt: 'Een bruid in een witte kanten jurk met parelketting lacht in de auto, terwijl een lachende gast met een strohoed door het open raam naar binnen leunt.',
+        rol: 'B',
+      },
+      {
+        afbeelding: 'hero-portret-1',
+        alt: 'Portret van een oudere man met een kaal hoofd, blauwe ogen en een grote grijze snor, in een grijsblauw colbert met een zwart overhemd.',
+        rol: 'C',
+      },
+    ] satisfies HomeHeroFoto[],
   },
 
   /** Sectie direct onder de hero (component: src/components/OverPaul.astro). Vervangt de eerdere anekdote. */
@@ -121,7 +152,7 @@ export const home = {
       {
         nummer: '01',
         title: 'Bruiloftfotografie',
-        href: '/trouwfotograaf-nijmegen',
+        href: '/fotograaf-bruiloft',
         extern: false,
       },
       {
@@ -165,8 +196,10 @@ export const home = {
   /**
    * Sectie "Projecten" (component: src/components/Projecten.astro), direct onder "Exposities".
    * Foto's: src/assets/home/project-*.jpg (verplaatst uit public/).
-   * Rij 1: links de staande foto (Asty Mwaka, 600 x 900), rechts de liggende (Love & Marriage, 1200 x 796).
-   * Rij 2: Het gezicht van Nijmegen (1200 x 683, uitsnede 4 / 3), bron was public/Gezicht nijmegen 1.jpg.
+   * Eén rij van drie: links de staande foto (Asty Mwaka, 600 x 900), midden de liggende (Love & Marriage, 1200 x 796),
+   * rechts de hoge foto (Take me to the river, 600 x 900, natuurlijke verhouding; kopie van
+   * src/assets/portfolio/take-me-to-the-river/Take me to the river 06-min.jpg, dat daar blijft staan voor /portfolio).
+   * `project-het-gezicht-van-nijmegen.jpg` staat nog in de map maar wordt hier niet meer gebruikt (de serie blijft bestaan in Exposities en /het-gezicht-van-nijmegen).
    * De oude tekst en foto's van "Uitgelicht werk" (vier series) staan in design/archief/.
    * TODO(paul): bronfoto's zijn 600 px (Asty Mwaka) en 1200 px breed; lever grotere bestanden aan voor schermen boven 1500 px.
    * TODO(paul): controleer de alt-teksten (beschreven naar wat op de foto te zien is).
@@ -190,19 +223,20 @@ export const home = {
           name: 'project-love-marriage',
           alt: 'Zwart-witfoto in een woonkamer: een vrouw in een witte trouwjurk strijkt de rok op een strijkplank, terwijl een man met ontbloot bovenlijf naast haar toekijkt.',
         },
-        positie: 'rechts',
+        positie: 'midden',
       },
       {
-        title: 'Het gezicht van Nijmegen',
-        href: '/het-gezicht-van-nijmegen',
+        title: 'Take me to the river',
+        href: '/take-me-to-the-river',
         photo: {
-          name: 'project-het-gezicht-van-nijmegen',
-          alt: 'Een metalen hoofd met een diadeem, veel groter dan de mensen om hem heen, staat in een hoge industriële hal. Op de achtergrond werken mensen aan staal.',
+          name: 'project-take-me-to-the-river',
+          alt: 'Bovenaanzicht van een lang, smal laadruim van een binnenvaartschip, omringd door groen water: in het midden ligt donkere aarde met een smalle strook licht water ertussen.',
         },
-        positie: 'onder',
+        // Bewust zonder jaar onder de titel (op verzoek van Paul). Het optionele veld `jaar` bestaat nog voor later.
+        positie: 'rechts',
       },
     ] satisfies HomeProject[],
-    allLink: { label: 'alle series', href: '/werk' } satisfies HomeLink,
+    allLink: { label: 'alle projecten', href: '/werk' } satisfies HomeLink,
   },
 
   /**
@@ -299,7 +333,7 @@ export const home = {
   cta: {
     heading: 'Een bruiloft of portret aanvragen',
     buttons: [
-      { label: 'Bruiloft aanvragen', href: '/trouwfotograaf-nijmegen' },
+      { label: 'Bruiloft aanvragen', href: '/fotograaf-bruiloft' },
       { label: 'Portret aanvragen', href: '/zakelijke-portretfoto' },
     ] satisfies HomeLink[],
     response: 'Ik reageer binnen 24 uur.',

@@ -11,7 +11,7 @@ Detailplan: zie `docs/seo-architectuur.md`. Bij twijfel gelden deze regels.
 
 ## Doel
 
-1. Hoofddoel: aanvragen voor bruiloften (vanaf €2.450) en portretten, via Google.
+1. Hoofddoel: aanvragen voor bruiloften (vanaf €3.250) en portretten, via Google.
 2. Paul neerzetten als artistieke, premium fotograaf (35 jaar werk, Kunsthal, Valkhof, Photoville New York).
 3. Boek en exposities onder de aandacht brengen.
 
@@ -23,13 +23,13 @@ Doelgroepen met eigen ingang: bruidsparen (regio Nijmegen/Arnhem, belangrijkste)
 - Geen superlatieven ("de beste", "onvergetelijk", "uniek"). Bewijs in plaats van claims: exposities, persvermeldingen (Volkskrant, Telegraaf, EenVandaag), aantallen.
 - Geen stockbeeld. Elke foto op de site is van Paul. Gebruik geen placeholder-foto's van externe bronnen.
 - Verzin nooit feiten, reviews, prijzen, aantallen of persvermeldingen. Ontbreekt informatie: zet een duidelijke `TODO(paul)` in de code of tekst en meld dat.
-- Prijzen: bruiloftpakketten zichtbaar (vanaf €2.450), portretten met een vanaf-prijs, kunst en exposities op aanvraag.
+- Prijzen: bruiloftpakketten zichtbaar (vanaf €3.250), portretten met een vanaf-prijs, kunst en exposities op aanvraag.
 - Beeld eerst: grote foto's, veel witruimte, weinig tekst boven de vouw. De homepage opent met portretten en toont in één oogopslag wie Paul is, wat hij doet (bruiloft, portret, kunst) en hoe je contact opneemt.
 - Geld-pagina's krijgen onder de beelden 300 tot 600 woorden echte tekst. Serie-pagina's krijgen een korte inleiding, bijschriften en jaartal/plaats.
 
 ## SEO per pagina (verplicht)
 
-- Eén primair zoekwoord per URL. Voorkom kannibalisatie tussen kunstseries (/love-marriage, /portretten) en commerciële pagina's (/trouwfotograaf-nijmegen, /zakelijke-portretfoto).
+- Eén primair zoekwoord per URL. Voorkom kannibalisatie tussen kunstseries (/love-marriage, /portretten) en commerciële pagina's (/fotograaf-bruiloft, /zakelijke-portretfoto).
 - Eén `BaseLayout` met een `SEOHead`-component voor: unieke `title` (rond 60 tekens), `description` (rond 155 tekens), `canonical`, Open Graph en Twitter. Elke pagina geeft deze waarden door, geen standaardwaarden laten doorlekken.
 - Precies één `<h1>`, daarna een logische H2/H3-opbouw.
 - JSON-LD via een herbruikbare component. Types: `WebSite`, `BreadcrumbList`, `LocalBusiness`/`ProfessionalService`, `Person`, `Service` + `Offer`, `ImageObject`/`ImageGallery`, `Event` (alleen aankomend met echte data), `Book`. Geen `AggregateRating` of `Review` op eigen pagina's voor Pauls eigen bedrijf.
@@ -42,12 +42,18 @@ Doelgroepen met eigen ingang: bruidsparen (regio Nijmegen/Arnhem, belangrijkste)
 
 De secties op de homepage staan altijd in deze volgorde: Hero, OverPaul, Projecten, Diensten, BeeldDuo, Exposities, Panorama (foto van rand tot rand, geen kop). Daarna volgt later een CTA. Wijzig deze volgorde alleen als ik er in de chat uitdrukkelijk om vraag. Plaats nieuwe secties nooit relatief ("onder X") zonder deze lijst bij te werken. Lees bij elke wijziging aan index.astro eerst deze lijst.
 
+## Volgorde commerciële landingspagina (bindend)
+
+De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze, Impressie, OverPaul, Vragen, Uitleg, Pakketten, Reviews, Aanvraagformulier, Beeld (foto van rand tot rand, geen kop). Daarna volgt de footer. Een sectie wordt alleen getoond als de data ervoor bestaat; de volgorde verandert nooit. Elke sectie zit in een eigen wrapper met --sectie-ruimte; geen margins die van buren afhangen.
+
 ## URL's
 
 - Behoud de bestaande slugs: /asty-mwaka, /love-marriage, /de-gaarkeuken, /groeten-uit-lent, /take-me-to-the-river, /asfalt, /panoramas, /portretten, /het-gezicht-van-nijmegen.
 - `/promoties` is geen pagina op deze site: permanente 301 (`permanent: true` in `vercel.json`) naar https://www.fotograafpromotiesradboud.nl/. Neem `/promoties` niet op in navigatie, sitemap of interne links. Verwijs voor promotiefotografie met een gewone tekstlink naar de Radboud-site.
-- Nieuwe commerciële URL's: /trouwfotograaf-nijmegen, /zakelijke-portretfoto, /linkedin-foto-laten-maken, later /trouwfotograaf-arnhem en /trouwlocaties/[locatie].
-- Overig: /werk, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, /blog/[slug].
+- Nieuwe commerciële URL's: /fotograaf-bruiloft (algemene bruiloftpagina, primair zoekwoord "fotograaf bruiloft"), /zakelijke-portretfoto, /linkedin-foto-laten-maken, later /trouwfotograaf-nijmegen, /trouwfotograaf-arnhem en /trouwlocaties/[locatie].
+- /trouwfotograaf-nijmegen en /trouwfotograaf-arnhem zijn gereserveerd voor latere lokale pagina's met eigen inhoud; /fotograaf-bruiloft is de algemene bruiloftpagina. Geen sjabloonpagina's waarbij alleen de plaatsnaam wisselt.
+- Overig: /werk, /portfolio, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, /blog/[slug].
+- /portfolio is het oneindige fotocanvas (beleving, indexeerbaar, lage SEO-prioriteit). /werk blijft het zoekmachinevriendelijke serie-overzicht; concurreer niet met /werk of de seriepagina's om zoekwoorden.
 - Houd URL's kort, kleine letters, koppeltekens, geen trailing-slash-variaties, geen querystrings voor content.
 - Oude Joomla-URL's krijgen een 301 in `vercel.json` (bijvoorbeeld het cv naar /over-paul). Geen redirectketens. Voeg bij elke verwijderde of hernoemde URL meteen de redirect toe.
 - Locatiepagina's (/trouwlocaties/...) alleen met echte, eigen foto's en feiten van Paul. Geen sjabloonpagina's waarbij alleen de plaatsnaam wisselt.
@@ -62,7 +68,7 @@ De secties op de homepage staan altijd in deze volgorde: Hero, OverPaul, Project
 
 ## Contact en conversie
 
-- E-mail en telefoon zichtbaar in kop of voet op elke pagina, als gewone tekst met `mailto:` en `tel:` (geen JavaScript-verberging). WhatsApp optioneel.
+- E-mail en telefoon zichtbaar in kop of voet op elke pagina, als gewone tekst met `mailto:` en `tel:` (geen JavaScript-verberging). WhatsApp optioneel. Uitzondering op verzoek: /portfolio heeft geen header en footer, alleen een knop "← home" linksboven en de link "Contact →" in de overlay.
 - Elke bruiloft- en portretpagina eindigt in een kort formulier.
   - Bruiloftformulier: trouwdatum en locatie bovenaan, dan namen, aantal gasten, gewenst pakket, "hoe ken je mij?".
   - Portretformulier: naam, type (headshot, zakelijk, team, kunstportret), aantal personen, waarvoor (LinkedIn, website, anders), gewenste periode, "hoe ken je mij?".

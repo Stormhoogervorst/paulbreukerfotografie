@@ -1,0 +1,143 @@
+---
+/**
+ * /bedankt: de pagina na een verzonden aanvraag (src/pages/api/aanvraag.ts stuurt hierheen met `?type=bruiloft`).
+ *
+ * - `noindex`, niet in de sitemap (filter in astro.config.mjs), niet gelinkt vanuit navigatie of footer. Canonical zonder
+ *   querystring. Robots.txt laat de pagina crawlbaar, zodat de noindex gelezen wordt.
+ * - De pagina is statisch, dus de querystring `type` is alleen in de browser bekend: een klein script zet
+ *   `data-aanvraag-type` op <main> (alleen de waarde "bruiloft"), zodat conversiemeting er later op kan aansluiten.
+ *   Er is hier geen analytics gebouwd.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// TODO(paul): bevestig dat dit proces klopt (drie stappen) en de reactietijd (hier en in de mails: binnen 24 uur).
+const stappen = [
+  'Ik lees jullie aanvraag en kijk of de datum nog vrij is.',
+  'Ik stuur je een bericht met een voorstel voor een kennismaking.',
+  'Na de kennismaking maken we de afspraken definitief.',
+];
+---
+
+<BaseLayout
+  title="Bedankt voor je aanvraag | Paul Breuker Fotografie"
+  description="Bedankt voor je aanvraag. Ik reageer binnen 24 uur en je krijgt ook een bevestiging per e-mail."
+  canonical="/bedankt"
+  noindex
+>
+  <div class="bedankt">
+    <h1 class="bedankt__titel">Bedankt voor je aanvraag</h1>
+
+    <p class="bedankt__tekst">
+      Ik heb je aanvraag ontvangen en reageer binnen 24 uur. Je krijgt ook een bevestiging per e-mail. Zie je die niet,
+      kijk dan even in je spam.
+    </p>
+
+    <h2 class="bedankt__kop">Wat gebeurt er nu?</h2>
+    <ol class="stappen" role="list">
+      {
+        stappen.map((stap, index) => (
+          <li class="stap">
+            <span class="stap__nummer" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <span class="stap__tekst">{stap}</span>
+          </li>
+        ))
+      }
+    </ol>
+
+    <p class="bedankt__links">
+      <a class="bedankt__link" href="/">terug naar de homepage <span aria-hidden="true">→</span></a>
+      <a class="bedankt__link" href="/portfolio">bekijk het portfolio <span aria-hidden="true">→</span></a>
+    </p>
+  </div>
+</BaseLayout>
+
+<script>
+  // Alleen de toegestane waarde; alles anders laat het attribuut weg.
+  const type = new URLSearchParams(window.location.search).get('type');
+  if (type === 'bruiloft') document.getElementById('main')?.setAttribute('data-aanvraag-type', type);
+</script>
+
+<style>
+  .bedankt {
+    padding: var(--space-6) var(--gutter) var(--sectie-ruimte);
+  }
+
+  /* Titel: de stijl van de H1 op de landingspagina's (Satoshi 700, letter-spacing -0.04em). */
+  .bedankt__titel {
+    margin: 0 0 var(--space-5);
+    font-size: clamp(2.25rem, 7vw, 6rem);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    hyphens: none;
+  }
+
+  .bedankt__tekst {
+    max-width: 27em;
+    margin: 0;
+    font-size: var(--font-size-body);
+    line-height: var(--intro-lh);
+  }
+
+  .bedankt__kop {
+    margin: var(--space-7) 0 var(--space-4);
+    font-size: var(--font-size-body);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  /* Nummering in de stijl van Diensten: nummer links, tekst rechts, haarlijn onder elke rij. */
+  .stappen {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .stap {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    align-items: baseline;
+    padding-block: 1.25rem;
+    border-bottom: 1px solid var(--ink);
+    font-size: clamp(1.25rem, 5vw, 1.75rem);
+    line-height: 1.1;
+  }
+
+  .bedankt__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.5em;
+    max-width: none;
+    margin: var(--space-6) 0 0;
+  }
+
+  /* Tekstlink met streep eronder en pijltje, zoals de CTA-links in de hero. */
+  .bedankt__link {
+    display: inline-block;
+    padding-block: 0.4rem; /* raakvlak */
+    font-size: var(--font-size-body);
+    line-height: 1.1;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .bedankt__link:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  @media (min-width: 900px) {
+    .bedankt {
+      padding-top: clamp(3rem, 6vw, 8rem);
+    }
+
+    .stap {
+      grid-template-columns: 18.5% 1fr;
+      padding-block: clamp(1.25rem, 2vw, 2.5rem);
+      font-size: clamp(1.5rem, 2.4vw, 3rem);
+    }
+  }
+</style>

@@ -18,16 +18,31 @@ interface Props {
   noindex?: boolean;
   /** Extra JSON-LD voor deze pagina. WebSite wordt altijd automatisch toegevoegd. */
   jsonLd?: AnySchema[];
+  /** Header tonen (standaard ja). /portfolio zet hem uit. */
+  header?: boolean;
+  /** Footer tonen (standaard ja). /portfolio zet hem uit. */
+  footer?: boolean;
+  /** Extra class op <html> voor paginabrede stijl. */
+  htmlClass?: string;
 }
 
-const { title, description, canonical, ogImage = DEFAULT_OG_IMAGE, noindex, jsonLd = [] } =
-  Astro.props;
+const {
+  title,
+  description,
+  canonical,
+  ogImage = DEFAULT_OG_IMAGE,
+  noindex,
+  jsonLd = [],
+  header = true,
+  footer = true,
+  htmlClass,
+} = Astro.props;
 
 const schemas: AnySchema[] = [webSite(), ...jsonLd];
 ---
 
 <!doctype html>
-<html lang="nl">
+<html lang="nl" class={htmlClass}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -47,10 +62,10 @@ const schemas: AnySchema[] = [webSite(), ...jsonLd];
   </head>
   <body>
     <a class="skip-link" href="#main">Ga naar de inhoud</a>
-    <Header />
+    {header && <Header />}
     <main id="main" tabindex="-1">
       <slot />
     </main>
-    <Footer />
+    {footer && <Footer />}
   </body>
 </html>

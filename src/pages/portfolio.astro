@@ -1,0 +1,409 @@
+---
+/**
+ * /portfolio: alle foto's op één oneindig, sleepbaar canvas (beleving, lage SEO-prioriteit).
+ * Het zoekmachinevriendelijke overzicht van de series is /werk.
+ * Data: src/data/portfolio.ts. Layout: src/lib/portfolio-layout.ts. Gedrag: src/scripts/portfolio-canvas.ts.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { portfolio } from '../data/portfolio';
+import { getPortfolioImages, toSrcset } from '../lib/portfolio-images';
+import { breadcrumbList } from '../lib/schema';
+import type { ClientPhoto } from '../scripts/portfolio-canvas';
+
+const NOSCRIPT_LIMIT = 48;
+
+const images = await Promise.all(portfolio.map((photo) => getPortfolioImages(photo)));
+
+const clientPhotos: ClientPhoto[] = portfolio.map((photo, i) => {
+  const { thumbs, large } = images[i];
+  return {
+    id: photo.id,
+    series: photo.series,
+    title: photo.seriesTitle,
+    href: photo.seriesHref,
+    width: photo.width,
+    height: photo.height,
+    alt: photo.alt,
+    thumbSrc: thumbs[0].src,
+    thumbSrcset: toSrcset(thumbs),
+    largeSrc: large[large.length - 1].src,
+    largeSrcset: toSrcset(large),
+  };
+});
+
+// Noscript: om en om uit de series, zodat het raster gemengd is.
+const bySeries = new Map<string, number[]>();
+portfolio.forEach((photo, i) => {
+  const key = photo.series ?? '';
+  bySeries.set(key, [...(bySeries.get(key) ?? []), i]);
+});
+const noscriptIndices: number[] = [];
+for (let round = 0; noscriptIndices.length < Math.min(NOSCRIPT_LIMIT, portfolio.length); round += 1) {
+  for (const list of bySeries.values()) {
+    if (list[round] !== undefined && noscriptIndices.length < NOSCRIPT_LIMIT) {
+      noscriptIndices.push(list[round]);
+    }
+  }
+}
+
+// Deelafbeelding: eerste liggende foto uit Love & Marriage, anders de eerste foto.
+const ogIndex = Math.max(
+  0,
+  portfolio.findIndex((photo) => photo.series === 'love-marriage' && photo.width > photo.height),
+);
+const ogImage = portfolio.length ? images[ogIndex].large[0].src : undefined;
+
+const json = JSON.stringify(clientPhotos).replace(/</g, '\\u003c');
+---
+
+<BaseLayout
+  title="Portfolio | Paul Breuker: bruiloften, portretten en series"
+  description="Verken het werk van fotograaf Paul Breuker in één oneindig canvas: bruiloften, portretten en kunstseries. Sleep en klik voor een groot formaat."
+  canonical="/portfolio"
+  ogImage={ogImage}
+  header={false}
+  footer={false}
+  htmlClass="page-portfolio"
+  jsonLd={[breadcrumbList([
+    { name: 'Home', path: '/' },
+    { name: 'Portfolio', path: '/portfolio' },
+  ])]}
+>
+  <div class="portfolio" data-portfolio>
+    <a class="portfolio__home" href="/"><span aria-hidden="true">←</span> home</a>
+
+    <div
+      class="portfolio__canvas"
+      tabindex="0"
+      role="region"
+      aria-label="Fotogalerij: sleep of gebruik de pijltjestoetsen om te verkennen"
+    >
+      <div class="portfolio__world"></div>
+    </div>
+
+    <noscript>
+      <div class="portfolio__noscript">
+        <ul class="portfolio__noscript-grid">
+          {
+            noscriptIndices.map((i) => {
+              const photo = portfolio[i];
+              const thumb = images[i].thumbs;
+              const img = (
+                <img
+                  src={thumb[0].src}
+                  srcset={toSrcset(thumb)}
+                  sizes="(min-width: 700px) 220px, 45vw"
+                  width={thumb[0].width}
+                  height={Math.round((thumb[0].width * photo.height) / photo.width)}
+                  alt={photo.alt}
+                  loading="lazy"
+                  decoding="async"
+                />
+              );
+              return <li>{photo.seriesHref ? <a href={photo.seriesHref}>{img}</a> : img}</li>;
+            })
+          }
+        </ul>
+        <p><a href="/werk">Bekijk alle series</a></p>
+      </div>
+    </noscript>
+
+    <div class="portfolio__overlay">
+      <div class="portfolio__intro">
+        <h1 class="portfolio__title">Portfolio</h1>
+        <p class="portfolio__hint">Sleep om te verkennen. Klik op een foto voor groot formaat.</p>
+      </div>
+      <ul class="portfolio__links">
+        <!-- TODO(paul): /werk en /contact bestaan nog niet (zie README, "Nog te bouwen"). -->
+        <li><a href="/werk">Alle series <span aria-hidden="true">→</span></a></li>
+        <li><a href="/contact">Contact <span aria-hidden="true">→</span></a></li>
+      </ul>
+    </div>
+
+    <dialog class="lightbox" aria-label="Foto in groot formaat">
+      <figure class="lightbox__figure">
+        <img class="lightbox__img" alt="" decoding="async" />
+        <figcaption class="lightbox__caption" hidden></figcaption>
+      </figure>
+      <button type="button" class="lightbox__close">sluiten</button>
+    </dialog>
+  </div>
+
+  <script is:inline type="application/json" id="portfolio-data" set:html={json} />
+  <script>
+    import '../scripts/portfolio-canvas';
+  </script>
+</BaseLayout>
+
+<style>
+  :global(html.page-portfolio),
+  :global(html.page-portfolio body) {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  :global(html.page-portfolio body) {
+    height: 100svh;
+    min-height: 0;
+  }
+
+  :global(html.page-portfolio main) {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .portfolio {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: var(--canvas);
+  }
+
+  /* ---------- Home-knop (geen header op deze pagina) ---------- */
+  .portfolio__home {
+    position: absolute;
+    top: max(var(--space-3), env(safe-area-inset-top));
+    left: var(--gutter);
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    background: var(--paper);
+    border: 1px solid rgb(21 21 21 / 0.12);
+    font-size: var(--font-size-small);
+    line-height: 1;
+    text-decoration: none;
+  }
+
+  .portfolio__home:hover {
+    text-decoration: underline;
+  }
+
+  /* ---------- Canvas ---------- */
+  .portfolio__canvas {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: pinch-zoom;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .portfolio__canvas.is-dragging {
+    cursor: grabbing;
+  }
+
+  .portfolio__canvas:focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: -3px;
+    border-radius: 0;
+  }
+
+  .portfolio__world {
+    position: absolute;
+    top: 0;
+    left: 0;
+    will-change: transform;
+  }
+
+  .portfolio__world :global(.portfolio__tile) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: inherit;
+  }
+
+  .portfolio__world :global(.portfolio__tile:focus-visible) {
+    outline: 3px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 0;
+  }
+
+  .portfolio__world :global(.portfolio__tile img) {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+  }
+
+  .portfolio__world :global(.portfolio__tile.is-loaded img) {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .portfolio__world :global(.portfolio__tile img) {
+      opacity: 1;
+      transition: none;
+    }
+  }
+
+  /* ---------- Zonder JavaScript ---------- */
+  .portfolio__noscript {
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+    padding: 5rem var(--gutter) 8rem;
+    background: var(--canvas);
+  }
+
+  .portfolio__noscript-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(45vw, 220px), 1fr));
+    gap: var(--space-4);
+    align-items: center;
+  }
+
+  .portfolio__noscript-grid img {
+    width: 100%;
+    height: auto;
+  }
+
+  .portfolio__noscript p {
+    margin-top: var(--space-5);
+    font-size: var(--font-size-small);
+  }
+
+  /* ---------- Overlay ---------- */
+  .portfolio__overlay {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: 3rem var(--gutter) max(var(--space-3), env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--canvas) 35%, transparent);
+    pointer-events: none;
+    font-size: var(--font-size-small);
+    line-height: 1.4;
+  }
+
+  .portfolio__title {
+    margin: 0 0 var(--space-1);
+    font-size: 1.25rem;
+    letter-spacing: -0.01em;
+  }
+
+  .portfolio__hint {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--ink-zacht);
+    transition: opacity 0.6s ease;
+  }
+
+  .portfolio__hint.is-faded {
+    opacity: 0;
+  }
+
+  .portfolio__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    column-gap: var(--space-4);
+  }
+
+  .portfolio__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: none;
+    pointer-events: auto;
+  }
+
+  .portfolio__links a span {
+    margin-left: 0.3em;
+  }
+
+  .portfolio__links a:hover {
+    text-decoration: underline;
+  }
+
+  /* ---------- Grote weergave ---------- */
+  .lightbox {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgb(246 246 246 / 0.97);
+    color: var(--ink);
+  }
+
+  .lightbox[open] {
+    display: grid;
+    place-items: center;
+  }
+
+  .lightbox::backdrop {
+    background: transparent;
+  }
+
+  .lightbox__figure {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .lightbox__img {
+    --ratio: 1.5;
+    width: min(90vw, calc((90svh - 4rem) * var(--ratio)));
+    max-width: none;
+    height: auto;
+    aspect-ratio: var(--ratio);
+  }
+
+  .lightbox__caption {
+    font-size: var(--font-size-small);
+  }
+
+  .lightbox__caption :global(a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .lightbox__close {
+    position: fixed;
+    top: var(--space-2);
+    right: var(--space-2);
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--font-size-small);
+    cursor: pointer;
+  }
+
+  .lightbox__close:hover {
+    text-decoration: underline;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .portfolio__hint {
+      transition: none;
+    }
+  }
+</style>

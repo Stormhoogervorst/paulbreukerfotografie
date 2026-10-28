@@ -1,0 +1,190 @@
+---
+/**
+ * Vragen (landingspagina): titel in de gedeelde Marquee, daaronder veelgestelde vragen als uitklapbare lijst. Typografisch
+ * en rustig, in de stijl van Diensten en Exposities: haarlijnen, geen kaarten, schaduw, afgeronde hoeken of cirkelknoppen.
+ *
+ * - Elke vraag is een native <details> met een <summary>: geen JavaScript voor het in- en uitklappen. De eerste vraag
+ *   staat open. De antwoorden staan altijd in de HTML, ook als ze ingeklapt zijn. Een vraag is geen aparte heading; de
+ *   <h2> van de sectie is de eerste herhaling in de marquee.
+ * - Icoon: plusteken van twee CSS-lijnen (::before en ::after), zonder cirkel. Bij een geopende vraag verdwijnt de
+ *   verticale lijn (het wordt een min). Geen hoogte-animatie; alleen een korte overgang van de lijn (niet bij
+ *   prefers-reduced-motion).
+ * - Desktop (vanaf 900px): het antwoord begint op `--kolom-tekst` (global.css), dezelfde positie als de inleiding in de
+ *   hero, en is minstens 24rem breed (valt de kolom smaller uit, dan schuift het begin naar links, zoals bij Uitleg).
+ * - Segmenten met een href worden <a> (standaard linkstijl van de site); strings zijn tekst. Geen set:html.
+ * - De <section> heeft id="vragen". Geen eigen buitenmarges: de verticale ruimte rond de sectie komt van de .sectie-wrapper
+ *   in LandingLayout.astro. Het enige JavaScript is het bestaande script van Marquee.astro.
+ *
+ * Content: `pagina.vragen` (zie src/data/landing/types.ts). De JSON-LD (FAQPage) wordt in LandingLayout.astro uit
+ * dezelfde data gebouwd.
+ */
+import Marquee from '../Marquee.astro';
+import type { LandingVragen, Segment } from '../../data/landing/types';
+
+interface Props {
+  vragen: LandingVragen;
+}
+
+const { vragen } = Astro.props;
+
+/** Id van de <h2> (de eerste herhaling in de marquee); de sectie verwijst ernaar met aria-labelledby. */
+const KOP_ID = 'vragen-titel';
+---
+
+<section class="vragen" id="vragen" aria-labelledby={KOP_ID}>
+  <Marquee woord={vragen.titel} kopId={KOP_ID} />
+
+  <div class="vragen__inhoud">
+    {
+      vragen.items.map((item, index) => (
+        <details class="vraag" open={index === 0}>
+          <summary class="vraag__titel">
+            <span class="vraag__tekst">{item.vraag}</span>
+            <span class="vraag__icoon" aria-hidden="true" />
+          </summary>
+          <div class="vraag__antwoord">
+            {item.antwoord.map((alinea) => (
+              <p>
+                {alinea.map((segment: Segment) => (typeof segment === 'string' ? segment : <a href={segment.href}>{segment.tekst}</a>))}
+              </p>
+            ))}
+          </div>
+        </details>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  /* ---------- Vragen (mobiel eerst) ---------- */
+  .vragen {
+    --marquee-onder: clamp(3rem, 7vw, 8rem); /* margin-bottom van de gedeelde Marquee (Marquee.astro); alleen voor de desktop-compensatie */
+    /* De kop staat bij een sprong naar #vragen niet strak tegen de bovenrand van het scherm. */
+    scroll-margin-top: clamp(2rem, 5vw, 6rem);
+  }
+
+  .vragen__inhoud {
+    padding-inline: var(--gutter);
+  }
+
+  /* Haarlijn boven elke vraag en onder de laatste: dezelfde kleur en dikte als de lijnen in Diensten en Exposities. */
+  .vraag {
+    border-top: 1px solid var(--ink);
+  }
+
+  .vraag:last-child {
+    border-bottom: 1px solid var(--ink);
+  }
+
+  /* Vraag: font-family en gewicht van de H1. Het icoon erft de lettergrootte en wordt in em gemeten. */
+  .vraag__titel {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1em;
+    min-height: 44px; /* raakvlak */
+    padding-block: clamp(1.25rem, 2vw, 2.25rem);
+    font-size: clamp(1.25rem, 2.2vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    list-style: none;
+    cursor: pointer;
+  }
+
+  /* De standaardmarker verbergen, ook in WebKit. */
+  .vraag__titel::-webkit-details-marker {
+    display: none;
+  }
+
+  .vraag__titel::marker {
+    content: '';
+  }
+
+  .vraag__titel:focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: -3px;
+  }
+
+  .vraag__tekst {
+    min-width: 0;
+  }
+
+  /* Plusteken van twee lijnen, 1px dik, zonder cirkel of achtergrond. Het midden ligt op het midden van de eerste regel. */
+  .vraag__icoon {
+    position: relative;
+    flex: none;
+    width: 1.25em;
+    height: 1.25em;
+    margin-top: calc((1.1em - 1.25em) / 2);
+  }
+
+  .vraag__icoon::before,
+  .vraag__icoon::after {
+    content: '';
+    position: absolute;
+    background: currentColor;
+  }
+
+  /* Horizontale lijn. */
+  .vraag__icoon::before {
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    margin-top: -0.5px;
+  }
+
+  /* Verticale lijn: verdwijnt bij een geopende vraag (plus wordt min). */
+  .vraag__icoon::after {
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    margin-left: -0.5px;
+    transform: scaleY(1);
+  }
+
+  .vraag[open] .vraag__icoon::after {
+    transform: scaleY(0);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .vraag__icoon::after {
+      transition: transform 150ms ease;
+    }
+  }
+
+  /* Antwoord: tekststijl en regelafstand van de inleiding in de hero. Op mobiel begint het op de gutter (geen
+     inspringing). Maximaal ongeveer 60 tekens per regel: in Satoshi 500 is een gemiddeld teken circa 0,45em breed
+     (gemeten), dus 27em. De eenheid `ch` (de breedte van de "0") is hier te ruim. */
+  .vraag__antwoord {
+    padding-bottom: 6vw;
+  }
+
+  .vraag__antwoord p {
+    max-width: 27em;
+    margin: 0 0 1em;
+    font-size: var(--font-size-body);
+    line-height: var(--intro-lh);
+  }
+
+  .vraag__antwoord p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ---------- Vragen (desktop) ---------- */
+  @media (min-width: 900px) {
+    /* Ongeveer 5vw tussen de titel en de eerste rij: de Marquee heeft zelf al ruimte eronder, dus compenseren. */
+    .vragen__inhoud {
+      margin-top: calc(5vw - var(--marquee-onder));
+    }
+
+    /* Begint op --kolom-tekst (gemeten vanaf de schermrand, dus min de gutter); de kolom is minstens 24rem breed. */
+    .vraag__antwoord {
+      margin-left: min(calc(var(--kolom-tekst) - var(--gutter)), calc(100% - 24rem));
+      padding-bottom: clamp(1.5rem, 2.5vw, 3rem);
+    }
+  }
+</style>

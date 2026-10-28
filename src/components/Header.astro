@@ -1,7 +1,7 @@
 ---
 /**
  * Header: statisch (niet sticky), wit, zonder JavaScript.
- * - Vanaf 900px: drie kolommen (wordmark, contact, navigatie). Socials staan alleen in de footer.
+ * - Vanaf 900px: twee kolommen (wordmark, navigatie). Contactgegevens staan in de footer (en in het mobiele menu); socials alleen in de footer.
  * - Onder 900px: alleen een "menu"-knop rechts (native <details>/<summary>), zonder naam.
  * Er is één blok per breakpoint; het andere blok is `display: none` en dus ook
  * niet in de toegankelijkheidsboom.
@@ -15,23 +15,6 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
   <!-- Desktop: vanaf 900px -->
   <div class="site-header__desktop">
     <a class="site-header__brand" href="/">{WORDMARK}</a>
-
-    <ul class="site-header__col" aria-label="Contact">
-      <li>
-        {
-          CONTACT.email ? (
-            <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
-          ) : (
-            // TODO(paul): e-mailadres invullen in src/data/site.ts.
-            <span class="todo">TODO(paul)</span>
-          )
-        }
-      </li>
-      <li>
-        <!-- TODO(paul): bevestig dat dit telefoonnummer nog klopt. -->
-        <a href={CONTACT.phoneHref}>{CONTACT.phoneDisplay}</a>
-      </li>
-    </ul>
 
     <nav class="site-header__nav" aria-label="Hoofdnavigatie">
       <ul class="site-header__col">
@@ -127,6 +110,13 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
     white-space: nowrap;
   }
 
+  /* Desktop: de vorm van de P begint op de gutter, net als het wordmark in de hero (optische zijmarge van de P). */
+  @media (min-width: 900px) {
+    .site-header__brand {
+      margin-left: -0.09em;
+    }
+  }
+
   /* ---------- Mobiel ---------- */
   .site-header__desktop {
     display: none;
@@ -211,9 +201,9 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 
     .site-header__desktop {
       display: grid;
-      /* De contactkolom start op dezelfde plek als in de referentie (34,6vw + 14,6vw); de navigatie
-         sluit rechts aan op de rechterrand van het wordmark in de hero (83vw breed). */
-      grid-template-columns: 49.2vw minmax(0, 1fr) auto;
+      /* Logo links op de gutter; de navigatie sluit rechts aan op dezelfde gutter (breedte = 100vw - 2 gutters,
+         gelijk aan het wordmark in de hero). Eerder stond hier een vaste 83vw, waardoor rechts 11,5vw bleef. */
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: start;
       width: var(--wordmark-width);
       margin-left: var(--gutter);

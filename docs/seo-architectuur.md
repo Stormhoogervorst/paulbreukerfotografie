@@ -31,18 +31,22 @@ Principe: één primair zoekwoord per URL. Commerciële pagina's en kunstseries 
 | URL | Doel / primair zoekwoord | Eindigt in |
 |---|---|---|
 | `/` | Merk + wie is Paul + drie ingangen (bruiloft, portret, kunst) | Doorverwijzen + contact |
-| `/trouwfotograaf-nijmegen` | trouwfotograaf nijmegen. Prijzen vanaf €2.450, werkwijze, reviews, FAQ | Bruiloftformulier |
+| `/fotograaf-bruiloft` | fotograaf bruiloft (algemene bruiloftpagina). Prijzen vanaf €3.250, werkwijze, reviews, FAQ | Bruiloftformulier |
+| `/trouwfotograaf-nijmegen` | trouwfotograaf nijmegen. Gereserveerd voor een latere lokale pagina met eigen inhoud | Bruiloftformulier |
 | `/trouwfotograaf-arnhem` | trouwfotograaf arnhem. Alleen live als er genoeg eigen Arnhem-inhoud is | Bruiloftformulier |
 | `/trouwlocaties/[locatie]` | trouwen op/in [locatie] + fotograaf. Alleen locaties waar Paul echt heeft gefotografeerd | Bruiloftformulier |
 | `/zakelijke-portretfoto` | zakelijke portretfoto (nijmegen). Hub voor headshots, teams, wetenschappers | Portretformulier |
 | `/linkedin-foto-laten-maken` | linkedin foto laten maken. Eigen pagina, want andere intentie dan teams | Portretformulier |
 | `/teamfoto-laten-maken` | teamfoto / personeelsfoto. Pas in fase 3 | Portretformulier |
 
+/trouwfotograaf-nijmegen en /trouwfotograaf-arnhem zijn gereserveerd voor latere lokale pagina's met eigen inhoud; /fotograaf-bruiloft is de algemene bruiloftpagina. Geen sjabloonpagina's waarbij alleen de plaatsnaam wisselt.
+
 ### Laag 2: autoriteit en kunst
 
 | URL | Inhoud |
 |---|---|
-| `/werk` | Overzicht van alle series |
+| `/werk` | Overzicht van alle series. Blijft het zoekmachinevriendelijke serie-overzicht |
+| `/portfolio` | Beleving: alle foto's op één oneindig, sleepbaar canvas. Indexeerbaar, in de sitemap en in de afbeeldingensitemap (`/sitemap-images.xml`), maar lage SEO-prioriteit: geen eigen zoekwoorddoel naast /werk en de series. Zonder header en footer (home-knop en link naar contact) |
 | Bestaande 9 serie-URL's (alle behalve /promoties) | Zelfde slugs behouden (platte structuur), nieuwe teksten en schema |
 | `/exposities` | Kunsthal, Valkhof, Photoville New York, nieuwe exposities als Event |
 | `/pers` | Volkskrant, Telegraaf, EenVandaag met link naar het bronartikel |
@@ -55,7 +59,7 @@ Principe: één primair zoekwoord per URL. Commerciële pagina's en kunstseries 
 
 Blogartikelen onder `/blog/[slug]`, elk met één doelpagina uit laag 1 waarnaar het linkt:
 
-- Wat kost een trouwfotograaf? (linkt naar /trouwfotograaf-nijmegen)
+- Wat kost een trouwfotograaf? (linkt naar /fotograaf-bruiloft)
 - Hoe kies je een trouwfotograaf? (zelfde doelpagina)
 - Trouwlocatiegidsen per locatie (linkt naar de bijbehorende /trouwlocaties/-pagina)
 - Een goede LinkedIn-foto: waar let je op? (linkt naar /linkedin-foto-laten-maken)
@@ -74,7 +78,7 @@ De Radboud-site voor promotiefotografie blijft apart. De bestaande `/promoties` 
 - Astro met statische output, standaard vrijwel zonder JavaScript. Alleen het formulier-endpoint draait on-demand (`prerender = false`). Alle content staat in de initiële HTML. Interactieve onderdelen (galerij, lightbox) zijn islands met `client:visible` of `client:idle`.
 - Eén `BaseLayout` met een `SEOHead`-component die per pagina zorgt voor: unieke `title` (rond 60 tekens), `description` (rond 155 tekens), `canonical`, Open Graph en Twitter-kaarten, en JSON-LD.
 - Eén H1 per pagina, logische H2/H3-hiërarchie.
-- `@astrojs/sitemap` (met filter voor `/bedankt`) en `src/pages/robots.txt.ts`. De sitemap bevat alleen indexeerbare, canonieke URL's. Stel `lastmod` in waar je echte wijzigingsdata hebt. Een aparte image-sitemap is optioneel.
+- `@astrojs/sitemap` (met filter voor `/bedankt`) en `src/pages/robots.txt.ts`. De sitemap bevat alleen indexeerbare, canonieke URL's. Stel `lastmod` in waar je echte wijzigingsdata hebt. Afbeeldingensitemap: `src/pages/sitemap-images.xml.ts` (alle foto's van /portfolio, grootste variant), vermeld in `robots.txt`.
 - Afbeeldingen: `<Image>` of `<Picture>` uit `astro:assets`, AVIF/WebP, vaste `width`/`height`, `loading="eager"` met `fetchpriority="high"` alleen op het LCP-beeld, `sizes` correct instellen, lazy loading voor de rest. Alt-teksten in het Nederlands en beschrijvend, geen keyword stuffing.
 - Prestatiedoelen (mobiel, veldmeting): LCP onder 2,5 s, CLS onder 0,1, INP onder 200 ms. Een beeld-eerst site wint of verliest hier.
 - Lettertypen self-hosted (bijvoorbeeld Fontsource) met `font-display: swap`, geen render-blocking externe CSS.
@@ -101,8 +105,8 @@ Let op: geen `AggregateRating` of `Review`-markup op Pauls eigen pagina's voor z
 
 ## 5. Interne linking
 
-- Home linkt naar de drie ingangen: /trouwfotograaf-nijmegen, /zakelijke-portretfoto, /werk.
-- Elke serie-pagina linkt naar de relevante commerciële pagina. Voorbeeld: /love-marriage naar /trouwfotograaf-nijmegen met een beschrijvende ankertekst ("trouwfotograaf in Nijmegen"), en /portretten naar /zakelijke-portretfoto.
+- Home linkt naar de drie ingangen: /fotograaf-bruiloft, /zakelijke-portretfoto, /werk.
+- Elke serie-pagina linkt naar de relevante commerciële pagina. Voorbeeld: /love-marriage naar /fotograaf-bruiloft met een beschrijvende ankertekst ("fotograaf voor je bruiloft"), en /portretten naar /zakelijke-portretfoto.
 - Elke commerciële pagina linkt terug naar 2 tot 3 relevante series als bewijs.
 - Blog en locatiepagina's linken omhoog naar hun doelpagina en sideways naar verwante locaties.
 - Header en footer: e-mail en telefoon zichtbaar op elke pagina; navigatie met maximaal 6 items.
@@ -116,6 +120,8 @@ De toon is rustig en visueel, maar Google en AI-systemen hebben tekst nodig om e
 - Portretpagina: voor wie, hoe een sessie werkt, vanaf-prijs, wat je krijgt, formulier.
 - Serie-pagina's: een korte inleiding van Paul in de ik-vorm, bijschriften en jaartal/plaats per serie.
 - Houd de toon aan uit de briefing: persoonlijk, bewijs in plaats van claims, geen superlatieven.
+
+Volgorde commerciële landingspagina (bindend): De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze, Impressie, OverPaul, Vragen, Uitleg, Pakketten, Reviews, Aanvraagformulier, Beeld (foto van rand tot rand, geen kop). Daarna volgt de footer. Een sectie wordt alleen getoond als de data ervoor bestaat; de volgorde verandert nooit. Elke sectie zit in een eigen wrapper met --sectie-ruimte; geen margins die van buren afhangen. Werkwijze is een korte statement-sectie (geen kop); Pakketten heeft als titel (marquee) de eerste H2 en Impressie de tweede; de overige H2's van de pagina staan in Uitleg.
 
 ## 7. Conversie
 
@@ -135,7 +141,7 @@ De toon is rustig en visueel, maar Google en AI-systemen hebben tekst nodig om e
 
 ## 9. Fasering
 
-- Fase 1 (lancering): home, /trouwfotograaf-nijmegen, /zakelijke-portretfoto, /linkedin-foto-laten-maken, 9 series, /werk, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, redirects, schema, sitemap, meting.
+- Fase 1 (lancering): home, /fotograaf-bruiloft, /zakelijke-portretfoto, /linkedin-foto-laten-maken, 9 series, /werk, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, redirects, schema, sitemap, meting.
 - Fase 2 (maand 1 tot 3): 5 tot 10 trouwlocatiepagina's, eerste 5 blogartikelen, Google-reviews opbouwen.
 - Fase 3 (daarna): /trouwfotograaf-arnhem, teamfoto's, uitbreiding blog en locaties op basis van wat Search Console laat zien.
 

@@ -205,6 +205,22 @@ export interface OfferSchema {
   };
 }
 
+/** Eén pakket als Offer in de OfferCatalog van een Service. */
+export interface CatalogOfferSchema {
+  '@type': 'Offer';
+  name: string;
+  description: string;
+  url: string;
+  price: number;
+  priceCurrency: 'EUR';
+}
+
+export interface OfferCatalogSchema {
+  '@type': 'OfferCatalog';
+  name: string;
+  itemListElement: CatalogOfferSchema[];
+}
+
 export interface ServiceSchema extends JsonLdNode {
   '@type': 'Service';
   name: string;
@@ -213,7 +229,18 @@ export interface ServiceSchema extends JsonLdNode {
   provider: IdRef;
   serviceType?: string;
   areaServed?: string[];
-  offers: OfferSchema;
+  /** Ontbreekt zonder vanaf-prijs: geen Offer verzinnen. */
+  offers?: OfferSchema;
+  /** Alleen pakketten met een echte prijs. */
+  hasOfferCatalog?: OfferCatalogSchema;
+}
+
+/** Een pakket met een prijs, voor de OfferCatalog. Pakketten zonder prijs horen hier niet in. */
+export interface ServicePackageInput {
+  name: string;
+  description: string;
+  /** Prijs in euro's. */
+  price: number;
 }
 
 export interface ServiceInput {
@@ -221,8 +248,12 @@ export interface ServiceInput {
   description: string;
   /** Pad of URL van de pagina waarop de dienst staat. */
   path: string;
-  /** Vanaf-prijs in euro's. Nooit verzinnen: komt van Paul. */
-  priceFrom: number;
+  /** Vanaf-prijs in euro's. Nooit verzinnen: komt van Paul. Zonder prijs geen `offers`. */
+  priceFrom?: number;
+  /** Pakketten met prijs; worden een `Offer` in `hasOfferCatalog`. Zonder pakketten geen catalogus. */
+  packages?: ServicePackageInput[];
+  /** Naam van de OfferCatalog (standaard "Pakketten"). */
+  catalogName?: string;
   serviceType?: string;
   areaServed?: string[];
   providerId?: string;
@@ -239,16 +270,36 @@ export function service(input: ServiceInput): ServiceSchema {
     provider: { '@id': input.providerId ?? BUSINESS_ID },
     ...(input.serviceType ? { serviceType: input.serviceType } : {}),
     ...(input.areaServed?.length ? { areaServed: input.areaServed } : {}),
-    offers: {
-      '@type': 'Offer',
-      url,
-      priceCurrency: 'EUR',
-      priceSpecification: {
-        '@type': 'PriceSpecification',
-        minPrice: input.priceFrom,
-        priceCurrency: 'EUR',
-      },
-    },
+    ...(input.packages?.length
+      ? {
+          hasOfferCatalog: {
+            '@type': 'OfferCatalog' as const,
+            name: input.catalogName ?? 'Pakketten',
+            itemListElement: input.packages.map((pakket) => ({
+              '@type': 'Offer' as const,
+              name: pakket.name,
+              description: pakket.description,
+              url: `${url}#pakketten`,
+              price: pakket.price,
+              priceCurrency: 'EUR' as const,
+            })),
+          },
+        }
+      : {}),
+    ...(input.priceFrom !== undefined
+      ? {
+          offers: {
+            '@type': 'Offer' as const,
+            url,
+            priceCurrency: 'EUR' as const,
+            priceSpecification: {
+              '@type': 'PriceSpecification' as const,
+              minPrice: input.priceFrom,
+              priceCurrency: 'EUR' as const,
+            },
+          },
+        }
+      : {}),
   };
 }
 
@@ -306,6 +357,84 @@ export function imageObject(input: ImageObjectInput): ImageObjectSchema {
   };
 }
 
+// ---------------------------------------------------------------------------
+// ImageGallery
+// ---------------------------------------------------------------------------
+
+export interface ImageGallerySchema extends JsonLdNode {
+  '@type': 'ImageGallery';
+  name: string;
+  url: string;
+  /** De foto's als ImageObject (zonder eigen @context: die staat op de galerij). */
+  hasPart: Array<Omit<ImageObjectSchema, '@context'>>;
+}
+
+export interface ImageGalleryInput {
+  name: string;
+  /** Pad of URL van de pagina (of het anker) waarop de galerij staat. */
+  path: string;
+  /** Eén item per foto; `url` is de geoptimaliseerde afbeelding, `caption` de alt-tekst. */
+  images: ImageObjectInput[];
+}
+
+export function imageGallery(input: ImageGalleryInput): ImageGallerySchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ImageGallery',
+    name: input.name,
+    url: absoluteUrl(input.path),
+    hasPart: input.images.map((image) => {
+      const { '@context': _context, ...node } = imageObject(image);
+      return node;
+    }),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// FAQPage
+// ---------------------------------------------------------------------------
+
+export interface QuestionSchema {
+  '@type': 'Question';
+  name: string;
+  acceptedAnswer: {
+    '@type': 'Answer';
+    text: string;
+  };
+}
+
+export interface FaqPageSchema extends JsonLdNode {
+  '@type': 'FAQPage';
+  url: string;
+  inLanguage: 'nl-NL';
+  mainEntity: QuestionSchema[];
+}
+
+export interface FaqPageInput {
+  /** Pad of URL van de pagina (of het anker) waarop de vragen staan. */
+  path: string;
+  /** `antwoord` is de platte tekst, letterlijk gelijk aan wat zichtbaar op de pagina staat. */
+  vragen: Array<{ vraag: string; antwoord: string }>;
+}
+
+/**
+ * FAQPage uit zichtbare vragen en antwoorden. Geldige markup, maar zonder rich result in Google (sinds 2023 beperkt tot
+ * een paar overheids- en gezondheidssites); de Q&A-structuur helpt wel zoekmachines en AI-antwoorden.
+ */
+export function faqPage(input: FaqPageInput): FaqPageSchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    url: absoluteUrl(input.path),
+    inLanguage: 'nl-NL',
+    mainEntity: input.vragen.map((item) => ({
+      '@type': 'Question',
+      name: item.vraag,
+      acceptedAnswer: { '@type': 'Answer', text: item.antwoord },
+    })),
+  };
+}
+
 /** Alle JSON-LD-nodes die deze module kan opleveren. */
 export type AnySchema =
   | WebSiteSchema
@@ -313,4 +442,6 @@ export type AnySchema =
   | PersonSchema
   | LocalBusinessSchema
   | ServiceSchema
-  | ImageObjectSchema;
+  | ImageObjectSchema
+  | ImageGallerySchema
+  | FaqPageSchema;

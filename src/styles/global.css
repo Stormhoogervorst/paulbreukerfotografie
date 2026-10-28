@@ -27,6 +27,7 @@
   --ink-zwart: #000; /* grote titelbalk ("Projecten"); echt zwart, anders dan --ink */
   --ink-zacht: #595959; /* secundaire tekst (bijvoorbeeld publicaties bij exposities); contrast op wit ca. 7:1 */
   --paper: #fff;
+  --canvas: #f6f6f6; /* lichtgrijze achtergrond van /portfolio */
 
   /* Typografie */
   --font-sans: 'Satoshi', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -43,12 +44,47 @@
   --space-7: 6rem;
 
   /* Layout */
-  --gutter: 5.5vw; /* linkermarge van header en hero */
+  --gutter: 5.5vw; /* marge links én rechts van header en hero (één variabele voor beide zijden) */
   --rand-ruim: clamp(0.75rem, 1.2vw, 1.5rem); /* kleine buitenmarge van de voettekst */
-  --wordmark-width: 83vw; /* breedte van het wordmark in de hero; de header sluit hierop aan */
+  /* Ruimte tussen de twee gutters: het wordmark in de hero, de header en foto C lopen precies van de
+     linker- tot de rechtergutter. Geen eigen getal: volgt altijd --gutter. */
+  --wordmark-width: calc(100vw - 2 * var(--gutter));
   --measure: 40rem; /* leesbare tekstbreedte */
   /* Ruimte tussen twee homepage-secties: elke .sectie-wrapper geeft de helft boven en onder. */
   --sectie-ruimte: clamp(6rem, 12vw, 14rem);
+
+  /* Dunne lijn bovenaan een statement-achtige sectie (Statement, LandingOverPaul): één bron voor kleur en dikte. */
+  --haarlijn: 1px solid rgb(21 21 21 / 0.2);
+  /* Kolommen van Statement en LandingOverPaul vanaf 900px (links label of foto, rechts tekst). Beide secties gebruiken
+     dezelfde gutter-padding en column-gap (--gutter), dus de tekstkolom begint op dezelfde horizontale positie. */
+  --statement-kolommen: 3fr 7fr;
+  /* Typografie van het grote statement (mobiel eerst; vanaf 900px zie hieronder). */
+  --statement-tekst-size: clamp(1.5rem, 6vw, 2rem);
+  --statement-inspring: 2.5em; /* ingesprongen eerste regel */
+  --statement-label-lh: 1.2; /* regelafstand van het kleine label */
+  --statement-tekst-lh: 1.18; /* regelafstand van de grote tekst */
+  --statement-boven: var(--space-4); /* ruimte tussen de haarlijn en de inhoud */
+
+  /* Lettermaten van Satoshi (gemeten, in em): opstijging en daling van de regelbox, hoofdletterhoogte van het vette
+     (koppen) en het gewone gewicht (lopende tekst). Daarmee ligt de bovenkant van de hoofdletters exact te berekenen
+     vanaf de bovenkant van een regel. Wijzig je het lettertype, meet dan opnieuw. */
+  --font-opstijging: 1.01;
+  --font-daling: 0.24;
+  --hoofdletter-vet: 0.731;
+  --hoofdletter-gewoon: 0.723;
+  /* Regelafstand van de inleiding in de hero van een landingspagina; ook gebruikt voor de gewone alinea's in OverPaul. */
+  --intro-lh: 1.1;
+  /* Linkerrand van de tekstkolom op desktop (vanaf 900px), vanaf de linkerrand van het scherm: de inleiding in de hero van
+     een landingspagina en de antwoorden in Vragen (later ook Uitleg). Alleen de waarde, geen kolom. */
+  --kolom-tekst: 53.2vw;
+}
+
+@media (min-width: 900px) {
+  :root {
+    --statement-tekst-size: clamp(1.75rem, 2.8vw, 4rem);
+    --statement-inspring: 27%; /* alleen de eerste regel; percentage van de kolombreedte */
+    --statement-boven: clamp(1.5rem, 2.5vw, 3rem);
+  }
 }
 
 *,
@@ -120,6 +156,43 @@ a {
   color: inherit;
   text-underline-offset: 0.2em;
   text-decoration-thickness: 1px;
+}
+
+/* Statement-typografie, gedeeld door Statement.astro en LandingOverPaul.astro: klein label, grote lopende tekst met
+   ingesprongen eerste regel en een kleine link. Alleen lettertype-eigenschappen; de plaatsing staat in de componenten. */
+.statement-label {
+  max-width: none;
+  font-size: var(--font-size-small); /* 16px */
+  font-weight: 500;
+  line-height: var(--statement-label-lh);
+  letter-spacing: 0;
+}
+
+.statement-tekst {
+  max-width: none;
+  margin: 0;
+  font-size: var(--statement-tekst-size);
+  font-weight: 500;
+  line-height: var(--statement-tekst-lh);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-indent: var(--statement-inspring);
+  text-wrap: pretty;
+  hyphens: none;
+}
+
+.statement-link {
+  display: inline-block;
+  padding-block: 0.4rem; /* raakvlak */
+  font-size: var(--font-size-small);
+  line-height: 1.2;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.statement-link:hover {
+  text-decoration-thickness: 2px;
 }
 
 /* Zichtbare focus voor toetsenbordgebruikers */

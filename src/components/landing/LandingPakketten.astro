@@ -1,0 +1,329 @@
+---
+/**
+ * Pakketten (landingspagina): titel in de gedeelde Marquee, daaronder de pakketten naast elkaar (desktop) of onder
+ * elkaar (mobiel). Typografisch en rustig, in de stijl van Diensten en Exposities: haarlijnen, geen kaarten, schaduw,
+ * afgeronde hoeken, badges of animatie.
+ *
+ * - Elk pakket is een <li> in een <ul role="list"> met een <article>. Onderdelen van boven naar beneden:
+ *   1. nummer en naam (<h3>), 2. prijs, 3. omschrijving, 4. kenmerkenlijst (alleen als er kenmerken zijn), 5. cta.
+ * - Desktop (vanaf 900px): drie kolommen met geneste subgrids. De rijen zijn gedeeld over alle kolommen: nummer en naam,
+ *   prijs, omschrijving, N rijen voor de kenmerken (N = het grootste aantal kenmerken van alle pakketten) en de cta.
+ *   Daardoor liggen alle haarlijnen en tekstregels over de drie kolommen op dezelfde hoogte. Zonder subgrid-ondersteuning
+ *   is er een flex-fallback waarbij alleen de cta onderaan de kolom staat.
+ * - Prijs: één <p> met het optionele label (`prijsLabel`, bijvoorbeeld "vanaf") en het bedrag, zodat een schermlezer
+ *   bijvoorbeeld "vanaf €3.250" voorleest. Zonder label staat er alleen het bedrag; zonder prijs staat er "prijs volgt".
+ * - De <section> heeft id="pakketten": het doel van de CTA in de hero en de link in Werkwijze.
+ * - De cta's springen naar #aanvragen en dragen `data-pakket` (slug van het pakket). Het formulier heeft nu geen
+ *   pakketveld, dus dit attribuut wordt op dit moment door niets gebruikt.
+ * - Geen eigen buitenmarges: de verticale ruimte rond de sectie komt van de .sectie-wrapper in LandingLayout.astro.
+ * - Het enige JavaScript is het bestaande script van Marquee.astro.
+ *
+ * Content: `pagina.pakketten` (zie src/data/landing/types.ts).
+ */
+import Marquee from '../Marquee.astro';
+import type { LandingPakketten } from '../../data/landing/types';
+
+interface Props {
+  pakketten: LandingPakketten;
+}
+
+const { pakketten } = Astro.props;
+
+/** Id van de <h2> (de eerste herhaling in de marquee); de sectie verwijst ernaar met aria-labelledby. */
+const KOP_ID = 'pakketten-titel';
+
+const bedrag = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 0 });
+/**
+ * Gedeelde rijen (desktop): 1 nummer en naam, 2 prijs, 3 omschrijving, 4 t/m 3+N kenmerken, 4+N cta.
+ * N is het grootste aantal kenmerken van alle pakketten; een pakket met minder kenmerken laat de rest leeg (zonder lijn).
+ */
+const kenmerkRijen = Math.max(0, ...pakketten.items.map((pakket) => pakket.kenmerken.length));
+const actieRij = 4 + kenmerkRijen;
+const nummer = (index: number) => String(index + 1).padStart(2, '0');
+---
+
+<section class="pakketten" id="pakketten" aria-labelledby={KOP_ID}>
+  <Marquee woord={pakketten.titel} kopId={KOP_ID} />
+
+  <div class="pakketten__inhoud">
+    <ul
+      class="pakketten__lijst"
+      role="list"
+      style={`--kenmerk-rijen: ${kenmerkRijen}; --actie-rij: ${actieRij}`}
+    >
+      {
+        pakketten.items.map((pakket, index) => (
+          <li class="pakket">
+            <article class="pakket__artikel">
+              <header class="pakket__kop">
+                <p class="pakket__nummer" aria-hidden="true">
+                  {nummer(index)}
+                </p>
+                <h3 class="pakket__naam">{pakket.naam}</h3>
+              </header>
+
+              <p class="pakket__prijs">
+                {pakket.prijs === null ? (
+                  <span class="pakket__label">prijs volgt</span>
+                ) : (
+                  <>
+                    {pakket.prijsLabel && <span class="pakket__label">{pakket.prijsLabel}</span>}
+                    {pakket.prijsLabel && ' '}
+                    <span class="pakket__bedrag">€{bedrag.format(pakket.prijs)}</span>
+                  </>
+                )}
+              </p>
+
+              <p class="pakket__omschrijving">{pakket.omschrijving}</p>
+
+              {
+                pakket.kenmerken.length > 0 && (
+                  <ul class="pakket__kenmerken" role="list">
+                    {pakket.kenmerken.map((kenmerk) => (
+                      <li>{kenmerk}</li>
+                    ))}
+                  </ul>
+                )
+              }
+
+              <p class="pakket__actie">
+                <a class="pakket__cta" href={pakket.cta.href} data-pakket={pakket.cta.pakket}>
+                  {pakket.cta.label} <span aria-hidden="true">→</span>
+                </a>
+              </p>
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+
+    {pakketten.voetnoot && <p class="pakketten__voetnoot">{pakketten.voetnoot}</p>}
+  </div>
+</section>
+
+<style>
+  /* ---------- Pakketten (mobiel eerst) ---------- */
+  .pakketten {
+    --marquee-onder: clamp(3rem, 7vw, 8rem); /* margin-bottom van de gedeelde Marquee (Marquee.astro); alleen voor de desktop-compensatie */
+    --stap: 5vw; /* ruimte boven elk onderdeel van een pakket */
+    /* De kop staat bij een sprong naar #pakketten niet strak tegen de bovenrand van het scherm. */
+    scroll-margin-top: clamp(2rem, 5vw, 6rem);
+  }
+
+  .pakketten__inhoud {
+    padding-inline: var(--gutter);
+  }
+
+  .pakketten__lijst {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pakket {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Haarlijn bovenaan, dezelfde kleur en dikte als de lijnen in Diensten en Exposities. */
+  .pakket__artikel {
+    display: flex;
+    flex-direction: column;
+    padding-block: 8vw;
+    border-top: 1px solid var(--ink);
+  }
+
+  .pakket:last-child .pakket__artikel {
+    padding-bottom: 0;
+  }
+
+  /* Eén onderdeel per grid-rij op desktop; op mobiel staan ze gewoon onder elkaar. */
+  .pakket__kop {
+    grid-row: 1;
+  }
+
+  .pakket__prijs {
+    grid-row: 2;
+  }
+
+  .pakket__omschrijving {
+    grid-row: 3;
+  }
+
+  .pakket__kenmerken {
+    grid-row: 4 / span var(--kenmerk-rijen);
+  }
+
+  .pakket__actie {
+    grid-row: var(--actie-rij);
+  }
+
+  /* Nummer: dezelfde stijl als de nummering in Diensten, klein en links. */
+  .pakket__nummer {
+    max-width: none;
+    margin: 0 0 0.5rem;
+    font-size: var(--font-size-small);
+    font-weight: 400;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Naam en prijs: font-family en gewicht van de H1. */
+  .pakket__naam {
+    margin: 0;
+    font-size: clamp(1.75rem, 2.6vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+  }
+
+  .pakket__prijs {
+    max-width: none;
+    margin: 0;
+    padding-top: var(--stap);
+    color: var(--ink);
+  }
+
+  /* Klein label in de stijl van de kleine links ("vanaf" boven het bedrag, of "prijs volgt"). */
+  .pakket__label {
+    display: block;
+    font-size: var(--font-size-small);
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .pakket__bedrag {
+    display: block;
+    font-size: clamp(2.5rem, 4.5vw, 6rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Omschrijving en kenmerken: tekststijl en regelafstand van de inleiding in de hero. */
+  .pakket__omschrijving,
+  .pakket__kenmerken {
+    font-size: var(--font-size-body);
+    line-height: 1.1;
+  }
+
+  .pakket__omschrijving {
+    max-width: 38ch;
+    margin: 0;
+    padding-block: calc(var(--stap) * 0.6) var(--stap); /* de ruimte onder de omschrijving hoort bij haar rij, zodat de lijnen eronder gelijk liggen */
+  }
+
+  .pakket__kenmerken {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Eén lijnsysteem: elk kenmerk heeft alleen een haarlijn erboven; de sluitende lijn is de border-top van de cta.
+     Geen vinkjes of iconen. */
+  .pakket__kenmerken li {
+    padding-block: 0.9em;
+    border-top: 1px solid var(--ink);
+  }
+
+  /* Tekstlink met streep eronder en pijltje, zoals de CTA-links in de hero. */
+  .pakket__actie {
+    max-width: none;
+    margin: 0;
+    padding-top: calc(var(--stap) * 0.6);
+    margin-top: auto; /* flex-fallback: de cta staat onderaan de kolom */
+    border-top: 1px solid var(--ink); /* sluitende lijn onder de kenmerken */
+  }
+
+  .pakket__cta {
+    display: inline-block;
+    padding-block: 0.8rem; /* raakvlak: minstens 44px hoog */
+    font-size: var(--font-size-body);
+    line-height: 1.1;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .pakket__cta:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .pakketten__voetnoot {
+    max-width: none;
+    margin: 6vw 0 0;
+    font-size: var(--font-size-small);
+    line-height: 1.5;
+    color: var(--ink-zacht);
+  }
+
+  /* ---------- Pakketten (desktop) ---------- */
+  @media (min-width: 900px) {
+    .pakketten {
+      --stap: 2.5vw;
+    }
+
+    /* Ongeveer 5vw tussen de titel en de kolommen: de Marquee heeft zelf al ruimte eronder, dus compenseren. */
+    .pakketten__inhoud {
+      margin-top: calc(5vw - var(--marquee-onder));
+    }
+
+    .pakketten__lijst {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      column-gap: 2vw;
+      row-gap: 0;
+    }
+
+    /* Flex-fallback (zonder subgrid): kolommen even hoog, de cta onderaan. */
+    .pakket {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pakket__artikel {
+      flex: 1;
+      padding-block: 1.5vw 0;
+    }
+
+    .pakketten__voetnoot {
+      margin-top: 3vw;
+    }
+
+    /* Elk kenmerk is minstens twee tekstregels hoog (plus padding en lijn), ook zonder subgrid. De tekst staat bovenaan
+       de cel. */
+    .pakket__kenmerken li {
+      min-height: calc(2 * 1.1em + 1.8em + 1px);
+    }
+
+    /* Subgrid in drie lagen (ul > li > article, en daarbinnen de kenmerken-ul): alle kolommen delen dezelfde rijen,
+       dus elke rij is overal even hoog als de hoogste cel erin. Daardoor liggen lijnen en tekstregels over de kolommen
+       gelijk, ook als een kenmerk in de ene kolom op één regel past en in de andere op twee. Rijen: 1 nummer en naam,
+       2 prijs, 3 omschrijving, 4 t/m 3+N kenmerken, 4+N cta (N = --kenmerk-rijen). */
+    @supports (grid-template-rows: subgrid) {
+      .pakket {
+        display: grid;
+        grid-template-rows: subgrid;
+        grid-row: span var(--actie-rij); /* = alle rijen: 4 + N */
+      }
+
+      .pakket__artikel {
+        display: grid;
+        grid-template-rows: subgrid;
+        grid-row: 1 / -1;
+      }
+
+      .pakket__kenmerken {
+        display: grid;
+        grid-template-rows: subgrid;
+      }
+
+      .pakket__actie {
+        margin-top: 0;
+        align-self: end;
+      }
+    }
+  }
+</style>

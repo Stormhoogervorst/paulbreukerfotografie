@@ -1,0 +1,205 @@
+---
+/**
+ * Layout voor commerciële landingspagina's. Neemt een `LandingPagina` (src/data/landing/) en rendert de secties in
+ * de vaste volgorde, elk alleen als de data ervoor bestaat. Zie "Volgorde commerciële landingspagina (bindend)" in
+ * .cursor/rules/paulbreuker-regels.mdc. Wijzig de volgorde nooit; nieuwe secties komen op hun vaste plek.
+ */
+import { getImage } from 'astro:assets';
+import BaseLayout from './BaseLayout.astro';
+import LandingBeeld from '../components/landing/LandingBeeld.astro';
+import LandingFormulier from '../components/landing/LandingFormulier.astro';
+import LandingHero from '../components/landing/LandingHero.astro';
+import LandingImpressie from '../components/landing/LandingImpressie.astro';
+import LandingOverPaul from '../components/landing/LandingOverPaul.astro';
+import LandingPakketten from '../components/landing/LandingPakketten.astro';
+import LandingVragen from '../components/landing/LandingVragen.astro';
+import Statement from '../components/Statement.astro';
+import { impressieAfbeeldingen, impressieSchemaAfbeeldingen } from '../lib/landing-impressie';
+import { segmentenTekst } from '../lib/segmenten';
+import { breadcrumbList, faqPage, imageGallery, service } from '../lib/schema';
+import type { LandingPagina } from '../data/landing/types';
+
+interface Props {
+  pagina: LandingPagina;
+}
+
+const { pagina } = Astro.props;
+const pad = `/${pagina.slug}`;
+
+// Open Graph-afbeelding: de eerste hero-foto, bijgesneden op 1200 x 630.
+const ogAfbeelding = await getImage({
+  src: pagina.hero.fotos[0].afbeelding,
+  width: 1200,
+  height: 630,
+  format: 'jpg',
+  fit: 'cover',
+  position: 'top',
+});
+
+// Impressie: geoptimaliseerde foto's voor de ImageGallery in JSON-LD.
+const impressieFotos = await impressieAfbeeldingen(pagina);
+
+// Pakketten met een prijs zijn de enige bron voor de OfferCatalog en voor de laagste prijs (Offer.minPrice).
+const pakketOffers = (pagina.pakketten?.items ?? []).flatMap((pakket) =>
+  pakket.prijs === null ? [] : [{ name: pakket.naam, description: pakket.omschrijving, price: pakket.prijs }],
+);
+const laagstePakketPrijs = pakketOffers.length > 0 ? Math.min(...pakketOffers.map((offer) => offer.price)) : undefined;
+if (
+  laagstePakketPrijs !== undefined &&
+  pagina.schema.vanPrijs !== undefined &&
+  pagina.schema.vanPrijs !== laagstePakketPrijs
+) {
+  console.warn(
+    `[LandingLayout] ${pagina.slug}: schema.vanPrijs (${pagina.schema.vanPrijs}) wijkt af van de laagste pakketprijs (${laagstePakketPrijs}). De pakketprijs wordt gebruikt voor Offer.minPrice.`,
+  );
+}
+
+const jsonLd = [
+  breadcrumbList([
+    { name: 'Home', path: '/' },
+    { name: pagina.breadcrumb, path: pad },
+  ]),
+  service({
+    name: pagina.schema.dienstNaam,
+    description: pagina.seo.description,
+    path: pad,
+    priceFrom: laagstePakketPrijs ?? pagina.schema.vanPrijs,
+    packages: pakketOffers,
+    areaServed: pagina.schema.werkgebied,
+  }),
+  ...(pagina.impressie
+    ? [
+        imageGallery({
+          name: `${pagina.breadcrumb}: ${pagina.impressie.titel}`,
+          path: `${pad}#impressie`,
+          images: impressieSchemaAfbeeldingen(impressieFotos),
+        }),
+      ]
+    : []),
+  // FAQPage uit dezelfde data als de zichtbare vragen: de platte tekst van het antwoord (alinea's gescheiden door een
+  // regeleinde), dus de zichtbare tekst en de JSON-LD komen letterlijk overeen.
+  ...(pagina.vragen
+    ? [
+        faqPage({
+          path: `${pad}#vragen`,
+          vragen: pagina.vragen.items.map((item) => ({
+            vraag: item.vraag,
+            antwoord: item.antwoord.map(segmentenTekst).join('\n'),
+          })),
+        }),
+      ]
+    : []),
+];
+---
+
+<BaseLayout
+  title={pagina.seo.title}
+  description={pagina.seo.description}
+  canonical={pad}
+  ogImage={ogAfbeelding.src}
+  jsonLd={jsonLd}
+>
+  <!--
+    VOLGORDE LANDINGSPAGINA (bindend, zie .cursor/rules/paulbreuker-regels.mdc):
+    1. Hero
+    2. Werkwijze
+    3. Impressie
+    4. OverPaul
+    5. Vragen
+    6. Uitleg
+    7. Pakketten
+    8. Reviews
+    9. Aanvraagformulier
+    10. Beeld (foto van rand tot rand, geen kop)
+    Daarna volgt de footer (via BaseLayout). Een sectie wordt alleen getoond als de data ervoor bestaat.
+    TODO(volgorde): Pakketten wordt hieronder nog vóór Impressie gerenderd (stand van vóór de volgordewijziging);
+    verplaats het blok naar zijn plek (na Uitleg, vóór Reviews) wanneer dat is goedgekeurd.
+    Elke sectie zit in een eigen .sectie-wrapper met alleen padding-block (--sectie-ruimte); geen margins die van
+    buren afhangen.
+  -->
+  <div class="sectie sectie--hero">
+    <LandingHero hero={pagina.hero} />
+  </div>
+
+  {
+    pagina.werkwijze && (
+      <div class="sectie">
+        <Statement
+          label={pagina.werkwijze.label}
+          tekst={pagina.werkwijze.tekst}
+          link={pagina.werkwijze.link}
+          ariaLabel="Werkwijze"
+        />
+      </div>
+    )
+  }
+
+  {
+    pagina.pakketten && (
+      <div class="sectie">
+        <LandingPakketten pakketten={pagina.pakketten} />
+      </div>
+    )
+  }
+
+  {
+    pagina.impressie && (
+      <div class="sectie">
+        <LandingImpressie impressie={pagina.impressie} />
+      </div>
+    )
+  }
+
+  {
+    pagina.overPaul && (
+      <div class="sectie">
+        <LandingOverPaul overPaul={pagina.overPaul} />
+      </div>
+    )
+  }
+
+  {
+    pagina.vragen && (
+      <div class="sectie">
+        <LandingVragen vragen={pagina.vragen} />
+      </div>
+    )
+  }
+
+  <!-- Uitleg (pagina.uitleg) komt hier, na Vragen, zodra hij gebouwd is. -->
+
+  <!-- Nog te bouwen (in deze volgorde, elk met `{pagina.x && <div class="sectie">…</div>}`; Reviews komt vóór het formulier):
+    - Uitleg        (pagina.uitleg; de overige H2's van de pagina staan hier; komt na Vragen)
+    - Reviews       (pagina.reviews)
+  -->
+
+  <!-- Aanvraagformulier: komt na Reviews (of Pakketten) en vóór Beeld. -->
+  {
+    pagina.formulier && (
+      <div class="sectie">
+        <LandingFormulier formulier={pagina.formulier} />
+      </div>
+    )
+  }
+
+  <!-- Beeld: altijd de laatste sectie, onder het formulier en direct vóór de footer. -->
+  {
+    pagina.beeld && (
+      <div class="sectie">
+        <LandingBeeld beeld={pagina.beeld} />
+      </div>
+    )
+  }
+</BaseLayout>
+
+<style>
+  /* Alleen padding-block: de ruimte tussen twee secties is de som van twee halve waarden, ongeacht de volgorde. */
+  .sectie {
+    padding-block: calc(var(--sectie-ruimte) / 2);
+  }
+
+  /* De hero regelt zijn eigen ruimte onder de header; onderaan de gewone halve sectieruimte. */
+  .sectie--hero {
+    padding-top: 0;
+  }
+</style>

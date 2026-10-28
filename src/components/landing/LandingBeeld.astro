@@ -1,0 +1,73 @@
+---
+/**
+ * Beeld (landingspagina): één foto van rand tot rand, zonder kop, tekst of bijschrift. Staat onder het Aanvraagformulier,
+ * als laatste sectie vóór de footer (zie LandingLayout.astro). Visueel tussenstuk, net als Panorama op de homepage.
+ *
+ * - De hoogte ligt vast met een CSS `aspect-ratio` op de wrapper (breder dan de bron, dus lager); de foto wordt bijgesneden
+ *   met `object-fit: cover`, rond `--focus` (het zwaartepunt van de foto). Vaste `width`/`height` uit het bronbestand:
+ *   geen layoutverschuiving. Geen overlay, hover, animatie of JavaScript.
+ * - Widths aangepast op het origineel (niet opschalen in de bestanden); de browser schaalt de foto op een breder scherm op.
+ * - Geen eigen buitenmarges: de verticale ruimte komt van de .sectie-wrapper in LandingLayout.astro.
+ *
+ * Content: `pagina.beeld` (zie src/data/landing/types.ts).
+ */
+import { Picture } from 'astro:assets';
+import type { LandingBeeld } from '../../data/landing/types';
+
+interface Props {
+  beeld: LandingBeeld;
+}
+
+const { beeld } = Astro.props;
+const { afbeelding, alt } = beeld;
+const { width, height } = afbeelding;
+---
+
+<div class="beeld">
+  <Picture
+    src={afbeelding}
+    alt={alt}
+    width={width}
+    height={height}
+    widths={[480, 800, width]}
+    sizes="100vw"
+    formats={['avif', 'webp']}
+    fallbackFormat="jpg"
+    loading="lazy"
+    decoding="async"
+  />
+</div>
+
+<style>
+  /* Volle breedte, geen marges: de wrapper in LandingLayout heeft alleen padding-block. */
+  .beeld {
+    /* Verhouding van de uitsnede (breedte / hoogte): mobiel 16 / 9, desktop 5 / 2. De bron is 3 / 2. */
+    --verhouding: 16 / 9;
+    /* Verticale positie van de uitsnede: onder het midden (het meisje links met haar voeten en de dansers, niet de plafondlampen). */
+    --focus: 50% 68%;
+    width: 100%;
+    aspect-ratio: var(--verhouding);
+    overflow: hidden;
+  }
+
+  @media (min-width: 900px) {
+    .beeld {
+      --verhouding: 5 / 2;
+    }
+  }
+
+  .beeld :global(picture) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .beeld :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    object-position: var(--focus);
+  }
+</style>

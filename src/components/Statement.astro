@@ -1,0 +1,113 @@
+---
+/**
+ * Statement: haarlijn bovenaan, links een klein label tussen haakjes, rechts grote lopende tekst met een ingesprongen
+ * eerste regel, daaronder een kleine link. Gebruikt door de homepage-sectie "(over paul)" (OverPaul.astro) en door de
+ * landingspagina-sectie "Werkwijze" (LandingLayout.astro).
+ *
+ * Geen eigen buitenmarges: de verticale ruimte komt van de .sectie-wrapper om de component heen.
+ * Toegankelijkheid: standaard is het label een <p> en krijgt de sectie `aria-label`. Met `labelAlsKop` is het label de
+ * <h2> van de sectie (homepage "(over paul)") en verwijst `aria-labelledby` ernaar.
+ */
+interface Props {
+  /** Klein label links, bijvoorbeeld "(werkwijze)". */
+  label: string;
+  /** Lopende tekst rechts. */
+  tekst: string;
+  link?: { label: string; href: string };
+  /** Toegankelijke naam van de sectie. Verplicht zolang het label geen kop is. */
+  ariaLabel?: string;
+  /** Label als <h2> in plaats van <p>. Dan is `id` verplicht. */
+  labelAlsKop?: boolean;
+  /** id van het label, voor `aria-labelledby` (alleen bij `labelAlsKop`). */
+  id?: string;
+}
+
+const { label, tekst, link, ariaLabel, labelAlsKop = false, id } = Astro.props;
+const Label = labelAlsKop ? 'h2' : 'p';
+
+if (labelAlsKop && !id) throw new Error('Statement: `id` is verplicht bij `labelAlsKop`.');
+if (!labelAlsKop && !ariaLabel) throw new Error('Statement: `ariaLabel` is verplicht zolang het label geen kop is.');
+---
+
+<section
+  class="statement"
+  aria-labelledby={labelAlsKop ? id : undefined}
+  aria-label={labelAlsKop ? undefined : ariaLabel}
+>
+  <div class="statement__inner">
+    <Label id={labelAlsKop ? id : undefined} class="statement__label statement-label">{label}</Label>
+
+    <div class="statement__body">
+      <p class="statement__tekst statement-tekst">{tekst}</p>
+      {
+        link && (
+          <a class="statement__link statement-link" href={link.href}>
+            {link.label} <span aria-hidden="true">→</span>
+          </a>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---------- Statement (mobiel eerst) ---------- */
+  /* Lettertype-eigenschappen van label, tekst en link staan in global.css (.statement-label, .statement-tekst,
+     .statement-link), gedeeld met LandingOverPaul. Hier alleen plaatsing. */
+  .statement {
+    --tekst-size: var(--statement-tekst-size);
+    /* Geen eigen buitenmarges: de verticale ruimte komt van de .sectie-wrapper om de component heen. */
+    padding: 0 var(--gutter);
+  }
+
+  /* Dunne lijn over de volle breedte binnen de marges (dezelfde als header en hero). */
+  .statement__inner {
+    padding-top: var(--statement-boven);
+    border-top: var(--haarlijn);
+  }
+
+  .statement__label {
+    margin: 0 0 var(--space-4);
+  }
+
+  .statement__link {
+    margin-top: calc(2rem - 0.4rem);
+  }
+
+  /* Zachte fade bij verschijnen in beeld. Alleen waar scroll-gestuurde animatie bestaat,
+     en nooit bij prefers-reduced-motion. Zonder ondersteuning staat de tekst gewoon zichtbaar. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .statement__inner {
+        animation: statement-fade linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 45%;
+      }
+
+      @keyframes statement-fade {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+    }
+  }
+
+  /* ---------- Statement (desktop) ---------- */
+  @media (min-width: 900px) {
+    .statement__inner {
+      display: grid;
+      grid-template-columns: var(--statement-kolommen);
+      column-gap: var(--gutter);
+    }
+
+    /* Bovenkant van het label op de bovenkant van de eerste tekstregel. */
+    .statement__label {
+      align-self: start;
+      margin: 0;
+      padding-top: calc(var(--tekst-size) * 0.18);
+    }
+  }
+</style>

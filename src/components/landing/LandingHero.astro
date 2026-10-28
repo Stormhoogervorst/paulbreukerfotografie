@@ -1,0 +1,280 @@
+---
+/**
+ * Hero van een commerciële landingspagina: bovenaan een rij (H1 links, inleiding en CTA's rechts), daaronder een
+ * statische rij foto's (fotostrip) over de volle breedte; de eerste foto is het LCP-beeld. Geen client-JavaScript,
+ * geen animatie, geen overlay of tekst op de foto's.
+ *
+ * Maten (zie de uitleg bij de variabelen in het <style>-blok):
+ * - H1: dezelfde stijl als het wordmark op de homepage (Satoshi 700, letter-spacing -0.04em), kleiner.
+ * - Inleiding: dezelfde tekststijl en regelafstand als `.hero__lead` op de homepage.
+ * - De bovenkant van de hoofdletters van de H1 ligt even ver onder de header als de bovenkant van het wordmark op
+ *   de homepage, en de bovenkant van de eerste regel van de inleiding staat op dezelfde lijn.
+ */
+import { Picture } from 'astro:assets';
+import type { LandingHero } from '../../data/landing/types';
+
+interface Props {
+  hero: LandingHero;
+}
+
+const { hero } = Astro.props;
+const ctas = [hero.ctaPrimair, ...(hero.ctaSecundair ? [hero.ctaSecundair] : [])];
+
+// Fotostrip: flex-verdeling in vw, zodat `sizes` klopt met wat de browser uitrekent.
+const DESKTOP_GAP = 1.7; // vw, gelijk aan `gap` in het <style>-blok
+const MOBIEL_GAP = 3; // vw
+// Hoe minder foto's naast elkaar, hoe groter ze zijn (elke foto houdt zijn eigen verhouding). Bij alleen liggende
+// foto's (3:2) geven drie foto's een strip van circa 21vw hoog op desktop; op mobiel staat één foto rand tot rand.
+// Foto's in `hero.fotos` voorbij DESKTOP_AANTAL worden niet gerenderd; wijzig de aantallen hier.
+const DESKTOP_AANTAL = 3;
+// Mobiel: alleen de foto met deze index in `hero.fotos` (0 = eerste). Nu bruiloft 20 (tweede foto), rand tot rand.
+const MOBIEL_FOTOS = [1];
+const afgerond = (x: number) => Math.round(x * 10) / 10;
+
+const fotos = hero.fotos.slice(0, DESKTOP_AANTAL).map((foto) => ({
+  ...foto,
+  width: foto.afbeelding.width,
+  height: foto.afbeelding.height,
+  verhouding: foto.afbeelding.width / foto.afbeelding.height,
+}));
+const som = fotos.reduce((totaal, foto) => totaal + foto.verhouding, 0);
+const mobielFotos = fotos.filter((_, index) => MOBIEL_FOTOS.includes(index));
+const mobielSom = mobielFotos.reduce((totaal, foto) => totaal + foto.verhouding, 0);
+// Beschikbare breedte (vw) = 100vw min alle gaps (de strip heeft standaard geen marge, zie --fotostrip-marge).
+const desktopBreedte = 100 - (fotos.length - 1) * DESKTOP_GAP;
+const mobielBreedte = 100 - (mobielFotos.length - 1) * MOBIEL_GAP;
+
+const strip = fotos.map((foto, index) => {
+  const desktop = afgerond((foto.verhouding / som) * desktopBreedte);
+  const opMobiel = MOBIEL_FOTOS.includes(index);
+  const mobiel = opMobiel ? `${afgerond((foto.verhouding / mobielSom) * mobielBreedte)}vw` : '1px';
+  return {
+    ...foto,
+    sizes: `(min-width: 900px) ${desktop}vw, ${mobiel}`,
+    // LCP: op desktop de eerste foto, op mobiel de mobiele foto (eager, fetchpriority high). Foto 1 is op mobiel
+    // verborgen maar eager (voor desktop-LCP); met sizes 1px haalt de browser daar alleen de kleinste variant op.
+    // De overige foto's zijn lazy en op mobiel verborgen, dus worden daar niet geladen.
+    loading: index === 0 || opMobiel ? ('eager' as const) : ('lazy' as const),
+    fetchpriority: index === 0 || opMobiel ? ('high' as const) : undefined,
+    verborgenOpMobiel: !opMobiel,
+  };
+});
+---
+
+<section class="landing-hero" aria-labelledby="landing-hero-titel">
+  <div class="landing-hero__rij">
+    <h1 id="landing-hero-titel" class="landing-hero__titel">{hero.h1}</h1>
+
+    <div class="landing-hero__intro">
+      <div class="landing-hero__tekst">
+        {hero.intro.map((alinea) => <p>{alinea}</p>)}
+      </div>
+      <div class="landing-hero__ctas">
+        {
+          ctas.map((cta) => (
+            <a class="landing-hero__cta" href={cta.href}>
+              {cta.label} <span aria-hidden="true">→</span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <ul class="landing-hero__fotos" role="list">
+    {
+      strip.map((foto) => (
+        <li
+          class:list={['landing-hero__foto', { 'landing-hero__foto--alleen-desktop': foto.verborgenOpMobiel }]}
+          style={`--verhouding: ${foto.verhouding.toFixed(4)}`}
+        >
+          <Picture
+            src={foto.afbeelding}
+            alt={foto.alt}
+            width={foto.width}
+            height={foto.height}
+            widths={[240, 360, 480, 640, 800, 1000, 1400]}
+            sizes={foto.sizes}
+            formats={['avif', 'webp']}
+            fallbackFormat="jpg"
+            loading={foto.loading}
+            fetchpriority={foto.fetchpriority}
+            decoding="async"
+          />
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .landing-hero {
+    /* Lettermaten van Satoshi (--font-opstijging, --font-daling, --hoofdletter-vet, --hoofdletter-gewoon) en de
+       regelafstand van de inleiding (--intro-lh) staan in global.css, gedeeld met LandingOverPaul. Daarmee ligt de
+       bovenkant van de hoofdletters exact te berekenen vanaf de bovenkant van een regel. */
+    --h1-lh: 0.95;
+    /* Afstand (em) van de bovenkant van een regel tot de bovenkant van de hoofdletters. */
+    --h1-ink: calc(
+      (var(--h1-lh) - var(--font-opstijging) - var(--font-daling)) / 2 + var(--font-opstijging) -
+        var(--hoofdletter-vet)
+    );
+    --intro-ink: calc(
+      (var(--intro-lh) - var(--font-opstijging) - var(--font-daling)) / 2 + var(--font-opstijging) -
+        var(--hoofdletter-gewoon)
+    );
+
+    /* Mobiel (onder 900 px): afstand van de onderkant van de header tot de bovenkant van de hoofdletters,
+       gelijk aan het wordmark in de homepage-hero (padding-top --space-5 + 0,063em van 27vw). */
+    --h1-size: clamp(2.25rem, 9.5vw, 3.5rem);
+    --afstand-header: calc(var(--space-5) + 0.063 * 27vw);
+    --blok-ruimte: 6vw;
+
+    padding-top: calc(var(--afstand-header) - var(--h1-ink) * var(--h1-size));
+  }
+
+  .landing-hero__rij {
+    display: grid;
+    gap: var(--blok-ruimte);
+    padding-inline: var(--gutter);
+  }
+
+  .landing-hero__titel {
+    margin: 0 0 0 -0.081em; /* linkerzijbeen van de F (0,081em) op de tekstmarge, zoals de P in het wordmark */
+    font-size: var(--h1-size);
+    font-weight: 700;
+    line-height: var(--h1-lh);
+    letter-spacing: -0.04em;
+    color: var(--ink);
+    hyphens: none;
+  }
+
+  .landing-hero__intro {
+    display: grid;
+    gap: var(--blok-ruimte);
+  }
+
+  /* Geen max-width: de inleiding loopt van --intro-links tot de rechtergutter, op dezelfde rechterrand als de
+     navigatie in de header (beide eindigen op --gutter van de rechterrand van het scherm). */
+  .landing-hero__tekst p {
+    max-width: none;
+    margin: 0 0 var(--space-3);
+    font-size: var(--font-size-body);
+    line-height: var(--intro-lh);
+  }
+
+  .landing-hero__tekst p:last-child {
+    margin-bottom: 0;
+  }
+
+  .landing-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.5em;
+  }
+
+  /* Tekstlink met streep eronder en pijltje, zoals `.hero__knop` op de homepage. */
+  .landing-hero__cta {
+    display: inline-block;
+    padding-block: 0.4rem; /* raakvlak */
+    font-size: var(--font-size-body);
+    line-height: 1.1;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .landing-hero__cta:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  /* Fotostrip: rand tot rand (de sectie heeft geen horizontale padding), alle foto's naast elkaar. Elke foto krijgt
+     flex-grow gelijk aan zijn verhouding (basis 0): daardoor hebben ze dezelfde hoogte en behouden ze hun eigen
+     verhouding, zonder bijsnijden. Geen afgeronde hoeken, schaduw, overlay, bijschrift, hover of beweging. */
+  .landing-hero__fotos {
+    /* Horizontale marge van de strip. Nu 0 (rand tot rand); zet op var(--gutter) om binnen de gutters te staan. */
+    --fotostrip-marge: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 3vw;
+    width: 100%;
+    margin: var(--blok-ruimte) 0 0;
+    padding: 0 var(--fotostrip-marge);
+    list-style: none;
+  }
+
+  .landing-hero__foto {
+    flex: var(--verhouding) var(--verhouding) 0;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Foto's buiten MOBIEL_FOTOS alleen op desktop (sizes 1px op mobiel, dus daar hooguit de kleinste variant). */
+  .landing-hero__foto--alleen-desktop {
+    display: none;
+  }
+
+  .landing-hero__foto :global(picture) {
+    display: block;
+  }
+
+  .landing-hero__foto :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: var(--verhouding);
+  }
+
+  /* ---------- Desktop ---------- */
+  @media (min-width: 900px) {
+    .landing-hero {
+      --h1-size: clamp(2.75rem, 6.2vw, 8rem);
+      --blok-ruimte: 4vw;
+      /* Linkerrand van de inleiding: dezelfde 53,2vw als de alinea in de homepage-hero (`--foto-b-links`), via de
+         gedeelde `--kolom-tekst` (global.css). De H1-kolom loopt tot daar, minus een marge. */
+      --intro-links: var(--kolom-tekst);
+      /* Homepage: padding-top max(3vw, 15,72vw - 7,5rem - 0,063em) plus 0,063em tot de bovenkant van het wordmark,
+         met em = wordmark-size = --wordmark-width / 5,363. Dezelfde afstand, nu tot de bovenkant van de hoofdletters
+         van de eerste regel van de inleiding (de bovenste tekst van de rij). */
+      --afstand-header: max(
+        calc(3vw + 0.063 * var(--wordmark-width) / 5.363),
+        calc(15.72vw - 7.5rem)
+      );
+      padding-top: calc(var(--afstand-header) - var(--intro-ink) * var(--font-size-body));
+    }
+
+    .landing-hero__rij {
+      grid-template-columns: calc(var(--intro-links) - var(--gutter) - 3vw) minmax(0, 1fr);
+      column-gap: 3vw;
+      row-gap: 0;
+      /* De H1 staat onderaan de rij, op dezelfde basislijn als de CTA-links (zie `.landing-hero__titel`). */
+      align-items: end;
+    }
+
+    .landing-hero__titel {
+      grid-column: 1;
+      /* Basislijn van de H1 op de basislijn van de CTA-links. De onderrand van een regel ligt (lh + daling -
+         opstijging) / 2 em boven de basislijn; de CTA-regel heeft daaronder nog 0,4rem padding (raakvlak). Is de H1 de
+         enige regel in de rij, dan is dit precies de afstand die de H1 omhoog moet. */
+      margin-bottom: calc(
+        0.4rem + (1.1 + var(--font-daling) - var(--font-opstijging)) / 2 * var(--font-size-body) -
+          (var(--h1-lh) + var(--font-daling) - var(--font-opstijging)) / 2 * var(--h1-size)
+      );
+    }
+
+    .landing-hero__intro {
+      grid-column: 2;
+      gap: var(--space-4);
+      /* Begint op --intro-links: de rij start op de gutter, kolom 2 op (intro-links - gutter - 3vw) + 3vw. */
+    }
+
+    .landing-hero__fotos {
+      gap: 1.7vw;
+      margin-top: var(--blok-ruimte); /* 4vw */
+    }
+
+    .landing-hero__foto--alleen-desktop {
+      display: block;
+    }
+  }
+</style>
