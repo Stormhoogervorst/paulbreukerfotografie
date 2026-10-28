@@ -13,7 +13,7 @@ const { titel, items, allLink } = home.projecten;
 // Maten per positie. Breedte en hoogte bepalen de uitsnede (fit: cover) en voorkomen layoutverschuiving.
 const kaart = {
   links: { width: 1200, height: 1440, sizes: '(min-width: 900px) 36vw, 85vw' }, // 5 / 6
-  rechts: { width: 1200, height: 1000, sizes: '(min-width: 900px) 48vw, 100vw' }, // 6 / 5
+  rechts: { width: 1200, height: 1000, sizes: '(min-width: 900px) 48vw, 70vw' }, // 6 / 5
   onder: { width: 1600, height: 1200, sizes: '(min-width: 900px) 55vw, 100vw' }, // 4 / 3
 } as const;
 
@@ -117,9 +117,11 @@ const rij2 = items.filter((project) => project.positie === 'onder');
     width: 85%;
   }
 
+  /* Mobiel: kleiner en rechts uitgelijnd, zodat er links meer witruimte staat. */
   .kaart--rechts {
-    width: 100%;
+    width: 70%;
     margin-top: 2rem;
+    margin-left: auto;
   }
 
   .kaart--onder {
@@ -189,6 +191,7 @@ const rij2 = items.filter((project) => project.positie === 'onder');
     .kaart--rechts {
       width: auto;
       margin-top: 0;
+      margin-left: 0;
     }
 
     /* De positie uit de data bepaalt de kolom, ongeacht de volgorde in de lijst. */

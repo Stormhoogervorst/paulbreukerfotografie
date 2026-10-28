@@ -80,7 +80,7 @@ const afstand = Math.round(((REFERENTIE_AFSTAND * REFERENTIE_TEKENS) / woord.len
     white-space: nowrap;
   }
 
-  /* Zonder animatie (geen scroll-gestuurde animaties, of prefers-reduced-motion):
+  /* Zonder animatie (geen ondersteuning voor scroll-gestuurde animaties):
      één statisch woord, linksuitgelijnd. */
   .marquee__woord--herhaling,
   .marquee__groep--kopie {
@@ -88,39 +88,39 @@ const afstand = Math.round(((REFERENTIE_AFSTAND * REFERENTIE_TEKENS) / woord.len
   }
 
   /* De titel beweegt alleen met het scrollen: de positie volgt hoe ver de balk door het scherm is.
-     Stilstaand scrollen = stilstaande tekst. Geen JavaScript. */
-  @media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: view()) {
-      .marquee__woord--herhaling {
-        display: block;
-      }
+     Stilstaand scrollen = stilstaande tekst. Geen JavaScript.
+     Bewust ook bij prefers-reduced-motion: reduce (op verzoek van de eigenaar). De beweging is
+     klein, gekoppeld aan de scroll van de gebruiker zelf en nooit automatisch. */
+  @supports (animation-timeline: view()) {
+    .marquee__woord--herhaling {
+      display: block;
+    }
 
-      .marquee__groep--kopie {
-        display: flex;
-      }
+    .marquee__groep--kopie {
+      display: flex;
+    }
 
-      /* De tijdlijn hoort bij .marquee zelf: de track zit in een overflow:hidden-container, dat is
-         zelf een scroll-container en zou de tijdlijn anders aan zichzelf koppelen in plaats van aan de pagina. */
-      .marquee {
-        view-timeline: --marquee-scroll block;
-      }
+    /* De tijdlijn hoort bij .marquee zelf: de track zit in een overflow:hidden-container, dat is
+       zelf een scroll-container en zou de tijdlijn anders aan zichzelf koppelen in plaats van aan de pagina. */
+    .marquee {
+      view-timeline: --marquee-scroll block;
+    }
 
-      .marquee__track {
-        animation: marquee-scroll linear both;
-        animation-timeline: --marquee-scroll;
-        animation-range: cover 0% cover 100%;
-        will-change: transform;
-      }
+    .marquee__track {
+      animation: marquee-scroll linear both;
+      animation-timeline: --marquee-scroll;
+      animation-range: cover 0% cover 100%;
+      will-change: transform;
+    }
 
-      @keyframes marquee-scroll {
-        from {
-          transform: translateX(0);
-        }
-        /* Bewust klein (zie --afstand): circa een halve titel over de hele scroll van de balk door het scherm.
-           Alles tot -50% blijft naadloos; groter maken kan, maar beweegt dan snel. */
-        to {
-          transform: translateX(calc(var(--afstand) * -1));
-        }
+    @keyframes marquee-scroll {
+      from {
+        transform: translateX(0);
+      }
+      /* Bewust klein (zie --afstand): circa een halve titel over de hele scroll van de balk door het scherm.
+         Alles tot -50% blijft naadloos; groter maken kan, maar beweegt dan snel. */
+      to {
+        transform: translateX(calc(var(--afstand) * -1));
       }
     }
   }

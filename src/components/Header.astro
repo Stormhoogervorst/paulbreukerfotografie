@@ -2,7 +2,7 @@
 /**
  * Header: statisch (niet sticky), wit, zonder JavaScript.
  * - Vanaf 900px: vier kolommen (wordmark, socials, contact, navigatie).
- * - Onder 900px: naam en een "menu"-knop (native <details>/<summary>).
+ * - Onder 900px: alleen een "menu"-knop rechts (native <details>/<summary>), zonder naam.
  * Er is één blok per breakpoint; het andere blok is `display: none` en dus ook
  * niet in de toegankelijkheidsboom.
  */
@@ -62,8 +62,7 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 
   <!-- Mobiel: onder 900px -->
   <div class="site-header__mobile">
-    <a class="site-header__brand" href="/">{WORDMARK}</a>
-
+    <!-- Geen naam in de mobiele header: alleen de menuknop. De homelink staat bovenaan het menu. -->
     <details class="menu">
       <summary class="menu__button">
         <span class="menu__label menu__label--open">menu</span>
@@ -73,6 +72,9 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
       <div class="menu__panel">
         <nav aria-label="Hoofdnavigatie">
           <ul class="menu__list menu__list--nav">
+            <li>
+              <a href="/" aria-current={currentPath === '/' ? 'page' : undefined}>home</a>
+            </li>
             {
               NAV.map((item) => (
                 <li>
@@ -157,14 +159,9 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
   .site-header__mobile {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: var(--space-3);
     padding: var(--space-3) var(--gutter);
-  }
-
-  /* Mobiel: "Paul Breuker Fotografie" past naast de menu-knop op 320px breed. */
-  .site-header__mobile .site-header__brand {
-    font-size: clamp(1.125rem, 5.4vw, 1.5rem);
   }
 
   .menu__button {

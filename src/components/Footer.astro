@@ -1,61 +1,72 @@
 ---
 /**
- * Voettekst in drie lagen (zie ook BaseLayout: staat buiten <main>, dus op elke pagina):
- * 1. tekstblok links + navigatie rechts, onderaan uitgelijnd;
- * 2. decoratief wordmark van marge tot marge;
- * 3. kleine regel met contact, copyright, socials en privacyverklaring.
+ * Voettekst: een CSS Grid met precies vier directe kinderen, in DOM-volgorde:
+ *   (a) tagline, (b) nav, (c) wordmark, (d) onderste blok.
+ * Desktop (vanaf 900px): "tagline nav" / "wordmark wordmark" / "onder onder".
+ * Mobiel: visueel "tagline" / "wordmark" / "nav" / "onder". Het wordmark is aria-hidden en niet
+ * focusbaar, dus de tabvolgorde (tagline, nav, onder) klopt met wat je ziet.
  * Alle gegevens komen uit src/data/site.ts (dezelfde bron als de Header). Geen JavaScript.
  */
-import { CONTACT, FOOTER_NAV, FOOTER_TEKST, FOOTER_WORDMARK, PRIVACY, SOCIALS } from '../data/site';
+import {
+  CONTACT,
+  FOOTER_NAV,
+  FOOTER_TEKST,
+  FOOTER_TEKST_BREUK_NA,
+  FOOTER_WORDMARK,
+  PRIVACY,
+  SOCIALS,
+} from '../data/site';
 
 const year = new Date().getFullYear();
 const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+
+// Tagline in twee delen voor de vaste regelbreuk op desktop (op mobiel lopen ze gewoon door).
+const breukIndex = FOOTER_TEKST.indexOf(FOOTER_TEKST_BREUK_NA);
+const splitsAt = breukIndex === -1 ? FOOTER_TEKST.length : breukIndex + FOOTER_TEKST_BREUK_NA.length;
+const regel1 = FOOTER_TEKST.slice(0, splitsAt).trim();
+const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
 ---
 
 <footer class="site-footer">
-  <div class="site-footer__top">
-    <!-- TODO(paul): tekst goedkeuren (staat in src/data/site.ts). -->
-    <p class="site-footer__lead">
-      {FOOTER_TEKST.map((regel) => <span>{regel}</span>)}
-    </p>
+  <!-- TODO(paul): tekst goedkeuren (staat in src/data/site.ts). -->
+  <p class="site-footer__tagline">
+    <span class="site-footer__regel">{regel1}</span>{regel2 && ' '}<span class="site-footer__regel">{regel2}</span>
+  </p>
 
-    <nav class="site-footer__nav" aria-label="Footernavigatie">
-      <ul>
-        {
-          FOOTER_NAV.map((item) => (
-            <li>
-              <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
-                {item.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
-  </div>
+  <nav class="site-footer__nav" aria-label="Footernavigatie">
+    <ul>
+      {
+        FOOTER_NAV.map((item) => (
+          <li>
+            <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
 
   <!-- Decoratief: de naam staat al in de header. -->
   <div class="site-footer__wordmark" aria-hidden="true">{FOOTER_WORDMARK}</div>
 
-  <div class="site-footer__bottom">
-    <div class="site-footer__group">
-      <span class="site-footer__contact">
-        {
-          CONTACT.email ? (
-            <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
-          ) : (
-            // TODO(paul): e-mailadres invullen in src/data/site.ts.
-            <span class="todo">TODO(paul)</span>
-          )
-        }
-        <!-- TODO(paul): bevestig dat dit telefoonnummer nog klopt. -->
-        <a href={CONTACT.phoneHref}>{CONTACT.phoneDisplay}</a>
-      </span>
-      <span class="site-footer__dot" aria-hidden="true">•</span>
-      <span class="site-footer__copy">© {year} Paul Breuker Fotografie</span>
+  <div class="site-footer__onder">
+    <div class="site-footer__contact">
+      {
+        CONTACT.email ? (
+          <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+        ) : (
+          // TODO(paul): e-mailadres invullen in src/data/site.ts.
+          <span class="todo">TODO(paul)</span>
+        )
+      }
+      <!-- TODO(paul): bevestig dat dit telefoonnummer nog klopt. -->
+      <a href={CONTACT.phoneHref}>{CONTACT.phoneDisplay}</a>
     </div>
 
-    <ul class="site-footer__group site-footer__links">
+    <span class="site-footer__dot" aria-hidden="true">•</span>
+
+    <ul class="site-footer__socials">
       {
         SOCIALS.map((social) => (
           <li>
@@ -65,10 +76,13 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
           </li>
         ))
       }
-      <li>
-        <a href={PRIVACY.href}>{PRIVACY.label}</a>
-      </li>
     </ul>
+
+    <!-- Mobiel: één rij (copyright + privacy). Desktop: display: contents, de twee delen staan dan los in het grid. -->
+    <div class="site-footer__legal">
+      <span class="site-footer__copy">© {year} Paul Breuker Fotografie</span>
+      <a class="site-footer__privacy" href={PRIVACY.href}>{PRIVACY.label}</a>
+    </div>
   </div>
 </footer>
 
@@ -76,15 +90,18 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
   .site-footer {
     /* De breedte van de voettekst is de basis voor het wordmark (cqw). */
     container-type: inline-size;
-    padding: clamp(5rem, 10vw, 12rem) var(--rand-ruim) 1.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'tagline'
+      'wordmark'
+      'nav'
+      'onder';
+    align-items: start;
+    padding: 4rem var(--rand-ruim) calc(1.5rem + env(safe-area-inset-bottom, 0px));
     background: var(--paper);
     color: var(--ink);
     font-weight: 500;
-  }
-
-  .site-footer a {
-    text-underline-offset: 0.2em;
-    text-decoration-thickness: 1px;
   }
 
   .site-footer ul {
@@ -93,54 +110,64 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
     list-style: none;
   }
 
-  /* ---------- Laag 1 (mobiel): onder elkaar ---------- */
-  .site-footer__top {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+  /* Alle links in de voettekst: dezelfde onderstrepingsstijl. */
+  .site-footer a {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
   }
 
-  .site-footer__lead {
+  /* ---------- (a) Tagline ---------- */
+  .site-footer__tagline {
+    grid-area: tagline;
     max-width: none;
     margin: 0;
     font-size: clamp(1.75rem, 7vw, 2.5rem);
     font-weight: 400; /* alleen Satoshi 500 en 700 zijn zelf gehost: 400 valt terug op 500 */
     line-height: 1.08;
+    text-wrap: balance; /* mobiel: natuurlijke afbreking zonder weesregel */
   }
 
-  .site-footer__lead span {
-    display: block;
-    text-wrap: balance; /* mobiel: geen weesregel als een zin moet afbreken */
+  /* ---------- (b) Navigatie (mobiel: 2 kolommen, 3 rijen, kolomsgewijs gevuld) ---------- */
+  .site-footer__nav {
+    grid-area: nav;
+    margin-top: 2rem; /* wordmark naar nav */
   }
 
   .site-footer__nav ul {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.25rem;
-    font-size: 1rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, auto);
+    grid-auto-flow: column;
+    font-size: 1.25rem;
     font-weight: 500;
+  }
+
+  .site-footer__nav li {
+    display: flex;
   }
 
   .site-footer__nav a {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    text-decoration: none;
+    text-decoration-line: none; /* geen onderstreping in rust */
   }
 
   .site-footer__nav a:hover,
   .site-footer__nav a:focus-visible,
   .site-footer__nav a[aria-current='page'] {
-    text-decoration: underline;
+    text-decoration-line: underline;
   }
 
-  /* ---------- Laag 2: wordmark, één regel van marge tot marge ---------- */
+  /* ---------- (c) Wordmark: één regel van marge tot marge ---------- */
   .site-footer__wordmark {
+    grid-area: wordmark;
     /* "Paul Breuker" is 5,36em ink breed bij -0,04em letter-spacing (zelfde meting als de hero),
        dus 100cqw / 5,36 vult de breedte tussen de marges. */
     font-size: calc((100vw - 2 * var(--rand-ruim)) / 5.36);
     font-size: calc(100cqw / 5.36);
-    margin: clamp(4rem, 11vw, 14rem) 0 0 -0.081em; /* linkerzijbeen van de P op de marge */
+    margin: 7rem 0 0 -0.081em; /* tagline naar wordmark; linkerzijbeen van de P op de marge */
     font-weight: 700;
     line-height: 0.8;
     letter-spacing: -0.04em;
@@ -149,56 +176,86 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
     user-select: none;
   }
 
-  /* ---------- Laag 3 (mobiel): onder elkaar ---------- */
-  .site-footer__bottom {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 2rem;
-    font-size: clamp(0.875rem, 0.9vw, 1rem);
-    font-weight: 500;
+  /* ---------- (d) Onderste blok (mobiel: drie lagen onder elkaar) ---------- */
+  .site-footer__onder {
+    grid-area: onder;
+    display: grid;
+    gap: 1.5rem; /* tussen de lagen */
+    margin-top: 2.5rem; /* nav naar onderste blok */
+    font-size: 1rem;
   }
 
-  .site-footer__group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  /* Raakvlak van minimaal 44px zonder de visuele regelafstand te verstoren: padding vergroot het
+     klikvlak, de negatieve marge maakt dat ongedaan voor de layout. */
+  .site-footer__onder a {
+    display: inline-block;
+    padding-block: 0.6875rem;
+    margin-block: -0.6875rem;
   }
 
   .site-footer__contact {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 1.25rem;
+    display: grid;
+    justify-items: start;
+    gap: 0.5rem;
   }
 
   .site-footer__dot {
     display: none;
   }
 
-  .site-footer__links {
-    flex-direction: row;
+  .site-footer__socials {
+    display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem 1.25rem;
+    gap: 0.5rem 1.25rem;
+  }
+
+  .site-footer__legal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    font-size: 0.875rem;
+  }
+
+  .site-footer__copy {
+    color: var(--ink-zacht);
   }
 
   /* ---------- Desktop ---------- */
   @media (min-width: 900px) {
-    .site-footer__top {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: end;
-      align-items: last baseline; /* basislijn van de navigatie = laatste tekstregel links */
-      gap: 2rem;
+    .site-footer {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        'tagline nav'
+        'wordmark wordmark'
+        'onder onder';
+      column-gap: 2rem;
+      padding-top: clamp(5rem, 10vw, 12rem);
+      padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
     }
 
-    .site-footer__lead {
-      flex: 0 1 auto; /* de langste regel (circa 40% van de breedte) bepaalt de breedte */
+    .site-footer__tagline {
+      max-width: 52vw;
       font-size: clamp(1.75rem, 3.2vw, 4.5rem);
-      white-space: nowrap; /* regelbreuk alleen op de zinsgrens */
+      align-self: end;
+      align-self: last baseline; /* basislijn gelijk aan die van de navigatie */
+      text-wrap: wrap;
+    }
+
+    /* Vaste regelbreuk na "portret,". */
+    .site-footer__regel {
+      display: block;
+    }
+
+    .site-footer__nav {
+      justify-self: end;
+      margin-top: 0;
+      align-self: end;
+      align-self: last baseline;
     }
 
     .site-footer__nav ul {
-      flex-wrap: nowrap;
+      display: flex;
       gap: 1.6vw;
       font-size: clamp(1rem, 1.05vw, 1.375rem);
     }
@@ -208,26 +265,49 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
       white-space: nowrap;
     }
 
-    .site-footer__bottom {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 1.5rem;
+    .site-footer__wordmark {
+      margin-top: clamp(4rem, 11vw, 14rem);
     }
 
-    .site-footer__group {
-      flex-direction: row;
+    /* Twee groepen met space-between: e-mail, telefoon, • en copyright links; socials en privacy rechts. */
+    .site-footer__onder {
+      grid-template-columns: auto auto auto minmax(0, 1fr) auto auto;
+      grid-template-areas: 'contact dot copy . socials privacy';
       align-items: baseline;
-      gap: 0.75rem;
+      column-gap: 0.75rem;
+      margin-top: 2rem;
+      font-size: clamp(0.875rem, 0.9vw, 1rem);
     }
 
     .site-footer__contact {
-      flex-wrap: nowrap;
+      grid-area: contact;
+      display: flex;
       gap: 1.25rem;
     }
 
     .site-footer__dot {
+      grid-area: dot;
       display: inline;
+    }
+
+    .site-footer__legal {
+      display: contents;
+      font-size: inherit;
+    }
+
+    .site-footer__copy {
+      grid-area: copy;
+      color: var(--ink);
+    }
+
+    .site-footer__socials {
+      grid-area: socials;
+      gap: 1.25rem;
+    }
+
+    .site-footer__privacy {
+      grid-area: privacy;
+      margin-left: 0.5rem;
     }
   }
 </style>

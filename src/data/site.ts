@@ -38,10 +38,11 @@ export const SOCIALS = [
 ] as const;
 
 /**
- * Voettekst: groot tekstblok (twee regels, regelbreuk op de zinsgrens).
- * TODO(paul): tekst goedkeuren.
+ * Voettekst: groot tekstblok. TODO(paul): tekst goedkeuren.
+ * Desktop: vaste regelbreuk direct na `FOOTER_TEKST_BREUK_NA`; mobiel: natuurlijke afbreking.
  */
-export const FOOTER_TEKST = ['Een bruiloft, een portret,', 'een idee? Ik hoor het graag.'] as const;
+export const FOOTER_TEKST = 'Een bruiloft, een portret, een idee? Ik hoor het graag.';
+export const FOOTER_TEKST_BREUK_NA = 'een portret,';
 
 /** Voettekstnavigatie (zes links, met hoofdletter). Geen /promoties. */
 export const FOOTER_NAV = [

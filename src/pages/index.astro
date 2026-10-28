@@ -105,9 +105,16 @@ const titleWords = home.hero.h1.split(' ');
     --sectie-ruimte: clamp(4rem, 8vw, 10rem);
   }
 
-  /* Direct na de hero geldt alleen de eigen ruimte van de hero (8vh onder de foto): geen dubbele ruimte. */
+  /* Mobiel: extra witruimte boven "Over Paul", bovenop de 8vh onder de hero-foto. */
   .sectie--na-hero {
-    padding-top: 0;
+    padding-top: 8rem;
+  }
+
+  /* Desktop: alleen de eigen ruimte van de hero (8vh onder de foto): geen dubbele ruimte. */
+  @media (min-width: 900px) {
+    .sectie--na-hero {
+      padding-top: 0;
+    }
   }
 
   /* ---------- Hero (mobiel eerst) ---------- */
