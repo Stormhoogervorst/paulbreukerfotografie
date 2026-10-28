@@ -99,7 +99,10 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
       'onder';
     align-items: start;
     padding: 4rem var(--rand-ruim) calc(1.5rem + env(safe-area-inset-bottom, 0px));
-    background: var(--paper);
+    /* Zwarte voettekst met witte tekst: de inktkleuren gelden hier omgekeerd, dus ook de focusrand (gebruikt --ink). */
+    --ink: #fff;
+    --ink-zacht: #b3b3b3; /* secundaire tekst op zwart; contrast ca. 10:1 */
+    background: var(--ink-zwart);
     color: var(--ink);
     font-weight: 500;
   }

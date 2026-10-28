@@ -125,7 +125,7 @@ const fotoC = heroFoto('C');
   <div class="sectie">
     <Exposities />
   </div>
-  <div class="sectie">
+  <div class="sectie sectie--panorama">
     <Panorama />
   </div>
 </BaseLayout>
@@ -136,6 +136,11 @@ const fotoC = heroFoto('C');
      Bewust geen horizontale padding of marge: de marquee's lopen van rand tot rand. */
   .sectie {
     padding-block: calc(var(--sectie-ruimte) / 2);
+  }
+
+  /* Het panorama van rand tot rand sluit onderaan direct aan op de footer: geen ruimte eronder. */
+  .sectie--panorama {
+    padding-bottom: 0;
   }
 
   /* Fotospread zit dichter op zijn buren. */

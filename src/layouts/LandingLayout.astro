@@ -182,7 +182,7 @@ const jsonLd = [
   <!-- Beeld: altijd de laatste sectie, onder het formulier en direct vóór de footer. -->
   {
     pagina.beeld && (
-      <div class="sectie">
+      <div class="sectie sectie--beeld">
         <LandingBeeld beeld={pagina.beeld} />
       </div>
     )
@@ -198,5 +198,10 @@ const jsonLd = [
   /* De hero regelt zijn eigen ruimte onder de header; onderaan de gewone halve sectieruimte. */
   .sectie--hero {
     padding-top: 0;
+  }
+
+  /* Het beeld van rand tot rand sluit onderaan direct aan op de footer: geen ruimte eronder. */
+  .sectie--beeld {
+    padding-bottom: 0;
   }
 </style>
