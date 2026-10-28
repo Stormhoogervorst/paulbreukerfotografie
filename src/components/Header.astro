@@ -85,7 +85,7 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
   .site-header {
     position: relative; /* anker voor het mobiele paneel; de header zelf is niet sticky */
     z-index: 20; /* boven het wordmark in de hero */
-    background: var(--paper);
+    background: var(--canvas);
     font-size: var(--font-size-small);
     font-weight: 500;
     line-height: 1.8; /* 28,8px per regel, zoals in de referentie */
@@ -174,7 +174,7 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
     display: grid;
     gap: var(--space-4);
     padding: var(--space-2) var(--gutter) var(--space-5);
-    background: var(--paper);
+    background: var(--canvas);
     border-bottom: 1px solid rgb(21 21 21 / 0.15);
   }
 

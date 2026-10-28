@@ -68,7 +68,7 @@ export function fout(request: Request, melding: Fout): Response {
 <meta name="robots" content="noindex">
 <title>${escape(melding.titel)} | Paul Breuker Fotografie</title>
 <style>
-body{margin:0;padding:6vw 5.5vw;font:20px/1.4 Satoshi,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;color:#151515;background:#fff}
+body{margin:0;padding:6vw 5.5vw;font:20px/1.4 Satoshi,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;color:#151515;background:#e6e6e6}
 h1{margin:0 0 .5em;font-size:clamp(2rem,6vw,4rem);line-height:1;letter-spacing:-.04em}
 p,ul{max-width:32em}ul{padding-left:1.2em}a{color:inherit;text-underline-offset:.2em}
 </style>

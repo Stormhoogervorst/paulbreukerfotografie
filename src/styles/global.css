@@ -27,7 +27,7 @@
   --ink-zwart: #000; /* grote titelbalk ("Projecten"); echt zwart, anders dan --ink */
   --ink-zacht: #595959; /* secundaire tekst (bijvoorbeeld publicaties bij exposities); contrast op wit ca. 7:1 */
   --paper: #fff;
-  --canvas: #f6f6f6; /* lichtgrijze achtergrond van /portfolio */
+  --canvas: #e6e6e6; /* lichtgrijze achtergrond van de hele site (body, header) en /portfolio */
 
   /* Typografie */
   --font-sans: 'Satoshi', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -103,7 +103,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--paper);
+  background: var(--canvas);
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: var(--font-size-body);

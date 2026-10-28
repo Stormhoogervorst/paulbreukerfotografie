@@ -326,9 +326,9 @@ const veldId = (naam: string) => `aanvraag-${naam}`;
     opacity: 0.45;
   }
 
-  /* Chrome kleurt automatisch ingevulde velden geel; houd ze wit. */
+  /* Chrome kleurt automatisch ingevulde velden geel; houd ze in de kleur van de achtergrond. */
   .veld__invoer:-webkit-autofill {
-    -webkit-box-shadow: 0 0 0 100vh var(--paper) inset;
+    -webkit-box-shadow: 0 0 0 100vh var(--canvas) inset;
     -webkit-text-fill-color: var(--ink);
   }
 
@@ -471,7 +471,7 @@ const veldId = (naam: string) => `aanvraag-${naam}`;
   /* Hover alleen waar er echt een aanwijzer is: omgekeerde kleuren, rand van 1px (staat er al). */
   @media (hover: hover) {
     .formulier__knop:not(:disabled):hover {
-      background: var(--paper);
+      background: var(--canvas);
       color: var(--ink);
     }
   }
