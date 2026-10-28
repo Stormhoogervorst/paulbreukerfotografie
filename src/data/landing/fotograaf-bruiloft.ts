@@ -21,7 +21,7 @@ import impressie09 from '../../assets/landing/impressie/09-bruiloft-14.jpg';
 /** Prijs van een pakket uit `pakketten` als "€3.250"; de FAQ gebruikt dit, zodat de prijzen nooit kunnen afwijken. */
 function pakketPrijs(naam: string): string {
   const prijs = pakketten.items.find((pakket) => pakket.naam === naam)?.prijs;
-  if (prijs === null || prijs === undefined) throw new Error(`Pakket "${naam}" heeft geen prijs.`);
+  if (prijs === undefined) throw new Error(`Pakket "${naam}" heeft geen prijs.`);
   return euro(prijs);
 }
 

@@ -5,7 +5,7 @@
  * contactgegevens, rechts het formulier op dezelfde horizontale positie als de tekstkolom in Vragen en de hero-inleiding
  * (`--kolom-tekst`, minstens 24rem breed). Mobiel: één kolom.
  *
- * - De velden komen uit het register (`src/lib/formulieren/`, nu `bruiloft.ts`); dit component rendert alleen. Het
+ * - De velden komen uit het register (`src/lib/formulieren/`, per type `bruiloft.ts` of `portret.ts`); dit component rendert alleen. Het
  *   formulier werkt zonder JavaScript als gewone POST naar /api/aanvraag; het script (src/scripts/formulier.ts) voegt
  *   validatie, verzenden via fetch en de pakketkeuze toe.
  * - Velden: alleen een onderlijn in --ink, label klein erboven, "(optioneel)" achter optionele labels. Echte
@@ -130,8 +130,11 @@ const veldId = (naam: string) => `aanvraag-${naam}`;
                       class="veld__invoer"
                       id={id}
                       name={veld.naam}
+                      required={required}
                       aria-describedby={hulpId}
                       data-hulp={hulpId}
+                      data-fout-leeg={veld.meldingen?.leeg}
+                      data-fout-ongeldig={veld.meldingen?.ongeldig}
                     >
                       <option value="">Maak een keuze</option>
                       {veld.opties?.map((optie) => <option value={optie.waarde}>{optie.label}</option>)}

@@ -6,7 +6,9 @@
  * - verzenden via fetch (Accept: application/json), daarna door naar /bedankt; bij een serverfout een melding boven de
  *   knop (met mail en telefoon) en blijft de ingevulde data staan;
  * - het tijdstempelveld (milliseconden sinds laden, voor de spamwering), de min-datum (vandaag) en "We hebben nog geen
- *   datum" (schakelt het datumveld uit).
+ *   datum" (schakelt het datumveld uit);
+ * - de pakketkeuze: een klik op een link met `data-pakket` (de cta's in Pakketten) kiest dat pakket in het veld "pakket"
+ *   en de link springt daarna zelf naar #aanvragen. Heeft het formulier geen veld "pakket" (bruiloft), dan gebeurt er niets.
  * Geen libraries.
  */
 type Veld = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -74,6 +76,17 @@ if (form) {
   };
   geenDatum?.addEventListener('change', synchroniseerDatum);
   synchroniseerDatum();
+
+  // Pakketkeuze: de browser doet de sprong naar #aanvragen, wij kiezen alleen het pakket.
+  document.addEventListener('click', (gebeurtenis) => {
+    const cta = (gebeurtenis.target as Element | null)?.closest<HTMLElement>('a[data-pakket]');
+    const keuze = cta?.dataset.pakket;
+    const pakket = form.elements.namedItem('pakket');
+    if (!keuze || !(pakket instanceof HTMLSelectElement)) return;
+    if (!Array.from(pakket.options).some((optie) => optie.value === keuze)) return;
+    pakket.value = keuze;
+    pakket.dispatchEvent(new Event('change', { bubbles: true })); // wist een eventuele foutmelding
+  });
 
   // Een melding verdwijnt zodra het veld weer klopt.
   const opnieuw = (gebeurtenis: Event) => {

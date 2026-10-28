@@ -202,8 +202,10 @@ const strip = fotos.map((foto, index) => {
     list-style: none;
   }
 
+  /* Mobiel: één foto die de hele breedte vult, ook als hij staand is (een flex-grow onder 1, zoals de verhouding 2:3
+     van een staande foto, vult de rij niet). Desktop: de breedte volgt de verhouding (zie de media query). */
   .landing-hero__foto {
-    flex: var(--verhouding) var(--verhouding) 0;
+    flex: 1 1 0;
     min-width: 0;
     margin: 0;
     padding: 0;
@@ -271,6 +273,10 @@ const strip = fotos.map((foto, index) => {
     .landing-hero__fotos {
       gap: 1.7vw;
       margin-top: var(--blok-ruimte); /* 4vw */
+    }
+
+    .landing-hero__foto {
+      flex: var(--verhouding) var(--verhouding) 0;
     }
 
     .landing-hero__foto--alleen-desktop {

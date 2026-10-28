@@ -25,6 +25,7 @@ Doelgroepen met eigen ingang: bruidsparen (regio Nijmegen/Arnhem, belangrijkste)
 - Verzin nooit feiten, reviews, prijzen, aantallen of persvermeldingen. Ontbreekt informatie: zet een duidelijke `TODO(paul)` in de code of tekst en meld dat.
 - Prijzen: bruiloftpakketten zichtbaar (vanaf €3.250), portretten met een vanaf-prijs, kunst en exposities op aanvraag.
 - Beeld eerst: grote foto's, veel witruimte, weinig tekst boven de vouw. De homepage opent met portretten en toont in één oogopslag wie Paul is, wat hij doet (bruiloft, portret, kunst) en hoe je contact opneemt.
+- Paul werkt niet in een studio. Hij fotografeert in natuurlijk licht, bij de klant thuis, op het werk, buiten of op een plek die de klant kiest. Gebruik nooit de woorden studio, studiosessie of fotostudio voor Pauls eigen aanbod. Hij maakte een portretserie bij een gaarkeuken in Rusland (project De Gaarkeuken, /de-gaarkeuken).
 - Geld-pagina's krijgen onder de beelden 300 tot 600 woorden echte tekst. Serie-pagina's krijgen een korte inleiding, bijschriften en jaartal/plaats.
 
 ## SEO per pagina (verplicht)
@@ -44,13 +45,13 @@ De secties op de homepage staan altijd in deze volgorde: Hero, OverPaul, Project
 
 ## Volgorde commerciële landingspagina (bindend)
 
-De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze, Impressie, OverPaul, Vragen, Uitleg, Pakketten, Reviews, Aanvraagformulier, Beeld (foto van rand tot rand, geen kop). Daarna volgt de footer. Een sectie wordt alleen getoond als de data ervoor bestaat; de volgorde verandert nooit. Elke sectie zit in een eigen wrapper met --sectie-ruimte; geen margins die van buren afhangen.
+De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze, Pakketten, Impressie, OverPaul, Vragen, Uitleg, Reviews, Aanvraagformulier, Beeld (foto van rand tot rand, geen kop). Daarna volgt de gedeelde footer. Een sectie wordt alleen getoond als de data ervoor bestaat; de volgorde verandert nooit. (De oude volgorde met Impressie vóór Pakketten en Uitleg vóór Pakketten vervalt.) Elke sectie zit in een eigen wrapper met --sectie-ruimte; geen margins die van buren afhangen.
 
 ## URL's
 
 - Behoud de bestaande slugs: /asty-mwaka, /love-marriage, /de-gaarkeuken, /groeten-uit-lent, /take-me-to-the-river, /asfalt, /panoramas, /portretten, /het-gezicht-van-nijmegen.
 - `/promoties` is geen pagina op deze site: permanente 301 (`permanent: true` in `vercel.json`) naar https://www.fotograafpromotiesradboud.nl/. Neem `/promoties` niet op in navigatie, sitemap of interne links. Verwijs voor promotiefotografie met een gewone tekstlink naar de Radboud-site.
-- Nieuwe commerciële URL's: /fotograaf-bruiloft (algemene bruiloftpagina, primair zoekwoord "fotograaf bruiloft"), /zakelijke-portretfoto, /linkedin-foto-laten-maken, later /trouwfotograaf-nijmegen, /trouwfotograaf-arnhem en /trouwlocaties/[locatie].
+- Nieuwe commerciële URL's: /fotograaf-bruiloft (algemene bruiloftpagina, primair zoekwoord "fotograaf bruiloft"), /portretfotos (particuliere portretten, primair zoekwoord "portretfoto laten maken"), /zakelijke-portretfoto, /linkedin-foto-laten-maken, later /trouwfotograaf-nijmegen, /trouwfotograaf-arnhem en /trouwlocaties/[locatie].
 - /trouwfotograaf-nijmegen en /trouwfotograaf-arnhem zijn gereserveerd voor latere lokale pagina's met eigen inhoud; /fotograaf-bruiloft is de algemene bruiloftpagina. Geen sjabloonpagina's waarbij alleen de plaatsnaam wisselt.
 - Overig: /werk, /portfolio, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, /blog/[slug].
 - /portfolio is het oneindige fotocanvas (beleving, indexeerbaar, lage SEO-prioriteit). /werk blijft het zoekmachinevriendelijke serie-overzicht; concurreer niet met /werk of de seriepagina's om zoekwoorden.
@@ -71,7 +72,7 @@ De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze,
 - E-mail en telefoon zichtbaar in kop of voet op elke pagina, als gewone tekst met `mailto:` en `tel:` (geen JavaScript-verberging). WhatsApp optioneel. Uitzondering op verzoek: /portfolio heeft geen header en footer, alleen een knop "← home" linksboven en de link "Contact →" in de overlay.
 - Elke bruiloft- en portretpagina eindigt in een kort formulier.
   - Bruiloftformulier: trouwdatum en locatie bovenaan, dan namen, aantal gasten, gewenst pakket, "hoe ken je mij?".
-  - Portretformulier: naam, type (headshot, zakelijk, team, kunstportret), aantal personen, waarvoor (LinkedIn, website, anders), gewenste periode, "hoe ken je mij?".
+  - Portretformulier: naam, type (headshot, zakelijk, team, kunstportret), aantal personen, locatie, bericht. Geen "waarvoor", "gewenste periode" of "hoe ken je mij?" (bewust weggelaten op /portretfotos).
   - Editie: alleen naam en e-mail (e-maillijst of voorintekening).
 - Verwerking via een Astro Action of API-route (`prerender = false`) met validatie (bijvoorbeeld Zod), spamwering (honeypot of Turnstile) en e-mail via een transactionele dienst (bijvoorbeeld Resend). Geen formulierdata in de URL.
 - Na verzenden: redirect naar /bedankt met uitleg wat er nu gebeurt, plus een automatische bevestigingsmail. Paul reageert binnen 24 uur.

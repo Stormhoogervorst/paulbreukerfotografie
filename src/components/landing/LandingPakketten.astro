@@ -11,10 +11,11 @@
  *   Daardoor liggen alle haarlijnen en tekstregels over de drie kolommen op dezelfde hoogte. Zonder subgrid-ondersteuning
  *   is er een flex-fallback waarbij alleen de cta onderaan de kolom staat.
  * - Prijs: één <p> met het optionele label (`prijsLabel`, bijvoorbeeld "vanaf") en het bedrag, zodat een schermlezer
- *   bijvoorbeeld "vanaf €3.250" voorleest. Zonder label staat er alleen het bedrag; zonder prijs staat er "prijs volgt".
+ *   bijvoorbeeld "vanaf €3.250" voorleest. Zonder label staat er alleen het bedrag; zonder prijs (`prijs` ontbreekt) is er
+ *   geen prijsregel en blijft de rij leeg.
  * - De <section> heeft id="pakketten": het doel van de CTA in de hero en de link in Werkwijze.
- * - De cta's springen naar #aanvragen en dragen `data-pakket` (slug van het pakket). Het formulier heeft nu geen
- *   pakketveld, dus dit attribuut wordt op dit moment door niets gebruikt.
+ * - De cta's springen naar #aanvragen en dragen `data-pakket` (slug van het pakket). Heeft het formulier een veld
+ *   "pakket", dan kiest src/scripts/formulier.ts daar dit pakket; anders wordt het attribuut niet gebruikt.
  * - Geen eigen buitenmarges: de verticale ruimte rond de sectie komt van de .sectie-wrapper in LandingLayout.astro.
  * - Het enige JavaScript is het bestaande script van Marquee.astro.
  *
@@ -62,17 +63,15 @@ const nummer = (index: number) => String(index + 1).padStart(2, '0');
                 <h3 class="pakket__naam">{pakket.naam}</h3>
               </header>
 
-              <p class="pakket__prijs">
-                {pakket.prijs === null ? (
-                  <span class="pakket__label">prijs volgt</span>
-                ) : (
-                  <>
+              {
+                pakket.prijs !== undefined && (
+                  <p class="pakket__prijs">
                     {pakket.prijsLabel && <span class="pakket__label">{pakket.prijsLabel}</span>}
                     {pakket.prijsLabel && ' '}
                     <span class="pakket__bedrag">€{bedrag.format(pakket.prijs)}</span>
-                  </>
-                )}
-              </p>
+                  </p>
+                )
+              }
 
               <p class="pakket__omschrijving">{pakket.omschrijving}</p>
 
@@ -185,7 +184,7 @@ const nummer = (index: number) => String(index + 1).padStart(2, '0');
     color: var(--ink);
   }
 
-  /* Klein label in de stijl van de kleine links ("vanaf" boven het bedrag, of "prijs volgt"). */
+  /* Klein label in de stijl van de kleine links ("vanaf" boven het bedrag). */
   .pakket__label {
     display: block;
     font-size: var(--font-size-small);

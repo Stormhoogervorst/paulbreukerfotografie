@@ -35,6 +35,7 @@ Principe: één primair zoekwoord per URL. Commerciële pagina's en kunstseries 
 | `/trouwfotograaf-nijmegen` | trouwfotograaf nijmegen. Gereserveerd voor een latere lokale pagina met eigen inhoud | Bruiloftformulier |
 | `/trouwfotograaf-arnhem` | trouwfotograaf arnhem. Alleen live als er genoeg eigen Arnhem-inhoud is | Bruiloftformulier |
 | `/trouwlocaties/[locatie]` | trouwen op/in [locatie] + fotograaf. Alleen locaties waar Paul echt heeft gefotografeerd | Bruiloftformulier |
+| `/portretfotos` | portretfoto laten maken (particuliere portretten: één persoon, duo, gezin, kunstportret; op locatie, natuurlijk licht). Verwijst voor zakelijk en LinkedIn naar /zakelijke-portretfoto | Portretformulier |
 | `/zakelijke-portretfoto` | zakelijke portretfoto (nijmegen). Hub voor headshots, teams, wetenschappers | Portretformulier |
 | `/linkedin-foto-laten-maken` | linkedin foto laten maken. Eigen pagina, want andere intentie dan teams | Portretformulier |
 | `/teamfoto-laten-maken` | teamfoto / personeelsfoto. Pas in fase 3 | Portretformulier |
@@ -121,7 +122,11 @@ De toon is rustig en visueel, maar Google en AI-systemen hebben tekst nodig om e
 - Serie-pagina's: een korte inleiding van Paul in de ik-vorm, bijschriften en jaartal/plaats per serie.
 - Houd de toon aan uit de briefing: persoonlijk, bewijs in plaats van claims, geen superlatieven.
 
-Volgorde commerciële landingspagina (bindend): De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze, Impressie, OverPaul, Vragen, Uitleg, Pakketten, Reviews, Aanvraagformulier, Beeld (foto van rand tot rand, geen kop). Daarna volgt de footer. Een sectie wordt alleen getoond als de data ervoor bestaat; de volgorde verandert nooit. Elke sectie zit in een eigen wrapper met --sectie-ruimte; geen margins die van buren afhangen. Werkwijze is een korte statement-sectie (geen kop); Pakketten heeft als titel (marquee) de eerste H2 en Impressie de tweede; de overige H2's van de pagina staan in Uitleg.
+Volgorde commerciële landingspagina (bindend): De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze, Pakketten, Impressie, OverPaul, Vragen, Uitleg, Reviews, Aanvraagformulier, Beeld (foto van rand tot rand, geen kop). Daarna volgt de gedeelde footer. Een sectie wordt alleen getoond als de data ervoor bestaat; de volgorde verandert nooit. (De oude volgorde met Impressie vóór Pakketten en Uitleg vóór Pakketten vervalt.) Elke sectie zit in een eigen wrapper met --sectie-ruimte; geen margins die van buren afhangen. Werkwijze is een korte statement-sectie (geen kop); Pakketten heeft als titel (marquee) de eerste H2 en Impressie de tweede; de overige H2's van de pagina staan in Uitleg.
+
+Paul werkt niet in een studio. Hij fotografeert in natuurlijk licht, bij de klant thuis, op het werk, buiten of op een plek die de klant kiest. Gebruik nooit de woorden studio, studiosessie of fotostudio voor Pauls eigen aanbod. Hij maakte een portretserie bij een gaarkeuken in Rusland (project De Gaarkeuken, /de-gaarkeuken).
+
+Elke commerciële portretpagina (/portretfotos, /zakelijke-portretfoto, /linkedin-foto-laten-maken) verwijst terug naar /portretten en /de-gaarkeuken als bewijs.
 
 ## 7. Conversie
 

@@ -1,5 +1,5 @@
 /**
- * POST /api/aanvraag: verwerkt een aanvraag uit het formulier (nu alleen "bruiloft", zie src/lib/formulieren/).
+ * POST /api/aanvraag: verwerkt een aanvraag uit het formulier (type "bruiloft" of "portret", zie src/lib/formulieren/).
  *
  * Dit is het enige on-demand deel van de site (`prerender = false`); de rest is statisch.
  *

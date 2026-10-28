@@ -1,21 +1,21 @@
 ---
 /**
- * /bedankt: de pagina na een verzonden aanvraag (src/pages/api/aanvraag.ts stuurt hierheen met `?type=bruiloft`).
+ * /bedankt: de pagina na een verzonden aanvraag (src/pages/api/aanvraag.ts stuurt hierheen met `?type=bruiloft` of
+ * `?type=portret`).
  *
  * - `noindex`, niet in de sitemap (filter in astro.config.mjs), niet gelinkt vanuit navigatie of footer. Canonical zonder
  *   querystring. Robots.txt laat de pagina crawlbaar, zodat de noindex gelezen wordt.
- * - De pagina is statisch, dus de querystring `type` is alleen in de browser bekend: een klein script zet
- *   `data-aanvraag-type` op <main> (alleen de waarde "bruiloft"), zodat conversiemeting er later op kan aansluiten.
- *   Er is hier geen analytics gebouwd.
+ * - De pagina is statisch, dus de querystring `type` is alleen in de browser bekend. De drie stappen staan per formuliertype
+ *   in de HTML (uit `src/lib/formulieren/<type>.ts`, export `stappen`), verborgen; een klein inline script toont het blok
+ *   van het type uit de querystring en zet `data-aanvraag-type` op <main> (alleen bekende typen), zodat conversiemeting
+ *   er later op kan aansluiten. Er is hier geen analytics gebouwd. Zonder JavaScript of met een onbekend type blijft het
+ *   blok "Wat gebeurt er nu?" verborgen; de tekst erboven noemt de reactietijd al.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { formulieren } from '../lib/formulieren';
 
-// TODO(paul): bevestig dat dit proces klopt (drie stappen) en de reactietijd (hier en in de mails: binnen 24 uur).
-const stappen = [
-  'Ik lees jullie aanvraag en kijk of de datum nog vrij is.',
-  'Ik stuur je een bericht met een voorstel voor een kennismaking.',
-  'Na de kennismaking maken we de afspraken definitief.',
-];
+// TODO(paul): bevestig de reactietijd (hier en in de mails: binnen 24 uur) en de stappen per type (zie de formulierbestanden).
+const typen = Object.entries(formulieren).map(([type, formulier]) => ({ type, stappen: formulier.stappen }));
 ---
 
 <BaseLayout
@@ -32,19 +32,35 @@ const stappen = [
       kijk dan even in je spam.
     </p>
 
-    <h2 class="bedankt__kop">Wat gebeurt er nu?</h2>
-    <ol class="stappen" role="list">
+    {
+      typen.map(({ type, stappen }) => (
+        <div data-stappen={type} hidden>
+          <h2 class="bedankt__kop">Wat gebeurt er nu?</h2>
+          <ol class="stappen" role="list">
+            {stappen.map((stap, index) => (
+              <li class="stap">
+                <span class="stap__nummer" aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span class="stap__tekst">{stap}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ))
+    }
+
+    <!-- Inline, direct na de blokken: de stappen verschijnen vóór de eerste weergave. Alleen typen waarvoor een blok bestaat tellen. -->
+    <script is:inline>
       {
-        stappen.map((stap, index) => (
-          <li class="stap">
-            <span class="stap__nummer" aria-hidden="true">
-              {String(index + 1).padStart(2, '0')}
-            </span>
-            <span class="stap__tekst">{stap}</span>
-          </li>
-        ))
+        const type = new URLSearchParams(window.location.search).get('type');
+        const blok = Array.from(document.querySelectorAll('[data-stappen]')).find((el) => el.getAttribute('data-stappen') === type);
+        if (blok) {
+          blok.hidden = false;
+          document.getElementById('main')?.setAttribute('data-aanvraag-type', type);
+        }
       }
-    </ol>
+    </script>
 
     <p class="bedankt__links">
       <a class="bedankt__link" href="/">terug naar de homepage <span aria-hidden="true">→</span></a>
@@ -52,12 +68,6 @@ const stappen = [
     </p>
   </div>
 </BaseLayout>
-
-<script>
-  // Alleen de toegestane waarde; alles anders laat het attribuut weg.
-  const type = new URLSearchParams(window.location.search).get('type');
-  if (type === 'bruiloft') document.getElementById('main')?.setAttribute('data-aanvraag-type', type);
-</script>
 
 <style>
   .bedankt {

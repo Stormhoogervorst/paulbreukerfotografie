@@ -23,7 +23,7 @@ const KNOWN_SERIES: Record<string, { title: string; href: string }> = {
   'het-gezicht-van-nijmegen': { title: 'Het Gezicht van Nijmegen', href: '/het-gezicht-van-nijmegen' },
 };
 
-/** "portret-beek" wordt "Portret beek". */
+/** Onbekende mapnaam, bijvoorbeeld "huiskamers", wordt "Huiskamers". */
 function titleFromSlug(slug: string): string {
   const words = slug.replace(/[-_]+/g, ' ').trim();
   return words.charAt(0).toUpperCase() + words.slice(1);

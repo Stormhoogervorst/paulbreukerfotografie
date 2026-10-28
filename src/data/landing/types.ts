@@ -5,8 +5,9 @@
  * regels in `src/pages/` (zie README, "Nieuwe landingspagina toevoegen").
  *
  * De volgorde van de secties ligt vast in `src/layouts/LandingLayout.astro` (zie de regel "Volgorde commerciële
- * landingspagina (bindend)" in `.cursor/rules/paulbreuker-regels.mdc`). Een sectie verschijnt alleen als de data
- * ervoor bestaat. Alles na de hero is optioneel; Werkwijze, Impressie en Pakketten worden al getoond, de rest volgt.
+ * landingspagina (bindend)" in `.cursor/rules/paulbreuker-regels.mdc`): Hero, Werkwijze, Pakketten, Impressie, OverPaul,
+ * Vragen, Uitleg, Reviews, Aanvraagformulier, Beeld. Een sectie verschijnt alleen als de data ervoor bestaat. Alles na
+ * de hero is optioneel; Uitleg en Reviews zijn nog niet gebouwd.
  */
 import type { ImageMetadata } from 'astro';
 
@@ -42,6 +43,8 @@ export interface LandingHeroFoto {
 export interface LandingSchema {
   /** Naam van de dienst in JSON-LD (`Service.name`). */
   dienstNaam: string;
+  /** Soort dienst in JSON-LD (`Service.serviceType`), bijvoorbeeld "Portretfotografie op locatie". Ontbreekt het, dan staat er niets. */
+  serviceType?: string;
   /**
    * Vanaf-prijs in euro's. Nooit verzinnen: komt van Paul. Ontbreekt hij, dan komt er geen `Offer`.
    * Heeft de pagina `pakketten` met prijzen, dan is de laagste pakketprijs leidend voor `Offer.minPrice` (zie
@@ -64,16 +67,20 @@ export interface LandingUitleg {
 /** CTA van een pakket: springt naar het formulier en kiest daar dit pakket (via `data-pakket`). */
 export interface LandingPakketCta extends LandingLink {
   /**
-   * Slug van de pakketnaam ("reportage", "album", "collectie"), als `data-pakket` op de cta. Het formulier heeft nu
-   * geen pakketveld, dus op dit moment wordt dit door niets gebruikt.
+   * Slug van de pakketnaam ("reportage", "portret", "kunstportret" enz.), als `data-pakket` op de cta. Heeft het formulier
+   * een veld met de naam "pakket" (een `select` met de slugs als waarden), dan kiest een klik op de cta daar dit pakket
+   * (src/scripts/formulier.ts). Heeft het formulier dat veld niet (het bruiloftformulier), dan gebeurt er niets.
    */
   pakket: string;
 }
 
 export interface LandingPakket {
   naam: string;
-  /** Prijs in euro's. Nooit verzinnen: komt van Paul. `null` toont "prijs volgt". */
-  prijs: number | null;
+  /**
+   * Prijs in euro's. Nooit verzinnen: komt van Paul. Ontbreekt hij, dan toont de kaart geen prijsregel, komt het pakket
+   * niet in de JSON-LD (OfferCatalog) en telt het niet mee voor de laagste prijs.
+   */
+  prijs?: number;
   /** Klein label boven het bedrag, bijvoorbeeld "vanaf". Ontbreekt het, dan staat er alleen het bedrag. */
   prijsLabel?: string;
   omschrijving: string;
@@ -109,6 +116,13 @@ export interface LandingImpressieFoto {
 export interface LandingImpressie {
   /** Titel in de marquee; de eerste herhaling is de <h2> van de sectie. */
   titel: string;
+  /**
+   * Indeling van de foto's. Ontbreekt het veld, dan is het "diagonaal": twee rijen van twee met verschillende breedtes
+   * (de standaard, voor liggende foto's). "rij": één rij van drie foto's van gutter tot gutter, met relatieve hoogtes
+   * (`rijHoogtes` in LandingImpressie.astro); bedoeld voor staande foto's. Bij "rij" worden alleen de eerste drie foto's
+   * getoond; geef er dan precies drie.
+   */
+  indeling?: 'diagonaal' | 'rij';
   fotos: LandingImpressieFoto[];
   /** Staat onder de laatste rij, rechts uitgelijnd. */
   link?: LandingLink;
@@ -185,11 +199,11 @@ export interface LandingVragen {
 /**
  * Aanvraagformulier: na Reviews en vóór Beeld (component: src/components/landing/LandingFormulier.astro).
  * Het anker #aanvragen verwijst naar deze sectie. De velden, de validatie en de mails staan per type in
- * `src/lib/formulieren/` (register in index.ts); hier alleen de teksten van de sectie. Nu alleen "bruiloft"; een
- * portretformulier komt als nieuw bestand in dezelfde map.
+ * `src/lib/formulieren/` (register in index.ts); hier alleen de teksten van de sectie. Types: "bruiloft" en "portret".
  */
 export interface LandingFormulier {
-  type: 'bruiloft';
+  /** Formuliertype: kiest de velden, het schema en de mails uit het register in `src/lib/formulieren/index.ts`. */
+  type: 'bruiloft' | 'portret';
   /** Titel in de marquee; de eerste herhaling is de <h2> van de sectie. */
   titel: string;
   /** Alinea's van het introblok links (ik-vorm van Paul). Daaronder komen "Liever bellen of mailen?" en de contactgegevens. */

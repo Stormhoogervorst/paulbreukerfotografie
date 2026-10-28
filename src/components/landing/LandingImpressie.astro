@@ -1,6 +1,6 @@
 ---
 /**
- * Impressie (landingspagina): titel in de gedeelde Marquee, daaronder vier foto's in twee rijen van twee, plus een
+ * Impressie (landingspagina): zonder zichtbare titel (de h2 is visueel verborgen), vier foto's in twee rijen van twee, plus een
  * kleine link rechts onder de laatste rij.
  *
  * - De indeling staat in twee configuratie-constanten (rijenDesktop, rijenMobiel): per rij het aantal foto's, de breedte
@@ -13,13 +13,17 @@
  *   de eerste breedtes van zijn configuratie en staat links (flex-start).
  * - Desktop en mobiel hebben elk hun eigen configuratie. Daarom staan er twee lijsten in de HTML; CSS toont er één per
  *   breakpoint (de andere is display: none, dus niet voorgelezen en door `loading="lazy"` ook niet geladen).
- * - Geen bijschriften, hover, lightbox of animatie. Het enige JavaScript is het bestaande script van Marquee.astro.
+ * - Geen bijschriften, hover, lightbox of animatie. Geen JavaScript.
+ * - Indeling "rij" (data-veld `indeling`, voor staande foto's): één rij van drie foto's van gutter tot gutter, met
+ *   relatieve hoogtes (`rijHoogtes`, `rijHoogtesMobiel`) en één onderlijn (`rijUitlijning`). De breedtes volgen bij het
+ *   bouwen uit de beeldverhoudingen: aandeel_i = (hoogte_i × verhouding_i) / som(hoogte_j × verhouding_j), en de
+ *   flex-basis is aandeel_i × (100% − totale afstand). Geen uitsnede; de hoogte volgt uit de verhouding. Zonder het veld
+ *   geldt de diagonale indeling hierboven, ongewijzigd.
  * - Geen eigen buitenmarges: de verticale ruimte rond de sectie komt van de .sectie-wrapper in LandingLayout.astro.
  *
  * Content: `pagina.impressie` (zie src/data/landing/types.ts).
  */
 import { Picture } from 'astro:assets';
-import Marquee from '../Marquee.astro';
 import type { LandingImpressie } from '../../data/landing/types';
 
 interface Props {
@@ -28,7 +32,29 @@ interface Props {
 
 const { impressie } = Astro.props;
 
-/** Id van de <h2> (de eerste herhaling in de marquee); de sectie verwijst ernaar met aria-labelledby. */
+/** Indeling: standaard "diagonaal" (twee rijen van twee); "rij" = één rij van drie. */
+const indeling = impressie.indeling ?? 'diagonaal';
+
+// ---- Configuratie indeling "rij" ----
+/** Relatieve hoogte per foto (desktop, vanaf 900px), van links naar rechts. Het aantal bepaalt het aantal getoonde foto's. */
+const rijHoogtes = [0.8, 1, 0.68];
+/** Idem voor mobiel (onder 900px). */
+const rijHoogtesMobiel = [0.8, 1, 0.68];
+/** align-items van de rij: "flex-end" = alle foto's op één onderlijn, de bovenkant verspringt. */
+const rijUitlijning: 'flex-start' | 'flex-end' = 'flex-end';
+/** Eigen uitlijning per foto (align-self), van links naar rechts. "center" zet een foto verticaal midden in de rij: boven- en onderkant liggen dan niet gelijk met de buren. */
+const rijFotoUitlijning: ('flex-start' | 'center' | 'flex-end')[] = ['center', 'flex-end', 'flex-end'];
+/** Extra verschuiving omhoog per foto in vw (margin-bottom bij "flex-end"), van links naar rechts. Zo ligt een foto niet meer op de onderlijn van de buren. */
+const rijFotoOmhoogVw = [0, 0, 2.5];
+/** Afstand tussen de foto's in vw (desktop en mobiel, gelijk aan de diagonale indeling). */
+const rijAfstandDesktop = 2;
+const rijAfstandMobiel = 3;
+/** Breedte van de rij in vw: 100vw min twee keer --gutter (5,5vw). */
+const RIJ_BREEDTE_VW = 89;
+/** Een rij hoger dan dit (vw, desktop) geeft een bouw-waarschuwing; de schaal wordt niet aangepast. */
+const RIJ_MAX_HOOGTE_VW = 50;
+
+/** Id van de <h2> (visueel verborgen); de sectie verwijst ernaar met aria-labelledby. */
 const KOP_ID = 'impressie-titel';
 
 interface RijConfig {
@@ -115,14 +141,97 @@ for (const { naam, rijen } of indelingen) {
     }
   });
 }
+
+// ---- Indeling "rij": breedtes uit de beeldverhoudingen ----
+interface RijFoto {
+  foto: (typeof impressie.fotos)[number];
+  /** Aandeel van de beschikbare breedte (de rij min de afstanden), tussen 0 en 1. */
+  aandeel: number;
+  /** Berekende breedte en hoogte in vw (voor `sizes` en de bewaking). */
+  breedteVw: number;
+  hoogteVw: number;
+}
+
+function berekenRij(hoogtes: number[], afstand: number): RijFoto[] {
+  const fotos = impressie.fotos.slice(0, hoogtes.length);
+  const gewichten = fotos.map((foto, i) => hoogtes[i] * (foto.afbeelding.width / foto.afbeelding.height));
+  const som = gewichten.reduce((totaal, gewicht) => totaal + gewicht, 0);
+  const beschikbaar = RIJ_BREEDTE_VW - (fotos.length - 1) * afstand;
+  return fotos.map((foto, i) => {
+    const aandeel = gewichten[i] / som;
+    const breedteVw = aandeel * beschikbaar;
+    return { foto, aandeel, breedteVw, hoogteVw: breedteVw / (foto.afbeelding.width / foto.afbeelding.height) };
+  });
+}
+
+const afgerond = (x: number) => Math.round(x * 10) / 10;
+const rijDesktop = indeling === 'rij' ? berekenRij(rijHoogtes, rijAfstandDesktop) : [];
+const rijMobiel = indeling === 'rij' ? berekenRij(rijHoogtesMobiel, rijAfstandMobiel) : [];
+const rijIndelingen = [
+  { naam: 'desktop', afstand: rijAfstandDesktop, rij: rijDesktop },
+  { naam: 'mobiel', afstand: rijAfstandMobiel, rij: rijMobiel },
+].map(({ naam, afstand, rij }) => ({
+  naam,
+  afstand,
+  fotos: rij.map((item, index) => ({
+    foto: item.foto,
+    aandeel: item.aandeel,
+    sizes: `(min-width: 900px) ${afgerond(rijDesktop[index].breedteVw)}vw, ${afgerond(rijMobiel[index].breedteVw)}vw`,
+  })),
+}));
+
+if (indeling === 'rij') {
+  if (impressie.fotos.length !== rijHoogtes.length) {
+    console.warn(
+      `[LandingImpressie] indeling "rij" toont ${rijHoogtes.length} foto's, maar de data heeft er ${impressie.fotos.length}. Geef precies ${rijHoogtes.length} foto's.`,
+    );
+  }
+  const hoogste = Math.max(...rijDesktop.map((item) => item.hoogteVw));
+  if (hoogste > RIJ_MAX_HOOGTE_VW) {
+    console.warn(
+      `[LandingImpressie] indeling "rij": de hoogste foto is ${hoogste.toFixed(1)}vw hoog op desktop (richtlijn: ${RIJ_MAX_HOOGTE_VW}vw).`,
+    );
+  }
+}
 ---
 
 <section class="impressie" id="impressie" aria-labelledby={KOP_ID}>
-  <Marquee woord={impressie.titel} kopId={KOP_ID} />
+  <h2 id={KOP_ID} class="visually-hidden">{impressie.titel}</h2>
 
   <div class="impressie__inhoud">
     {
-      indelingen.map(({ naam, afstand, rijen }) => (
+      rijIndelingen.map(({ naam, afstand, fotos }) => (
+        <div class={`impressie__rijen impressie__rijen--${naam}`} style={`--afstand: ${afstand}vw`}>
+          <ul class="impressie__rij" role="list" style={`--uitlijning: ${rijUitlijning}`}>
+            {fotos.map(({ foto, aandeel, sizes }, nr) => {
+              const { width, height } = foto.afbeelding;
+              return (
+                <li
+                  class="foto"
+                  style={`--w: calc((100% - ${fotos.length - 1} * var(--afstand)) * ${aandeel.toFixed(5)}); --ratio: ${width} / ${height}; align-self: ${rijFotoUitlijning[nr] ?? rijUitlijning}; margin-bottom: ${rijFotoOmhoogVw[nr] ?? 0}vw`}
+                >
+                  <Picture
+                    src={foto.afbeelding}
+                    alt={foto.alt}
+                    width={width}
+                    height={height}
+                    widths={WIDTHS}
+                    sizes={sizes}
+                    formats={['avif', 'webp']}
+                    fallbackFormat="jpg"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))
+    }
+
+    {
+      (indeling === 'diagonaal' ? indelingen : []).map(({ naam, afstand, rijen }) => (
         <div class={`impressie__rijen impressie__rijen--${naam}`} style={`--afstand: ${afstand}vw`}>
           {rijen.map((rij) => (
             <ul class="impressie__rij" role="list" style={`--uitlijning: ${rij.uitlijning}`}>
@@ -183,7 +292,6 @@ for (const { naam, rijen } of indelingen) {
   /* ---------- Impressie (mobiel eerst) ---------- */
   .impressie {
     --titel-size: clamp(1.25rem, 2vw, 2.5rem); /* grootte van de link, gelijk aan "alle series" in Projecten */
-    --marquee-onder: clamp(3rem, 7vw, 8rem); /* margin-bottom van de gedeelde Marquee (Marquee.astro); alleen voor de desktop-compensatie */
   }
 
   .impressie__inhoud {
@@ -269,11 +377,6 @@ for (const { naam, rijen } of indelingen) {
 
     .impressie__rijen--desktop {
       display: flex;
-    }
-
-    /* Ongeveer 4vw tussen de titel en de eerste rij: de Marquee heeft zelf al ruimte eronder, dus compenseren. */
-    .impressie__inhoud {
-      margin-top: calc(4vw - var(--marquee-onder));
     }
   }
 </style>

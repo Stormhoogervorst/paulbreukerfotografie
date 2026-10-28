@@ -41,7 +41,7 @@ const impressieFotos = await impressieAfbeeldingen(pagina);
 
 // Pakketten met een prijs zijn de enige bron voor de OfferCatalog en voor de laagste prijs (Offer.minPrice).
 const pakketOffers = (pagina.pakketten?.items ?? []).flatMap((pakket) =>
-  pakket.prijs === null ? [] : [{ name: pakket.naam, description: pakket.omschrijving, price: pakket.prijs }],
+  pakket.prijs === undefined ? [] : [{ name: pakket.naam, description: pakket.omschrijving, price: pakket.prijs }],
 );
 const laagstePakketPrijs = pakketOffers.length > 0 ? Math.min(...pakketOffers.map((offer) => offer.price)) : undefined;
 if (
@@ -65,6 +65,7 @@ const jsonLd = [
     path: pad,
     priceFrom: laagstePakketPrijs ?? pagina.schema.vanPrijs,
     packages: pakketOffers,
+    serviceType: pagina.schema.serviceType,
     areaServed: pagina.schema.werkgebied,
   }),
   ...(pagina.impressie
@@ -103,17 +104,15 @@ const jsonLd = [
     VOLGORDE LANDINGSPAGINA (bindend, zie .cursor/rules/paulbreuker-regels.mdc):
     1. Hero
     2. Werkwijze
-    3. Impressie
-    4. OverPaul
-    5. Vragen
-    6. Uitleg
-    7. Pakketten
+    3. Pakketten
+    4. Impressie
+    5. OverPaul
+    6. Vragen
+    7. Uitleg
     8. Reviews
     9. Aanvraagformulier
     10. Beeld (foto van rand tot rand, geen kop)
-    Daarna volgt de footer (via BaseLayout). Een sectie wordt alleen getoond als de data ervoor bestaat.
-    TODO(volgorde): Pakketten wordt hieronder nog vóór Impressie gerenderd (stand van vóór de volgordewijziging);
-    verplaats het blok naar zijn plek (na Uitleg, vóór Reviews) wanneer dat is goedgekeurd.
+    Daarna volgt de gedeelde footer (via BaseLayout). Een sectie wordt alleen getoond als de data ervoor bestaat.
     Elke sectie zit in een eigen .sectie-wrapper met alleen padding-block (--sectie-ruimte); geen margins die van
     buren afhangen.
   -->
@@ -166,10 +165,8 @@ const jsonLd = [
     )
   }
 
-  <!-- Uitleg (pagina.uitleg) komt hier, na Vragen, zodra hij gebouwd is. -->
-
-  <!-- Nog te bouwen (in deze volgorde, elk met `{pagina.x && <div class="sectie">…</div>}`; Reviews komt vóór het formulier):
-    - Uitleg        (pagina.uitleg; de overige H2's van de pagina staan hier; komt na Vragen)
+  <!-- Nog te bouwen (in deze volgorde, elk met `{pagina.x && <div class="sectie">…</div>}`; beide komen na Vragen en vóór het formulier):
+    - Uitleg        (pagina.uitleg; de overige H2's van de pagina staan hier)
     - Reviews       (pagina.reviews)
   -->
 

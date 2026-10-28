@@ -1,7 +1,7 @@
 /**
- * Types voor formulieren (aanvragen). Een formulier is één bestand in deze map (bruiloft.ts, later portret.ts) met:
+ * Types voor formulieren (aanvragen). Een formulier is één bestand in deze map (bruiloft.ts, portret.ts; gedeelde onderdelen staan in gedeeld.ts) met:
  * de velden (configuratie voor het renderen), het Zod-schema (de enige bron van waarheid voor validatie, altijd op de
- * server), de mailteksten en het type. De API-route (src/pages/api/aanvraag.ts) kiest het formulier uit het register
+ * server), de mailteksten, de bedankstappen en het type. De API-route (src/pages/api/aanvraag.ts) kiest het formulier uit het register
  * in index.ts.
  */
 import type { z } from 'zod';
@@ -61,4 +61,6 @@ export interface Formulier<T extends AanvraagBasis = AanvraagBasis> {
   tekst(data: T): string;
   /** Bevestigingsmail naar de aanvrager (onderwerp en platte tekst). */
   bevestiging(data: T): { onderwerp: string; tekst: string };
+  /** De stappen onder "Wat gebeurt er nu?" op /bedankt (src/pages/bedankt.astro), in volgorde. */
+  stappen: string[];
 }
