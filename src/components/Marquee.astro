@@ -1,34 +1,32 @@
 ---
 /**
- * Gedeelde titelbalk (marquee) voor homepage-secties: full-bleed, gewicht 700, alleen CSS, geen JavaScript.
- * Gebruikt in Projecten en Diensten.
+ * Gedeelde titelbalk (marquee) voor homepage-secties: full-bleed, gewicht 700.
+ * Gebruikt in Projecten, Diensten en Exposities.
  *
  * - `woord`: het woord dat herhaald wordt. De eerste herhaling is de echte <h2>, de rest is aria-hidden.
  * - `kopId`: id van die <h2>, voor aria-labelledby van de sectie.
+ * - `snelheid`: optioneel, pixels verschuiving per gescrolde pixel (standaard 0,6).
  *
- * Beweging: scroll-gestuurd (geen tijd). In plaats van een duur per instantie is er `--afstand`: de
- * verschuiving als percentage van de track. De track is evenredig met het aantal tekens, dus door de
- * afstand om te keren met de lengte van het woord is de schijnbare snelheid (pixels per scroll-pixel)
- * voor elk woord gelijk. Referentie: "Projecten" (9 tekens) = 8%.
+ * Beweging: scroll-gekoppeld via het script onderaan. Stilstaand scrollen = stilstaande titel; omlaag
+ * scrollen schuift naar links, omhoog naar rechts. Zonder JavaScript staat de titel stil op de beginpositie.
+ * Bij prefers-reduced-motion: reduce is één statisch woord zichtbaar en doet het script niets.
  */
 interface Props {
   woord: string;
   kopId: string;
+  snelheid?: number;
 }
 
-const { woord, kopId } = Astro.props;
-
 const HERHALINGEN = 3;
-const REFERENTIE_TEKENS = 9;
-const REFERENTIE_AFSTAND = 8; // procent van de track
-const afstand = Math.round(((REFERENTIE_AFSTAND * REFERENTIE_TEKENS) / woord.length) * 100) / 100;
+
+const { woord, kopId, snelheid = 0.6 } = Astro.props;
 ---
 
 <!--
-  Twee identieke groepen van elk 3 herhalingen, zodat de track naadloos blijft op brede schermen.
-  Alleen de eerste herhaling is de H2, de rest is aria-hidden.
+  Twee identieke groepen van elk 3 herhalingen. Elke herhaling draagt zijn eigen tussenruimte (geen gap),
+  dus één groep is precies de periode van de wrap. Alleen de eerste herhaling is de H2, de rest is aria-hidden.
 -->
-<div class="marquee" style={`--afstand: ${afstand}%`}>
+<div class="marquee" data-snelheid={snelheid}>
   <div class="marquee__track">
     <div class="marquee__groep">
       <h2 id={kopId} class="marquee__woord">{woord}</h2>
@@ -61,17 +59,21 @@ const afstand = Math.round(((REFERENTIE_AFSTAND * REFERENTIE_TEKENS) / woord.len
   .marquee__track {
     display: flex;
     width: max-content;
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
   }
 
   .marquee__groep {
     display: flex;
-    flex-shrink: 0;
+    flex: 0 0 auto;
   }
 
   .marquee__woord {
-    flex-shrink: 0;
+    flex: 0 0 auto;
     margin: 0;
-    padding: 0 0.25em 0.15em 0; /* 0,25em tussen de herhalingen; onderpadding tegen afsnijden van de j */
+    padding: 0 0 0.15em; /* onderpadding tegen afsnijden van de j */
+    padding-inline-end: 0.25em; /* tussenruimte hoort bij de herhaling zelf */
     font-size: 1em;
     font-weight: 700;
     line-height: 0.9;
@@ -80,48 +82,156 @@ const afstand = Math.round(((REFERENTIE_AFSTAND * REFERENTIE_TEKENS) / woord.len
     white-space: nowrap;
   }
 
-  /* Zonder animatie (geen ondersteuning voor scroll-gestuurde animaties):
-     één statisch woord, linksuitgelijnd. */
-  .marquee__woord--herhaling,
-  .marquee__groep--kopie {
-    display: none;
-  }
-
-  /* De titel beweegt alleen met het scrollen: de positie volgt hoe ver de balk door het scherm is.
-     Stilstaand scrollen = stilstaande tekst. Geen JavaScript.
-     Bewust ook bij prefers-reduced-motion: reduce (op verzoek van de eigenaar). De beweging is
-     klein, gekoppeld aan de scroll van de gebruiker zelf en nooit automatisch. */
-  @supports (animation-timeline: view()) {
-    .marquee__woord--herhaling {
-      display: block;
-    }
-
-    .marquee__groep--kopie {
-      display: flex;
-    }
-
-    /* De tijdlijn hoort bij .marquee zelf: de track zit in een overflow:hidden-container, dat is
-       zelf een scroll-container en zou de tijdlijn anders aan zichzelf koppelen in plaats van aan de pagina. */
-    .marquee {
-      view-timeline: --marquee-scroll block;
-    }
-
+  /* Minder beweging: één statisch woord, linksuitgelijnd. */
+  @media (prefers-reduced-motion: reduce) {
     .marquee__track {
-      animation: marquee-scroll linear both;
-      animation-timeline: --marquee-scroll;
-      animation-range: cover 0% cover 100%;
-      will-change: transform;
+      transform: none;
+      will-change: auto;
     }
 
-    @keyframes marquee-scroll {
-      from {
-        transform: translateX(0);
-      }
-      /* Bewust klein (zie --afstand): circa een halve titel over de hele scroll van de balk door het scherm.
-         Alles tot -50% blijft naadloos; groter maken kan, maar beweegt dan snel. */
-      to {
-        transform: translateX(calc(var(--afstand) * -1));
-      }
+    .marquee__woord--herhaling,
+    .marquee__groep--kopie {
+      display: none;
     }
   }
 </style>
+
+<script>
+  // Bijstelbaar
+  const SNELHEID = 0.6; // fallback als data-snelheid ontbreekt; de standaard per instantie komt van de prop
+  const DEMPING = 0.18; // deel van de resterende afstand per frame
+  const ROOT_MARGIN = '20% 0px'; // alleen balken nabij het beeld worden bijgewerkt
+  const RUST = 0.1; // px; kleiner verschil = in rust, de lus stopt
+
+  interface Balk {
+    el: HTMLElement;
+    track: HTMLElement;
+    groep: HTMLElement;
+    kopie: HTMLElement;
+    snelheid: number;
+    w: number;
+    huidig: number;
+    geschreven: number;
+    nabij: boolean;
+    vers: boolean;
+  }
+
+  const balken: Balk[] = [];
+  for (const el of document.querySelectorAll<HTMLElement>('.marquee')) {
+    const track = el.querySelector<HTMLElement>('.marquee__track');
+    const groep = track?.querySelector<HTMLElement>('.marquee__groep');
+    const kopie = track?.querySelector<HTMLElement>('.marquee__groep--kopie');
+    if (!track || !groep || !kopie) continue;
+    const snelheid = Number.parseFloat(el.dataset.snelheid ?? '');
+    balken.push({
+      el,
+      track,
+      groep,
+      kopie,
+      snelheid: Number.isFinite(snelheid) ? snelheid : SNELHEID,
+      w: 0,
+      huidig: 0,
+      geschreven: Number.NaN,
+      nabij: false,
+      vers: true,
+    });
+  }
+
+  if (balken.length > 0) {
+    const voorkeur = window.matchMedia('(prefers-reduced-motion: reduce)');
+    // Stabiele hoogte: alleen bijwerken bij een andere breedte, zodat de iOS-adresbalk geen sprong geeft.
+    let hoogte = window.innerHeight;
+    let breedte = window.innerWidth;
+    let actief = false;
+    let frame = 0;
+
+    const plan = () => {
+      if (actief && !frame) frame = requestAnimationFrame(stap);
+    };
+
+    // Periode van de wrap: afstand tussen het begin van de twee groepen (beide even ver verschoven).
+    const meet = () => {
+      for (const b of balken) {
+        b.w = b.kopie.getBoundingClientRect().left - b.groep.getBoundingClientRect().left;
+      }
+      plan();
+    };
+
+    function stap() {
+      frame = 0;
+      // Eerst alles lezen ...
+      const tops = balken.map((b) => (b.nabij && b.w > 0 ? b.el.getBoundingClientRect().top : 0));
+      let bezig = false;
+      // ... dan alles schrijven.
+      balken.forEach((b, i) => {
+        if (!b.nabij || b.w <= 0) return;
+        const doel = (hoogte - tops[i]) * b.snelheid;
+        b.huidig = b.vers ? doel : b.huidig + (doel - b.huidig) * DEMPING;
+        b.vers = false;
+        if (Math.abs(doel - b.huidig) > RUST) bezig = true;
+        else b.huidig = doel;
+        const x = ((b.huidig % b.w) + b.w) % b.w;
+        if (x !== b.geschreven) {
+          b.track.style.transform = `translate3d(${-x}px, 0, 0)`;
+          b.geschreven = x;
+        }
+      });
+      if (bezig) plan();
+    }
+
+    const opResize = () => {
+      if (window.innerWidth !== breedte) {
+        breedte = window.innerWidth;
+        hoogte = window.innerHeight;
+      }
+      plan();
+    };
+
+    const zicht = new IntersectionObserver(
+      (items) => {
+        for (const item of items) {
+          const b = balken.find((balk) => balk.el === item.target);
+          if (!b) continue;
+          b.nabij = item.isIntersecting;
+          if (b.nabij) b.vers = true;
+        }
+        plan();
+      },
+      { rootMargin: ROOT_MARGIN },
+    );
+
+    const maat = new ResizeObserver(meet);
+
+    const start = () => {
+      actief = true;
+      for (const b of balken) {
+        b.vers = true;
+        zicht.observe(b.el);
+        maat.observe(b.track);
+      }
+      window.addEventListener('scroll', plan, { passive: true });
+      window.addEventListener('resize', opResize, { passive: true });
+      meet();
+    };
+
+    const stop = () => {
+      actief = false;
+      cancelAnimationFrame(frame);
+      frame = 0;
+      zicht.disconnect();
+      maat.disconnect();
+      window.removeEventListener('scroll', plan);
+      window.removeEventListener('resize', opResize);
+      for (const b of balken) {
+        b.track.style.removeProperty('transform');
+        b.geschreven = Number.NaN;
+      }
+    };
+
+    voorkeur.addEventListener('change', () => (voorkeur.matches ? stop() : start()));
+    if (!voorkeur.matches) start();
+    document.fonts?.ready.then(() => {
+      if (actief) meet();
+    });
+  }
+</script>

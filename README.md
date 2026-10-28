@@ -13,6 +13,8 @@ Status: technisch skelet plus **header, hero, "(over paul)", "Projecten", "Diens
 | `npm run preview` | Build lokaal bekijken |
 | `npm run check` | `astro check` (TypeScript en Astro-diagnostiek) |
 
+Marquee-test (WebKit en Chromium, mobiele emulatie): `npm run build`, dan `npm run preview` in een tweede terminal, daarna `node scripts/marquee-test.mjs`. Eenmalig nodig: `npx playwright install webkit chromium`. Het script draait op iPhone 14 (WebKit) en Pixel 7 (Chromium) zes controles: stilstand zonder scrollen, meescrollen (300 px), terugscrollen, naadloze wrap, `prefers-reduced-motion: reduce` en zonder JavaScript. Het print een tabel en faalt met exit-code 1 als een controle mislukt. WebKit start niet in een gesandboxte omgeving (Cursor-agent); draai het dan buiten de sandbox.
+
 ## Structuur
 
 ```text
@@ -20,10 +22,10 @@ src/
 ├── components/
 │   ├── SEOHead.astro      title, description, canonical, robots, OG, Twitter, JSON-LD
 │   ├── JsonLd.astro       <script type="application/ld+json">, één per node
-│   ├── Header.astro       desktop: 4 kolommen; mobiel: <details>-menu (geen JavaScript)
+│   ├── Header.astro       desktop: 3 kolommen (wordmark, contact, navigatie; socials alleen in de footer); mobiel: <details>-menu (geen JavaScript)
 │   ├── Footer.astro       drie lagen: tekstblok + navigatie, wordmark (cqw, marge tot marge), contactregel
 │   ├── BeeldDuo.astro     fotospread (twee foto's, geen tekst) onder Diensten, laatste sectie
-│   ├── Marquee.astro      gedeelde titelbalk (scroll-gestuurd, alleen CSS) voor Diensten en Projecten
+│   ├── Marquee.astro      gedeelde titelbalk (scroll-gekoppeld, klein inline script; zonder JS statisch) voor Projecten, Diensten en Exposities
 │   └── ContactLinks.astro telefoon en e-mail als tekst met tel:/mailto:
 ├── layouts/BaseLayout.astro   <html lang="nl">, skip-link, header, <main>, footer
 ├── data/
