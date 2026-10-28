@@ -120,7 +120,7 @@ export const fotograafBruiloft: LandingPagina = {
    * Geen link naar promoties of de Radboud-site. Het label ("Over Paul") is alleen voor schermlezers (visueel verborgen h2).
    */
   // TODO(paul): tekst laten goedkeuren (jaartallen 1984/1995, spelling van de musea en kranten, zie paul.ts), de alt-tekst van de foto controleren en de foto in hogere resolutie aanleveren (minimaal 1200 px breed; nu 400 × 400 px).
-  // TODO(paul): /over-paul, /love-marriage en /take-me-to-the-river bestaan nog niet (404); zie README, "Nog te bouwen".
+  // TODO(paul): /love-marriage en /take-me-to-the-river bestaan nog niet (404); zie README, "Nog te bouwen".
   overPaul: {
     label: 'Over Paul',
     lead: [kunstenaar],
@@ -135,9 +135,7 @@ export const fotograafBruiloft: LandingPagina = {
       ],
       [lidmaatschap],
     ],
-    links: [
-      { label: 'meer over paul', href: '/over-paul' },
-    ],
+    links: [],
     foto: {
       afbeelding: paulFoto,
       alt: 'Zwart-witportret van fotograaf Paul Breuker',

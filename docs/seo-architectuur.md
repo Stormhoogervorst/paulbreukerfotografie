@@ -17,6 +17,8 @@ Opgesteld op 28 oktober 2026 op basis van de briefing en een check van de huidig
   - /portretten
   - /het-gezicht-van-nijmegen
   - /promoties
+
+  Van deze tien zijn acht projecten (de nieuwe site voegt /tradities toe); /panoramas en /portretten zijn geen projecten en /promoties is een redirect. Zie de tabel in sectie 2 (laag 2).
 - Het cv staat op een Joomla-URL met querystring (`/?view=article&id=141:curriculum-vitae&catid=8`). Die moet een 301 krijgen naar /over-paul.
 - Het e-mailadres zit achter JavaScript-bescherming en is voor crawlers onzichtbaar. In de nieuwe site staat het gewoon als tekst met `mailto:`.
 - De homepage heeft voor zover te zien geen commerciële zoekintentie: geen prijzen, geen "trouwfotograaf", geen "zakelijke portretfoto". Dat is de grootste SEO-winst.
@@ -46,9 +48,9 @@ Principe: één primair zoekwoord per URL. Commerciële pagina's en kunstseries 
 
 | URL | Inhoud |
 |---|---|
-| `/werk` | Overzicht van alle series. Blijft het zoekmachinevriendelijke serie-overzicht |
-| `/portfolio` | Beleving: alle foto's op één oneindig, sleepbaar canvas. Indexeerbaar, in de sitemap en in de afbeeldingensitemap (`/sitemap-images.xml`), maar lage SEO-prioriteit: geen eigen zoekwoorddoel naast /werk en de series. Zonder header en footer (home-knop en link naar contact) |
-| Bestaande 9 serie-URL's (alle behalve /promoties) | Zelfde slugs behouden (platte structuur), nieuwe teksten en schema |
+| `/series` | Overzicht van de acht projecten (kaarten met foto en titel). Blijft het zoekmachinevriendelijke serie-overzicht. Hernoemd van `/werk`, dat een 301 naar `/series` heeft |
+| `/portfolio` | Beleving: alle foto's op één oneindig, sleepbaar canvas. Indexeerbaar, in de sitemap en in de afbeeldingensitemap (`/sitemap-images.xml`), maar lage SEO-prioriteit: geen eigen zoekwoorddoel naast /series en de seriepagina's. Zonder header en footer (home-knop en link naar contact) |
+| Acht projecten: `/asfalt`, `/asty-mwaka`, `/de-gaarkeuken`, `/groeten-uit-lent`, `/het-gezicht-van-nijmegen`, `/love-marriage`, `/take-me-to-the-river`, `/tradities` | Bestaande slugs behouden (platte structuur), nieuwe teksten en schema. `/tradities` is nieuw: geen oude URL, dus geen redirect nodig. `/panoramas` en `/portretten` zijn geen projecten en staan niet op /series; per URL beslissen we later (zie README, open punten) |
 | `/exposities` | Kunsthal, Valkhof, Photoville New York, nieuwe exposities als Event |
 | `/pers` | Volkskrant, Telegraaf, EenVandaag met link naar het bronartikel |
 | `/over-paul` | 35 jaar werk, cv, palmares. Vervangt de Joomla-cv-URL |
@@ -106,7 +108,7 @@ Let op: geen `AggregateRating` of `Review`-markup op Pauls eigen pagina's voor z
 
 ## 5. Interne linking
 
-- Home linkt naar de drie ingangen: /fotograaf-bruiloft, /zakelijke-portretfoto, /werk.
+- Home linkt naar de drie ingangen: /fotograaf-bruiloft, /zakelijke-portretfoto, /series.
 - Elke serie-pagina linkt naar de relevante commerciële pagina. Voorbeeld: /love-marriage naar /fotograaf-bruiloft met een beschrijvende ankertekst ("fotograaf voor je bruiloft"), en /portretten naar /zakelijke-portretfoto.
 - Elke commerciële pagina linkt terug naar 2 tot 3 relevante series als bewijs.
 - Blog en locatiepagina's linken omhoog naar hun doelpagina en sideways naar verwante locaties.
@@ -124,7 +126,7 @@ De toon is rustig en visueel, maar Google en AI-systemen hebben tekst nodig om e
 
 Volgorde commerciële landingspagina (bindend): De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze, Pakketten, Impressie, OverPaul, Vragen, Uitleg, Reviews, Aanvraagformulier, Beeld (foto van rand tot rand, geen kop). Daarna volgt de gedeelde footer. Een sectie wordt alleen getoond als de data ervoor bestaat; de volgorde verandert nooit. (De oude volgorde met Impressie vóór Pakketten en Uitleg vóór Pakketten vervalt.) Elke sectie zit in een eigen wrapper met --sectie-ruimte; geen margins die van buren afhangen. Werkwijze is een korte statement-sectie (geen kop); Pakketten heeft als titel (marquee) de eerste H2 en Impressie de tweede; de overige H2's van de pagina staan in Uitleg.
 
-Paul werkt niet in een studio. Hij fotografeert in natuurlijk licht, bij de klant thuis, op het werk, buiten of op een plek die de klant kiest. Gebruik nooit de woorden studio, studiosessie of fotostudio voor Pauls eigen aanbod. Hij maakte een portretserie bij een gaarkeuken in Rusland (project De Gaarkeuken, /de-gaarkeuken).
+Paul werkt voor klantsessies niet in een studio. Gebruik de woorden studio, fotostudio en studiosessie niet voor het aanbod aan klanten. In teksten over bestaande projecten (zoals Asty Mwaka en Take me to the river) mag het woord voorkomen als het zo in Pauls eigen tekst staat. Controleer het woord "studio" alleen op de pagina's met aanbod (/portretfotos, /fotograaf-bruiloft, /zakelijke-portretfoto). Hij fotografeert in natuurlijk licht, bij de klant thuis, op het werk, buiten of op een plek die de klant kiest. Hij maakte een portretserie bij een gaarkeuken in Rusland (project De Gaarkeuken, /de-gaarkeuken).
 
 Elke commerciële portretpagina (/portretfotos, /zakelijke-portretfoto, /linkedin-foto-laten-maken) verwijst terug naar /portretten en /de-gaarkeuken als bewijs.
 
@@ -139,14 +141,14 @@ Elke commerciële portretpagina (/portretfotos, /zakelijke-portretfoto, /linkedi
 ## 8. Migratie en lancering
 
 1. Voor livegang: exporteer uit Search Console de top-pagina's en -zoekopdrachten, inclusief afbeeldingsverkeer. Inventariseer backlinks.
-2. Bouw een redirectmap (in `vercel.json`, met `permanent: true`) voor elke oude URL die niet 1:1 terugkomt. Behoud de serie-slugs waar mogelijk. Vaste regels: `/promoties` naar https://www.fotograafpromotiesradboud.nl/ en de Joomla-cv-URL naar `/over-paul`.
+2. Bouw een redirectmap (in `vercel.json`, met `permanent: true`) voor elke oude URL die niet 1:1 terugkomt. Behoud de serie-slugs waar mogelijk. Vaste regels: `/promoties` naar https://www.fotograafpromotiesradboud.nl/, `/werk` naar `/series` en de Joomla-cv-URL naar `/over-paul`.
 3. Test redirects op een preview voordat het domein wordt omgezet. Geen redirectketens.
 4. Na livegang: sitemap indienen, URL's laten inspecteren, 4 weken lang wekelijks dekking en rankings bekijken.
 5. Controleer of oude afbeeldings-URL's (`/images/...`) significant verkeer hadden. Zo ja, redirect de belangrijkste.
 
 ## 9. Fasering
 
-- Fase 1 (lancering): home, /fotograaf-bruiloft, /zakelijke-portretfoto, /linkedin-foto-laten-maken, 9 series, /werk, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, redirects, schema, sitemap, meting.
+- Fase 1 (lancering): home, /fotograaf-bruiloft, /zakelijke-portretfoto, /linkedin-foto-laten-maken, 8 projecten, /series, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, redirects, schema, sitemap, meting.
 - Fase 2 (maand 1 tot 3): 5 tot 10 trouwlocatiepagina's, eerste 5 blogartikelen, Google-reviews opbouwen.
 - Fase 3 (daarna): /trouwfotograaf-arnhem, teamfoto's, uitbreiding blog en locaties op basis van wat Search Console laat zien.
 

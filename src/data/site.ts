@@ -25,9 +25,8 @@ export const NAV = [
   // TODO(paul): placeholder-links; de echte pagina's volgen in een latere ronde.
   { label: 'bruiloft', href: '/fotograaf-bruiloft' },
   { label: 'portret', href: '/portretfotos' },
-  { label: 'werk', href: '/werk' },
+  { label: 'series', href: '/series' },
   { label: 'portfolio', href: '/portfolio' },
-  { label: 'over paul', href: '/over-paul' },
   { label: 'contact', href: '/contact' },
 ] as const;
 
@@ -49,8 +48,7 @@ export const FOOTER_TEKST_BREUK_NA = 'een portret,';
 export const FOOTER_NAV = [
   { label: 'Bruiloft', href: '/fotograaf-bruiloft' },
   { label: 'Portret', href: '/portretfotos' },
-  { label: 'Werk', href: '/werk' },
-  { label: 'Over Paul', href: '/over-paul' },
+  { label: 'Series', href: '/series' },
   { label: 'Exposities', href: '/exposities' },
   { label: 'Contact', href: '/contact' },
 ] as const;

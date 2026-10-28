@@ -20,7 +20,7 @@ export interface JsonLdNode {
   '@id'?: string;
 }
 
-/** Maakt een pad ("/werk") of URL absoluut op basis van SITE_URL. */
+/** Maakt een pad ("/series") of URL absoluut op basis van SITE_URL. */
 export function absoluteUrl(pathOrUrl: string): string {
   if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
   const path = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
@@ -57,7 +57,7 @@ export function webSite(options: { name?: string; publisherId?: string } = {}): 
 
 export interface BreadcrumbItem {
   name: string;
-  /** Pad ("/werk") of volledige URL. */
+  /** Pad ("/series") of volledige URL. */
   path: string;
 }
 
@@ -435,6 +435,61 @@ export function faqPage(input: FaqPageInput): FaqPageSchema {
   };
 }
 
+// ---------------------------------------------------------------------------
+// CollectionPage + ItemList
+// ---------------------------------------------------------------------------
+
+export interface CollectionPageSchema extends JsonLdNode {
+  '@type': 'CollectionPage';
+  name: string;
+  description: string;
+  url: string;
+  inLanguage: 'nl-NL';
+  isPartOf: IdRef;
+  mainEntity: {
+    '@type': 'ItemList';
+    numberOfItems: number;
+    itemListElement: Array<{
+      '@type': 'ListItem';
+      position: number;
+      name: string;
+      url: string;
+    }>;
+  };
+}
+
+export interface CollectionPageInput {
+  name: string;
+  description: string;
+  /** Pad of URL van de overzichtspagina. */
+  path: string;
+  /** Items in de volgorde van de pagina; `path` is het pad of de URL van het item. */
+  items: Array<{ name: string; path: string }>;
+}
+
+/** Overzichtspagina (bijvoorbeeld /series) met een ItemList van de items. Geen AggregateRating of Review. */
+export function collectionPage(input: CollectionPageInput): CollectionPageSchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: input.name,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    inLanguage: 'nl-NL',
+    isPartOf: { '@id': WEBSITE_ID },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: input.items.length,
+      itemListElement: input.items.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: item.name,
+        url: absoluteUrl(item.path),
+      })),
+    },
+  };
+}
+
 /** Alle JSON-LD-nodes die deze module kan opleveren. */
 export type AnySchema =
   | WebSiteSchema
@@ -444,4 +499,5 @@ export type AnySchema =
   | ServiceSchema
   | ImageObjectSchema
   | ImageGallerySchema
-  | FaqPageSchema;
+  | FaqPageSchema
+  | CollectionPageSchema;

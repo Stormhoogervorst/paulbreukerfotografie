@@ -1,7 +1,7 @@
 ---
 /**
  * /portfolio: alle foto's op één oneindig, sleepbaar canvas (beleving, lage SEO-prioriteit).
- * Het zoekmachinevriendelijke overzicht van de series is /werk.
+ * Het zoekmachinevriendelijke overzicht van de series is /series.
  * Data: src/data/portfolio.ts. Layout: src/lib/portfolio-layout.ts. Gedrag: src/scripts/portfolio-canvas.ts.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -104,7 +104,7 @@ const json = JSON.stringify(clientPhotos).replace(/</g, '\\u003c');
             })
           }
         </ul>
-        <p><a href="/werk">Bekijk alle series</a></p>
+        <p><a href="/series">Bekijk alle series</a></p>
       </div>
     </noscript>
 
@@ -114,8 +114,8 @@ const json = JSON.stringify(clientPhotos).replace(/</g, '\\u003c');
         <p class="portfolio__hint">Sleep om te verkennen. Klik op een foto voor groot formaat.</p>
       </div>
       <ul class="portfolio__links">
-        <!-- TODO(paul): /werk en /contact bestaan nog niet (zie README, "Nog te bouwen"). -->
-        <li><a href="/werk">Alle series <span aria-hidden="true">→</span></a></li>
+        <!-- TODO(paul): /contact bestaat nog niet (zie README, "Nog te bouwen"). -->
+        <li><a href="/series">Alle series <span aria-hidden="true">→</span></a></li>
         <li><a href="/contact">Contact <span aria-hidden="true">→</span></a></li>
       </ul>
     </div>

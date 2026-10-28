@@ -139,7 +139,6 @@ export const home = {
     // TODO(paul): jaartallen bevestigen (1984, 1995) en vergelijken met "35 jaar" elders op de site en met 1992 (start Love & Marriage).
     tekst:
       'Sinds 1984 werk ik als kunstenaar. Eerst als schilder, vanaf 1995 ook als fotograaf. Die twee disciplines voeden elkaar — schilders kijken naar licht, compositie en gebaar; fotografen leggen vast wat ze zien. In mijn werk komen ze samen.',
-    link: { label: 'meer over paul', href: '/over-paul' } satisfies HomeLink,
   },
 
   /**
@@ -194,7 +193,7 @@ export const home = {
   ] satisfies HomeBeeldDuoItem[],
 
   /**
-   * Sectie "Projecten" (component: src/components/Projecten.astro), direct onder "Exposities".
+   * Sectie "Projecten" (component: src/components/Projecten.astro; zichtbare titel "Series"), direct onder "Exposities".
    * Foto's: src/assets/home/project-*.jpg (verplaatst uit public/).
    * Eén rij van drie: links de staande foto (Asty Mwaka, 600 x 900), midden de liggende (Love & Marriage, 1200 x 796),
    * rechts de hoge foto (Take me to the river, 600 x 900, natuurlijke verhouding; kopie van
@@ -205,7 +204,7 @@ export const home = {
    * TODO(paul): controleer de alt-teksten (beschreven naar wat op de foto te zien is).
    */
   projecten: {
-    titel: 'Projecten',
+    titel: 'Series',
     items: [
       {
         title: 'Asty Mwaka',
@@ -236,7 +235,7 @@ export const home = {
         positie: 'rechts',
       },
     ] satisfies HomeProject[],
-    allLink: { label: 'alle projecten', href: '/werk' } satisfies HomeLink,
+    allLink: { label: 'alle series', href: '/series' } satisfies HomeLink,
   },
 
   /**

@@ -1,0 +1,376 @@
+---
+/**
+ * Detailpagina van een project (serie): /love-marriage, /take-me-to-the-river, /de-gaarkeuken, /tradities, /asfalt,
+ * /asty-mwaka, /groeten-uit-lent en /het-gezicht-van-nijmegen. Eén sjabloon, data-gedreven (src/data/series.ts), foto's
+ * uit src/assets/portfolio/<slug>/ (src/lib/serie-fotos.ts).
+ *
+ * Vaste opbouw (verandert nooit): header, titelblok (H1 met onderregel), Introductie,
+ * fotoraster (twee per rij), doorlinkrij, footer. Een onderdeel verschijnt alleen als de data ervoor bestaat.
+ * Elk onderdeel zit in een eigen wrapper met alleen padding; geen margins die van buren afhangen.
+ *
+ * Statische pagina's in src/pages (bijvoorbeeld /series, /portfolio, /fotograaf-bruiloft) gaan voor: een slug die al een
+ * eigen bestand heeft, wordt hier niet gegenereerd. /panoramas en /portretten zijn geen projecten (niet in series.ts).
+ */
+import { Picture, getImage } from 'astro:assets';
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { serieLijst, serieHref, type Serie } from '../data/series';
+import { fotosVan, rijenVan, titelKlasse } from '../lib/serie-fotos';
+import { breadcrumbList, imageGallery } from '../lib/schema';
+
+interface Props {
+  serie: Serie;
+  volgend: Serie;
+}
+
+export const getStaticPaths = (() => {
+  // Slugs met een eigen bestand in src/pages krijgen hier geen pagina (dat bestand gaat voor).
+  const eigenPaginas = new Set(
+    Object.keys(import.meta.glob('./*.{astro,ts,md,mdx}')).map((pad) => pad.replace(/^\.\//, '').replace(/\.[^.]+$/, '')),
+  );
+  const metPagina = serieLijst.filter((serie) => {
+    if (eigenPaginas.has(serie.slug)) {
+      console.warn(`[project] /${serie.slug} heeft een eigen bestand in src/pages: niet overschreven.`);
+      return false;
+    }
+    if (fotosVan(serie).length === 0) {
+      console.warn(`[project] /${serie.slug}: geen foto's in src/assets/portfolio/${serie.slug}/, dus geen pagina.`);
+      return false;
+    }
+    return true;
+  });
+  return metPagina.map((serie, index) => ({
+    params: { project: serie.slug },
+    props: { serie, volgend: metPagina[(index + 1) % metPagina.length] },
+  }));
+}) satisfies GetStaticPaths;
+
+const { serie, volgend } = Astro.props;
+
+const alleFotos = fotosVan(serie);
+const rijen = rijenVan(alleFotos);
+
+const introductie = serie.introductie?.filter((alinea) => alinea.trim()) ?? [];
+const heeftIntro = introductie.length > 0;
+const heeftVolgend = volgend.slug !== serie.slug;
+
+// ---------- SEO ----------
+const title = serie.seo?.title ?? `${serie.titel} | Fotoserie door Paul Breuker`;
+// TODO(paul): eigen description van rond 155 tekens per project (seo.description in src/data/series.ts).
+const description = serie.seo?.description ?? `${serie.titel}: een fotoserie van Paul Breuker.`;
+const pad = serieHref(serie.slug);
+
+// Open Graph: de eerste foto, bijgesneden op 1200 x 630 (bij een staande foto vanaf de bovenkant, waar meestal het gezicht staat).
+const ogFoto = alleFotos[0];
+const ogAfbeelding = await getImage({
+  src: ogFoto.image,
+  width: 1200,
+  height: 630,
+  format: 'jpg',
+  fit: 'cover',
+  position: ogFoto.verhouding < 1 ? 'top' : 'center',
+});
+
+// JSON-LD: ImageGallery met de eerste 20 foto's (in de volgorde van het raster).
+const SCHEMA_MAX = 20;
+const schemaFotos = alleFotos.slice(0, SCHEMA_MAX);
+const schemaAfbeeldingen = await Promise.all(
+  schemaFotos.map(async (foto) => {
+    const breedte = Math.min(1600, foto.width);
+    const bestand = await getImage({ src: foto.image, width: breedte, format: 'webp', quality: 80 });
+    return {
+      url: bestand.src,
+      caption: foto.alt,
+      width: breedte,
+      height: Math.round((breedte * foto.height) / foto.width),
+      creditText: 'Paul Breuker',
+      copyrightNotice: '© Paul Breuker',
+    };
+  }),
+);
+
+const jsonLd = [
+  breadcrumbList([
+    { name: 'Home', path: '/' },
+    { name: 'Series', path: '/series' },
+    { name: serie.titel, path: pad },
+  ]),
+  imageGallery({ name: serie.titel, path: pad, images: schemaAfbeeldingen }),
+];
+
+// ---------- Afbeeldingen ----------
+const IS_DEV = import.meta.env.DEV; // de dev-server codeert AVIF per verzoek (seconden per foto): daar alleen WebP
+const formaten: Array<'avif' | 'webp'> = IS_DEV ? ['webp'] : ['avif', 'webp'];
+/** Breedtes voor srcset: nooit boven het bronbestand (geen opschaling). */
+const BREEDTES = [480, 800, 1200, 1600, 2400];
+const breedtes = (bron: number) => [...new Set([...BREEDTES.filter((breedte) => breedte < bron), bron])];
+const klasse = titelKlasse(serie.titel);
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={pad}
+  ogImage={ogAfbeelding.src}
+  jsonLd={jsonLd}
+>
+  <div class="titelblok">
+    <h1 class={`titelblok__titel titelblok__titel--${klasse}`}>{serie.titel}</h1>
+    {serie.onderregel && <p class="titelblok__onderregel">{serie.onderregel}</p>}
+  </div>
+
+  {
+    heeftIntro && (
+      <section class="intro" aria-label="Introductie">
+        <div class="intro__kolom">
+          <p class="intro__label statement-label">(introductie)</p>
+          <div class="intro__tekst">
+            {introductie.map((alinea) => (
+              <p class="intro__alinea statement-tekst">{alinea}</p>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    rijen.length > 0 && (
+      <section class="raster" aria-label={`Foto’s uit ${serie.titel}`}>
+        {rijen.map((rij, rijIndex) => (
+          <div class:list={['rij', { 'rij--enkel': rij.fotos.length === 1 }]}>
+            {rij.fotos.map((foto, fotoIndex) => (
+              <div class="foto" style={`--verhouding: ${foto.verhouding}`}>
+                <Picture
+                  src={foto.image}
+                  alt={foto.alt}
+                  width={foto.width}
+                  height={foto.height}
+                  widths={breedtes(foto.width)}
+                  sizes={foto.sizes}
+                  formats={formaten}
+                  fallbackFormat="jpg"
+                  loading={rijIndex === 0 && fotoIndex === 0 ? 'eager' : 'lazy'}
+                  fetchpriority={rijIndex === 0 && fotoIndex === 0 ? 'high' : undefined}
+                  decoding={rijIndex === 0 && fotoIndex === 0 ? 'sync' : 'async'}
+                  class="foto__beeld"
+                />
+              </div>
+            ))}
+          </div>
+        ))}
+      </section>
+    )
+  }
+
+  <nav class="doorlink" aria-label="Meer foto’s en projecten">
+    <ul class="doorlink__rij" role="list">
+      <li>
+        <a class="doorlink__link statement-link" href="/series"><span aria-hidden="true">←</span> Alle projecten</a>
+      </li>
+      {
+        serie.commercieleLink && (
+          <li>
+            <a class="doorlink__link statement-link" href={serie.commercieleLink.href}>
+              {serie.commercieleLink.tekst} <span aria-hidden="true">→</span>
+            </a>
+          </li>
+        )
+      }
+      {
+        heeftVolgend && (
+          <li>
+            <a class="doorlink__link statement-link" href={serieHref(volgend.slug)}>
+              Volgend project: {volgend.titel} <span aria-hidden="true">→</span>
+            </a>
+          </li>
+        )
+      }
+    </ul>
+  </nav>
+</BaseLayout>
+
+<style>
+  /* ---------- Titelblok (mobiel) ---------- */
+  /* Alleen padding en een gap tussen H1 en onderregel binnen de wrapper. */
+  .titelblok {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2vw;
+    padding: 8vw var(--gutter) 5vw;
+    text-align: center;
+  }
+
+  /* Zelfde stijl als de H1 op /series; de grootte hangt af van de lengte van de titel (klassen via titelKlasse()). */
+  .titelblok__titel {
+    margin: 0;
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  .titelblok__titel--kort {
+    font-size: 17vw;
+  }
+
+  .titelblok__titel--middel {
+    font-size: 12vw;
+  }
+
+  .titelblok__titel--lang {
+    font-size: 9vw;
+  }
+
+  .titelblok__onderregel {
+    max-width: none;
+    margin: 0;
+    font-size: max(1rem, 4.5vw);
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  /* ---------- Introductie (mobiel) ---------- */
+  /* Lettertype uit de Statement-typografie (global.css: .statement-label, .statement-tekst); hier alleen maat en plaatsing. */
+  .intro {
+    padding: 3vw var(--gutter) 6vw; /* samen met de 5vw onder het titelblok: 8vw tussen titel en label */
+  }
+
+  .intro__label {
+    margin: 0 0 var(--space-3);
+    font-size: 0.875rem;
+  }
+
+  .intro__tekst {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+    font-size: max(1.25rem, 5.3vw);
+  }
+
+  .intro__tekst .intro__alinea {
+    font-size: inherit;
+    line-height: 1.15;
+    text-indent: 0;
+  }
+
+  /* ---------- Fotoraster (mobiel: één foto per rij) ---------- */
+  .raster {
+    display: flex;
+    flex-direction: column;
+    gap: 4vw;
+    padding: 0 var(--gutter) 6vw;
+  }
+
+  /* De rij is op mobiel geen laag: de foto's staan direct onder elkaar in .raster. */
+  .rij {
+    display: contents;
+  }
+
+  .foto {
+    width: 100%;
+  }
+
+  .foto :global(.foto__beeld) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ---------- Doorlinkrij (mobiel: onder elkaar) ---------- */
+  .doorlink {
+    padding: 0 var(--gutter) var(--sectie-ruimte);
+  }
+
+  .doorlink__rij {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+    padding-top: var(--space-3);
+    border-top: var(--haarlijn);
+  }
+
+  /* Dezelfde stijl als "bekijk de pakketten →" (.statement-link); touch target minimaal 44px. */
+  .doorlink__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em; /* de spatie tussen pijl en tekst (witruimte in een flex-container vervalt) */
+    min-height: 44px;
+    padding-block: 0;
+  }
+
+  /* ---------- Desktop ---------- */
+  @media (min-width: 700px) {
+    .titelblok__titel--kort {
+      font-size: 15vw;
+    }
+
+    .titelblok__titel--middel {
+      font-size: 11vw;
+    }
+
+    .titelblok__titel--lang {
+      font-size: 8vw;
+    }
+
+    .titelblok__onderregel {
+      font-size: max(1.125rem, 2.4vw);
+    }
+
+
+    /* Introductie: gecentreerde kolom van 54vw (begint op 23vw), label links in de kolom, tekst eronder. */
+    .intro__kolom {
+      width: 54vw;
+      margin-inline: auto;
+    }
+
+    .intro__label {
+      margin-bottom: 1.5vw;
+      font-size: max(0.875rem, 1.1vw);
+    }
+
+    .intro__tekst {
+      font-size: max(1.25rem, 2.2vw);
+    }
+
+    .intro__tekst .intro__alinea {
+      line-height: 1.12;
+    }
+
+    /* Twee foto's per rij, van gutter tot gutter, 1.7vw ertussen. Per rij dezelfde hoogte: elke foto krijgt
+       flex: {breedte / hoogte} 1 0, de afbeelding zelf width 100% en height auto. */
+    .raster {
+      gap: 1.7vw;
+    }
+
+    .rij {
+      display: flex;
+      gap: 1.7vw;
+    }
+
+    .foto {
+      flex: var(--verhouding) 1 0px;
+      min-width: 0;
+      width: auto;
+    }
+
+    /* Een losse foto aan het eind: ongeveer de breedte van een gemiddelde foto in de rijen, links uitgelijnd. */
+    .rij--enkel .foto {
+      flex: 0 0 46vw;
+    }
+
+    /* Doorlinkrij: links, midden, rechts op één regel. */
+    .doorlink__rij {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      column-gap: var(--space-4);
+    }
+  }
+</style>

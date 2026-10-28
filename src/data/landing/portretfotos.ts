@@ -81,7 +81,7 @@ export const portretfotos: LandingPagina = {
   breadcrumb: 'Portretfoto’s',
 
   hero: {
-    h1: 'Portretfoto laten maken',
+    h1: 'Portretfoto\nlaten maken', // \n = vaste regelbreuk in de H1 (zie LandingHero.astro)
     // TODO(paul): intro laten goedkeuren (werkwijze: natuurlijk licht, bij de klant, "zonder studio"; werkgebied "Nijmegen en omgeving" staat in de description).
     intro: [
       'Ik fotografeer mensen in natuurlijk licht, zonder studio. Ik kom naar je toe: thuis, op je werk, buiten of op een plek die iets over jou zegt.',
@@ -167,7 +167,7 @@ export const portretfotos: LandingPagina = {
    */
   // TODO(paul): tekst laten goedkeuren (jaartallen 1984/1995, de werkwijze "zonder studio en met natuurlijk licht, op de plek waar jij bent", de zin over de portretserie bij een gaarkeuken in Rusland).
   // TODO(paul): bevestig dat /de-gaarkeuken dit project is (portretserie bij een gaarkeuken in Rusland) en voeg jaartal en plaats van de serie toe.
-  // TODO(paul): /over-paul, /de-gaarkeuken, /portretten, /love-marriage en /take-me-to-the-river bestaan nog niet (404); zie README, "Nog te bouwen".
+  // TODO(paul): /de-gaarkeuken, /portretten, /love-marriage en /take-me-to-the-river bestaan nog niet (404); zie README, "Nog te bouwen".
   overPaul: {
     label: 'Over Paul',
     lead: [
@@ -191,7 +191,7 @@ export const portretfotos: LandingPagina = {
         lidmaatschap,
       ],
     ],
-    links: [{ label: 'meer over paul', href: '/over-paul' }],
+    links: [],
     foto: {
       afbeelding: paulFoto,
       alt: 'Zwart-witportret van fotograaf Paul Breuker',

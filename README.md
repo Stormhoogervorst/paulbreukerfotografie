@@ -2,7 +2,7 @@
 
 Website voor fotograaf Paul Breuker (Nijmegen). Astro 7 (TypeScript strict) op Vercel, statische output. Projectregels: `.cursor/rules/paulbreuker-regels.mdc`. Detailplan: `docs/seo-architectuur.md`.
 
-Status: technisch skelet plus de landingspagina's `/fotograaf-bruiloft` en `/portretfotos` plus **header, hero, "(over paul)", "Projecten", "Diensten" en een fotospread** van de homepage (in die volgorde) (`src/pages/index.astro`, content in `src/data/home.ts`). De overige homepage-secties staan bewust niet op de pagina (vorige versie: `design/archief/`). Overige pagina's volgen.
+Status: technisch skelet plus de landingspagina's `/fotograaf-bruiloft` en `/portretfotos`, het projectenoverzicht `/series` (`src/pages/series.astro`, data in `src/data/series.ts`; hernoemd van `/werk`) plus **header, hero, "(over paul)", "Projecten", "Diensten" en een fotospread** van de homepage (in die volgorde) (`src/pages/index.astro`, content in `src/data/home.ts`). De overige homepage-secties staan bewust niet op de pagina (vorige versie: `design/archief/`). Overige pagina's volgen.
 
 ## Scripts
 
@@ -23,7 +23,7 @@ Voor/na-vergelijking van een pagina: `node scripts/vergelijk/schermafdruk.mjs vo
 
 ## Portfolio (`/portfolio`)
 
-Oneindig, sleepbaar canvas met alle foto's. Zonder header en footer: linksboven een knop "← home", onderaan de h1, een hint en links naar `/werk` en `/contact`.
+Oneindig, sleepbaar canvas met alle foto's. Zonder header en footer: linksboven een knop "← home", onderaan de h1, een hint en links naar `/series` en `/contact`.
 
 - **Foto's toevoegen**: zet het bestand (geoptimaliseerd, geen ongecomprimeerd origineel) in `src/assets/portfolio/<serie>/`, bijvoorbeeld `src/assets/portfolio/love-marriage/bruiloft-21.jpg`. De mapnaam is de serie. Bekende series (titel en link) staan in `src/data/portfolio-series.ts`; een onbekende mapnaam krijgt een titel uit de mapnaam en geen link. Bestanden direct in `src/assets/portfolio/` hebben geen serie (alt "Foto van Paul Breuker"). Niet in `public/` zetten: daar optimaliseert `astro:assets` niets.
 - **Alt-tekst**: standaard "Foto uit de serie {titel}". Eigen tekst per foto in `src/data/portfolio-alt.json`, sleutel `serie/bestandsnaam`, bijvoorbeeld `{ "love-marriage/bruiloft 02-min.jpg": "Bruid en bruidegom ..." }`.
@@ -58,14 +58,16 @@ src/
 ├── data/
 │   ├── landing/           types.ts (interface `LandingPagina`) en één databestand per landingspagina (fotograaf-bruiloft.ts, portretfotos.ts; pakketten in bruiloft-pakketten.ts en portret-pakketten.ts)
 │   ├── home.ts            teksten homepage
+│   ├── series.ts          de acht projecten, één bron voor /series en de projectpagina's (slug, titel, onderregel, omslag, alt, introductie, seo, commercieleLink, altTeksten); de volgorde van de lijst is de volgorde op de pagina
 │   ├── paul.ts            volledige bio van Paul (constanten), hergebruik op /over-paul; de bruiloftpagina gebruikt een selectie
 │   └── site.ts            bron voor header en footer: sitegegevens, contact, socials, navigatie, footertekst, @id's
 ├── lib/schema.ts          getypeerde JSON-LD-helpers
+├── lib/serie-fotos.ts     foto's, rijen van twee en `sizes` van een projectpagina (`fotosVan`, `rijenVan`, `titelKlasse`)
 ├── lib/segmenten.ts       `linkSegmenten()`: splitst één tekst in Segmenten (tekst of link) op opgegeven woorden; `segmentenTekst()`: platte tekst van Segmenten
 ├── lib/prijs.ts           `euro()`: "€3.250" (zelfde formaat als Pakketten)
 ├── lib/formulieren/       types.ts (veldconfiguratie), gedeeld.ts (gedeelde velden, schema-hulpen en mailhulpen), bruiloft.ts en portret.ts (velden, Zod-schema, mailteksten, bedankstappen), index.ts (register `{ bruiloft, portret }`), respons.ts (JSON- en HTML-antwoorden van de API)
 ├── scripts/formulier.ts   enhancement van het formulier (validatie, fetch, pakketkeuze; ruim onder 3 KB)
-├── pages/                 index, fotograaf-bruiloft, portretfotos, bedankt, 404, robots.txt.ts, api/aanvraag.ts (de enige on-demand route)
+├── pages/                 index, fotograaf-bruiloft, portretfotos, series, [project] (de acht projectpagina's), bedankt, 404, robots.txt.ts, api/aanvraag.ts (de enige on-demand route)
 └── styles/global.css      CSS-variabelen en basisstijl
 vercel.json                redirects
 ```
@@ -92,6 +94,17 @@ vercel.json                redirects
 | `beeld-duo-bruiloft-4` (links, breed, 1200 × 796), `beeld-duo-gaarkeuken-1` (rechts, staand, 600 × 900) | Fotospread (`src/components/BeeldDuo.astro`, data: `home.beeldDuo`). Verplaatst uit `public/` (`Bruiloft 4.jpg`, `Gaarkeuken 1.jpg`). |
 | `tentoonstelling` (optioneel) | Sectie Tentoonstellingen |
 
+## Projectpagina's (`/[project]`)
+
+De acht projecten (`/love-marriage`, `/take-me-to-the-river`, `/de-gaarkeuken`, `/tradities`, `/asfalt`, `/asty-mwaka`, `/groeten-uit-lent`, `/het-gezicht-van-nijmegen`) delen één sjabloon: `src/pages/[project].astro` met `getStaticPaths` op `src/data/series.ts` (dezelfde lijst als `/series`). Een slug die al een eigen bestand in `src/pages` heeft, wordt niet overschreven, en een project zonder foto krijgt geen pagina (en staat dus niet in de sitemap); beide geven een waarschuwing in de build. `/panoramas` en `/portretten` zijn geen projecten en worden niet gegenereerd.
+
+- **Vaste opbouw** (verandert nooit): header, titelblok (H1 met onderregel), Introductie, fotoraster (twee per rij), doorlinkrij, footer. Er is geen hoofdfoto onder de H1 (die is verwijderd). Een onderdeel verschijnt alleen als de data ervoor bestaat; elk onderdeel zit in een eigen wrapper met alleen padding. De eerste rasterfoto is het LCP-beeld (`eager`, `fetchpriority="high"`).
+- **Foto's**: alles in `src/assets/portfolio/<slug>/` (hoofdletterongevoelig: `Asfalt/` hoort bij `/asfalt`), op bestandsnaam gesorteerd met cijfers als getal. Een foto toevoegen is een bestand in die map zetten; voeg ook een `altTeksten`-regel toe in `src/data/series.ts` (zonder die regel geldt "Foto uit de serie {titel}" en geeft de build een waarschuwing). Maten komen uit de bronbestanden.
+- **Raster**: rijen van twee met `flex: {breedte/hoogte} 1 0px` per foto (gelijke hoogte per rij, niemand wordt bijgesneden), `sizes` per foto uit zijn aandeel in de rij; een losse foto aan het eind is 46vw breed. Onder 700px staat er één foto per rij.
+- **H1-grootte**: `titelKlasse()` kiest op lengte van de titel (tot 10 tekens 15vw, tot 16 tekens 11vw, daarboven 8vw; mobiel 17/12/9vw).
+- **SEO**: title "{titel} | Fotoserie door Paul Breuker" (of `seo.title`), description `seo.description` (anders "{titel}: een fotoserie van Paul Breuker."), canonical `https://paulbreuker.nl/{slug}`, Open Graph met de eerste foto (1200 × 630). JSON-LD: `WebSite`, `BreadcrumbList` (Home > Series > titel) en `ImageGallery` met de eerste 20 foto's als `ImageObject` (creator via `@id`, creditText, copyrightNotice).
+- **Doorlinkrij**: "← Alle projecten" (`/series`), de `commercieleLink` (alleen Love & Marriage en De Gaarkeuken) en "Volgend project: {titel} →" (volgorde van `series.ts`, na het laatste het eerste).
+
 ## Nieuwe landingspagina toevoegen
 
 Commerciële landingspagina's (`/fotograaf-bruiloft`, `/portretfotos`, later `/zakelijke-portretfoto` en `/linkedin-foto-laten-maken`) zijn datagedreven: een databestand en een paginabestand van een paar regels. De volgorde van de secties staat vast in `src/layouts/LandingLayout.astro` en in de regel "Volgorde commerciële landingspagina (bindend)" in `.cursor/rules/paulbreuker-regels.mdc`.
@@ -107,8 +120,6 @@ De layout levert zelf: `BaseLayout` met `SEOHead` (canonical `https://paulbreuke
 ## Nog te bouwen (links vanaf de homepage die nu een 404 geven)
 
 - `/zakelijke-portretfoto` (gelinkt vanaf `/portretfotos` en de homepage)
-- `/werk`
-- `/over-paul`
 - `/contact` (alleen in navigatie en voettekst)
 - `/exposities`
 - `/pers`
@@ -117,11 +128,11 @@ De layout levert zelf: `BaseLayout` met `SEOHead` (canonical `https://paulbreuke
 - Reviews bij het formulier (sectie Reviews, vóór het Aanvraagformulier)
 - Voor `/zakelijke-portretfoto` en `/linkedin-foto-laten-maken`: een eigen formulier (of hergebruik van `portret.ts`; dat heeft een veld "Zakelijk of LinkedIn")
 - Conversiemeting op `/bedankt` (de pagina zet al `data-aanvraag-type` op `<main>`; er is nog geen analytics) en op klikken op telefoon en e-mail
-- `/asty-mwaka`, `/love-marriage`, `/het-gezicht-van-nijmegen`, `/groeten-uit-lent`, `/take-me-to-the-river`
+- ~~De acht projectpagina's~~ gebouwd (`src/pages/[project].astro`, zie "Projectpagina's"); de links vanaf `/series`, `/portfolio`, `/fotograaf-bruiloft` en `/portretfotos` naar `/love-marriage`, `/take-me-to-the-river`, `/de-gaarkeuken` en de rest geven dus geen 404 meer. `/tradities` is nieuw (geen oude URL, dus geen redirect nodig).
 - Vanaf `/fotograaf-bruiloft` (sectie Vragen): `/contact`. `/portfolio` en `#aanvragen` bestaan al.
-- Vanaf `/fotograaf-bruiloft` (sectie OverPaul): `/over-paul`, `/love-marriage` en `/take-me-to-the-river` (de links staan er al; ze geven nu een 404)
-- Vanaf `/portretfotos` (nu 404): `/zakelijke-portretfoto` (Vragen), `/de-gaarkeuken` en `/portretten` (OverPaul), `/over-paul`, `/love-marriage` en `/take-me-to-the-river` (OverPaul), `/privacy` (onder het formulier). `/portfolio` en `#aanvragen` bestaan. `/contact` staat op de pagina alleen in de header en footer (nog een 404), niet in de inhoud.
-- Vanaf `/portfolio` (overlay en dialog): `/werk`, `/contact` en de seriepagina's `/de-gaarkeuken`, `/portretten`, `/asfalt`, `/panoramas` (naast de series hierboven)
+- Vanaf `/fotograaf-bruiloft` (sectie OverPaul): `/love-marriage` en `/take-me-to-the-river` (de links staan er al; ze geven nu een 404)
+- Vanaf `/portretfotos` (nu 404): `/zakelijke-portretfoto` (Vragen), `/de-gaarkeuken` en `/portretten` (OverPaul), `/love-marriage` en `/take-me-to-the-river` (OverPaul), `/privacy` (onder het formulier). `/portfolio` en `#aanvragen` bestaan. `/contact` staat op de pagina alleen in de header en footer (nog een 404), niet in de inhoud.
+- Vanaf `/portfolio` (overlay en dialog): `/series`, `/contact` en de seriepagina's `/de-gaarkeuken`, `/portretten`, `/asfalt`, `/panoramas` (naast de series hierboven)
 
 ### Nog te bouwen op de landingspagina's
 
@@ -165,8 +176,14 @@ De variabelen staan in het Astro env-schema (`astro.config.mjs`, `astro:env/serv
 ## Redirects (`vercel.json`)
 
 - `/promoties` naar https://www.fotograafpromotiesradboud.nl/ (`permanent: true`).
+- `/werk` naar `/series` (`permanent: true`): `/series` is de hernoemde projectenpagina.
 - Joomla-cv (`/?view=article&id=141:curriculum-vitae&catid=8`) naar `/over-paul`: redirect met `source: "/"` en `has`-voorwaarden op de queryparameters `view` (exact `article`) en `id` (regex `141:curriculum-vitae`, ook als `%3A`). Zonder die parameters matcht de regel niet, dus de gewone homepage blijft ongemoeid.
 - `permanent: true` levert bij Vercel status 308 op (niet 301). Voor Google is 308 gelijkwaardig aan 301.
+
+## Open punten
+
+- **Tradities en /panoramas**: bevestigen met Paul: is Tradities de nieuwe naam van Panorama's? Zo ja: 301 van `/panoramas` naar `/tradities` in `vercel.json` en haal het punt over `/panoramas` uit de lijst "Beslissen per URL" hieronder. Er is geen redirect gemaakt.
+- **/panoramas en /portretten**: dit zijn geen projecten en ze staan niet op `/series`. Beslissen per URL: behouden (bijvoorbeeld als portfolio-categorie), laten opgaan in /portfolio of 301 naar /series. Controleer eerst in Search Console op backlinks en rankings. Er is niets verwijderd en er zijn geen redirects gemaakt. Plekken die nu naar `/portretten` of `/panoramas` linken (niet gewijzigd): `src/data/portfolio-series.ts` (dialog en overlay van /portfolio), `src/data/landing/portretfotos.ts` (OverPaul, link "Portretten"). `/panoramas` wordt verder nergens in de code gelinkt.
 
 ## Vóór livegang
 
@@ -181,6 +198,10 @@ De variabelen staan in het Astro env-schema (`astro.config.mjs`, `astro:env/serv
 
 Zoek in de code op `TODO(paul)` voor de actuele lijst. Stand van de site:
 
+- [ ] **/series, omslagfoto's en alt** (`src/data/series.ts`): bevestig de keuze van de omslagfoto's (de eerste foto per map, behalve Love & Marriage, Take me to the river en Asty Mwaka: die van de homepage) en controleer de alt-teksten, vooral Tradities en Asfalt (abstracte close-up). Bronnen van 600 px breed (Take me to the river, De Gaarkeuken, Asfalt, Asty Mwaka) worden op een kaart van 46vw (662 px bij 1440 px breed) licht opgeschaald; lever grotere bestanden aan (minimaal 1200 px breed).
+- [ ] **Projectpagina's, commercieleLink** (`src/data/series.ts`): alleen Love & Marriage (naar `/fotograaf-bruiloft`) en De Gaarkeuken (naar `/portretfotos`) hebben een link naar een commerciële pagina; Take me to the river, Tradities, Asfalt, Asty Mwaka, Groeten uit Lent en Het gezicht van Nijmegen nog niet (de regels vragen dat elke serie naar een commerciële pagina linkt). Onderregel, introductie en `seo.description` zijn voor alle acht ingevuld.
+- [ ] **Projectpagina's, alt-teksten** (`altTeksten` per project): alle foto's zijn beschreven naar wat te zien is; laat Paul ze controleren. Bij Tradities komen de plaatsnamen uit Pauls bijschriften (Semana Santa in Sevilla, Elfstedentocht in Franeker, Carnaval in Maastricht, Dansmariekes in Nijmegen, Romería del Rocío (twee foto's), Mariaprocessie in Nijmegen, Paardenmarkt in Elst, Demonstratie van studenten in Belgrado). Bevestig de koppeling van `breuker tradities 12` (Mariaprocessie, afgeleid) en geef een bijschrift voor `02` (nu alleen beschreven; mogelijk de Vierdaagse in Nijmegen). Onzeker elders: Love & Marriage `bruiloft 05`, `18` en `19` (wast ze een baby?); Take me to the river (wat is de lading precies?); Asfalt (abstract). Jaartallen ontbreken.
+- [ ] **Projectpagina's, grotere bronnen**: de bronnen zijn 600 px (staand), 1200 px (liggend) of 1300 px (Tradities) breed. Een rasterfoto staat op desktop op circa 43vw: scherp tot een scherm van circa 1400 px (staand) of 2800 px (liggend), bij 2× schermen minder. Lever bestanden van minimaal 1600 px breed aan.
 - [ ] **Telefoon** `+31 6 51 47 54 06` bevestigen (komt van de oude site; `src/data/site.ts`).
 - [x] Lettertype: Satoshi (gratis licentie, commercieel gebruik toegestaan). MADE TOMMY is vervangen; de OTF-bronnen staan nog in `design/fonts/` en zijn niet meer in gebruik.
 - [ ] **Bedrijfsnaam** voor titels en schema bevestigen (`SITE_NAME`, nu "Paul Breuker Fotografie").

@@ -19,7 +19,7 @@ export interface LandingLink {
 
 export interface LandingHero {
   /** De enige <h1> van de pagina. Sentence case, maximaal drie regels. */
-  h1: string;
+  h1: string; // \n geeft een vaste regelbreuk
   /** Alinea's van de inleiding (ik-vorm van Paul, geen superlatieven). */
   intro: string[];
   ctaPrimair: LandingLink;

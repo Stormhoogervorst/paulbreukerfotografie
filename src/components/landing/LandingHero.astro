@@ -63,7 +63,7 @@ const strip = fotos.map((foto, index) => {
 
 <section class="landing-hero" aria-labelledby="landing-hero-titel">
   <div class="landing-hero__rij">
-    <h1 id="landing-hero-titel" class="landing-hero__titel">{hero.h1}</h1>
+    <h1 id="landing-hero-titel" class="landing-hero__titel">{hero.h1.split('\n').map((regel, index) => (index === 0 ? regel : [' ', <br />, regel]))}</h1>
 
     <div class="landing-hero__intro">
       <div class="landing-hero__tekst">

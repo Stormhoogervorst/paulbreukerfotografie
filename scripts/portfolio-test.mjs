@@ -424,7 +424,7 @@ for (const apparaat of apparaten) {
       aantalH1: document.querySelectorAll('h1').length,
       fotos: document.querySelectorAll('.portfolio__noscript-grid img').length,
       altOk: [...document.querySelectorAll('.portfolio__noscript-grid img')].every((img) => img.alt.length > 0),
-      werk: Boolean(document.querySelector('.portfolio__noscript a[href="/werk"]')),
+      werk: Boolean(document.querySelector('.portfolio__noscript a[href="/series"]')),
       geenHeader: document.querySelector('.site-header') === null,
       home: Boolean(document.querySelector('a.portfolio__home[href="/"]')),
     }));
@@ -439,7 +439,7 @@ for (const apparaat of apparaten) {
         stand.werk &&
         stand.geenHeader &&
         stand.home,
-      `h1 "${stand.h1}" (${stand.aantalH1}×), ${stand.fotos} miniaturen, link /werk ${stand.werk ? 'ja' : 'nee'}, header ${stand.geenHeader ? 'weg' : 'aanwezig'}, home-knop ${stand.home ? 'ja' : 'nee'}`,
+      `h1 "${stand.h1}" (${stand.aantalH1}×), ${stand.fotos} miniaturen, link /series ${stand.werk ? 'ja' : 'nee'}, header ${stand.geenHeader ? 'weg' : 'aanwezig'}, home-knop ${stand.home ? 'ja' : 'nee'}`,
     );
     await context.close();
   }

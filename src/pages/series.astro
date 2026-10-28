@@ -1,0 +1,172 @@
+---
+/**
+ * /series: overzicht van Pauls projecten. Vaste opbouw (verandert nooit): header, H1 "Series", raster met kaarten, footer.
+ * Geen filters, geen introtekst, geen andere secties. Data en volgorde: src/data/series.ts.
+ * Elk blok zit in een eigen wrapper met alleen padding; geen margins die van buren afhangen.
+ */
+import { Picture } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { serieLijst, serieHref } from '../data/series';
+import { breadcrumbList, collectionPage } from '../lib/schema';
+
+const title = 'Fotoseries en projecten | Paul Breuker';
+const description =
+  'Mijn fotoseries en projecten: Love & Marriage, Take me to the river, De Gaarkeuken en meer. Portret, reportage en kunst door Paul Breuker.';
+
+const jsonLd = [
+  breadcrumbList([
+    { name: 'Home', path: '/' },
+    { name: 'Series', path: '/series' },
+  ]),
+  collectionPage({
+    name: 'Series',
+    description,
+    path: '/series',
+    items: serieLijst.map((project) => ({ name: project.titel, path: serieHref(project.slug) })),
+  }),
+];
+
+/** Breedtes voor srcset: nooit boven het bronbestand (geen opschaling). */
+const BREEDTES = [480, 800, 1200];
+const breedtes = (bron: number) => [...new Set([...BREEDTES.filter((breedte) => breedte < bron), bron])];
+---
+
+<BaseLayout title={title} description={description} canonical="/series" jsonLd={jsonLd}>
+  <div class="series-kop">
+    <h1 class="series-kop__titel">Series</h1>
+  </div>
+
+  <div class="series-raster">
+    <ul class="series-raster__lijst" role="list">
+      {
+        serieLijst.map((project, index) => (
+          <li class="kaart">
+            <a class="kaart__link" href={serieHref(project.slug)}>
+              <Picture
+                src={project.omslag}
+                alt={project.alt}
+                width={project.omslag.width}
+                height={project.omslag.height}
+                widths={breedtes(project.omslag.width)}
+                sizes="(min-width: 700px) 46vw, 89vw"
+                formats={['avif', 'webp']}
+                fallbackFormat="jpg"
+                loading={index < 2 ? 'eager' : 'lazy'}
+                fetchpriority={index === 0 ? 'high' : undefined}
+                decoding={index < 2 ? 'sync' : 'async'}
+                class="kaart__foto"
+              />
+              <h2 class="kaart__titel">{project.titel}</h2>
+              {project.onderregel && <p class="kaart__onderregel">{project.onderregel}</p>}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  /* ---------- Kop ---------- */
+  .series-kop {
+    padding: 8vw var(--gutter) 6vw; /* mobiel: iets minder ruimte onder de kop dan op desktop */
+  }
+
+  .series-kop__titel {
+    margin: 0;
+    font-size: 14vw;
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+  }
+
+  /* ---------- Raster (mobiel: één kolom) ---------- */
+  .series-raster {
+    padding: 0 var(--gutter) var(--sectie-ruimte);
+  }
+
+  .series-raster__lijst {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* ---------- Kaart ---------- */
+  /* De ruimte tussen twee kaarten is de margin-top van de onderste kaart; de eerste kaart van een kolom heeft er
+     geen (de bovenste kaarten staan op één lijn). */
+  .kaart {
+    min-width: 0;
+    margin-top: 8vw;
+    break-inside: avoid;
+  }
+
+  .kaart:first-child {
+    margin-top: 0;
+  }
+
+  .kaart__link {
+    display: block;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  /* Eigen beeldverhouding uit width/height van het bronbestand: niet croppen, geen vaste hoogte. */
+  .kaart__link :global(.kaart__foto) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .kaart__titel {
+    margin: max(0.5rem, 1vw) 0 0;
+    font-size: max(1.125rem, 2vw);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .kaart__onderregel {
+    max-width: none;
+    margin: 0.25em 0 0;
+    font-size: max(1rem, 1.5vw);
+    font-weight: 500;
+    line-height: 1.3;
+    color: rgb(21 21 21 / 0.6);
+  }
+
+  .kaart__link:hover .kaart__titel {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .kaart__link:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 0;
+  }
+
+  /* ---------- Desktop ---------- */
+  @media (min-width: 700px) {
+    .series-kop {
+      padding-bottom: 4vw;
+    }
+
+    /* Twee kolommen waarin de kaarten direct op elkaar aansluiten (met 4vw witruimte ertussen), ongeacht de hoogte van
+       de foto's. De browser verdeelt de kaarten zo gelijk mogelijk over de kolommen; de volgorde loopt per kolom van
+       boven naar beneden (eerst de linkerkolom, dan de rechter). */
+    .series-raster__lijst {
+      column-count: 2;
+      column-gap: 1.7vw;
+    }
+
+    .kaart {
+      margin-top: 4vw;
+    }
+
+    .kaart:first-child {
+      margin-top: 0;
+    }
+  }
+</style>
