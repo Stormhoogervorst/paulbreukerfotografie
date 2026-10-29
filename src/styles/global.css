@@ -21,16 +21,42 @@
   font-display: swap;
 }
 
+/*
+ * Terugval met dezelfde afmetingen als Satoshi, zodat tekst niet verspringt als het lettertype binnenkomt (font-display: swap).
+ * Gemeten in Chrome (canvas measureText op 1000px, een Nederlandse zin) van Satoshi tegenover Arial: breedte 101,5% (500) en
+ * 97,3% (700); opstijging 1,010 en daling 0,240 em, gedeeld door de size-adjust. Meet opnieuw als het lettertype wijzigt.
+ */
+@font-face {
+  font-family: 'Satoshi Fallback';
+  src: local('Arial');
+  font-weight: 500;
+  size-adjust: 101.5%;
+  ascent-override: 99.5%;
+  descent-override: 23.6%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Satoshi Fallback';
+  src: local('Arial Bold'), local('Arial-BoldMT');
+  font-weight: 700;
+  size-adjust: 97.3%;
+  ascent-override: 103.8%;
+  descent-override: 24.7%;
+  line-gap-override: 0%;
+}
+
 :root {
   /* Kleur */
   --ink: #151515;
   --ink-zwart: #000; /* grote titelbalk ("Projecten"); echt zwart, anders dan --ink */
   --ink-zacht: #595959; /* secundaire tekst (bijvoorbeeld publicaties bij exposities); contrast op wit ca. 7:1 */
+  --ink-gedempt: #676767; /* grijze onderregel op de lichtgrijze achtergrond (/series); contrast op #e6e6e6 4,5:1, op wit 5,7:1 */
   --paper: #fff;
   --canvas: #e6e6e6; /* lichtgrijze achtergrond van de hele site (body, header) en /portfolio */
 
   /* Typografie */
-  --font-sans: 'Satoshi', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-sans: 'Satoshi', 'Satoshi Fallback', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
   --font-size-small: 1rem; /* 16px */
   --font-size-body: 1.25rem; /* 20px */
 

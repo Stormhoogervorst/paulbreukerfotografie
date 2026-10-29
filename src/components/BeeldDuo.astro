@@ -6,6 +6,7 @@
  * Content: home.beeldDuo in src/data/home.ts.
  */
 import { Picture } from 'astro:assets';
+import { FALLBACK_FORMAAT, FORMATEN } from '../lib/beeld';
 import { home } from '../data/home';
 import { getHomeImage } from '../lib/images';
 
@@ -39,8 +40,8 @@ const items = home.beeldDuo.map((item) => ({
             height={item.image.height}
             widths={[...item.widths]}
             sizes={item.sizes}
-            formats={['avif', 'webp']}
-            fallbackFormat="jpg"
+            formats={FORMATEN}
+            fallbackFormat={FALLBACK_FORMAAT}
             loading="lazy"
             decoding="async"
           />

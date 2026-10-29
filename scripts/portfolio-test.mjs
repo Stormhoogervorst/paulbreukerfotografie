@@ -1,20 +1,25 @@
-// Controleert het oneindige canvas op /portfolio in WebKit (iPhone 14), Chromium (Pixel 7) en
-// Chromium desktop (1440 × 900).
+// Controleert het oneindige canvas op /portfolio (en met PAGINA=/portfolio/portretten op de portretten-galerij) in WebKit
+// (iPhone 14), Chromium (Pixel 7) en Chromium desktop (1440 × 900).
 // Gebruik: npm run build, npm run preview (in een tweede terminal), daarna node scripts/portfolio-test.mjs
-// Optioneel: BASE_URL=http://localhost:4321 node scripts/portfolio-test.mjs
+// Optioneel: BASE_URL=http://localhost:4321 node scripts/portfolio-test.mjs, PAGINA=/portfolio/portretten
 import { chromium, devices, webkit } from 'playwright';
 
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4321';
-const URL_PORTFOLIO = `${BASE_URL}/portfolio`;
-const MAX_NODES = 150;
-const MIN_VISIBLE = 15;
+const PAGINA = process.env.PAGINA ?? '/portfolio';
+const URL_PORTFOLIO = `${BASE_URL}${PAGINA}`;
+/** /portfolio/portretten: alle foto's staan als <img> in de HTML (geen noscript-raster) en hebben geen serietitel. */
+const GALERIJ = PAGINA === '/portfolio/portretten';
+const H1 = GALERIJ ? 'Portretten' : 'Portfolio';
+const MAX_BYTES_MOBIEL = 1.5 * 1024 * 1024; // eerste laadronde op 390 px (alleen galerij)
+const MAX_NODES = 150; // gelijk aan MAX_NODES in src/scripts/foto-canvas.ts: daar worden tegels op afstand tot het midden afgekapt, dus precies 150 is toegestaan
+const MIN_VISIBLE = GALERIJ ? 10 : 12; // /portfolio: gemengde liggende en staande foto's (was 15 met alleen de oude, bijna alleen liggende foto's); /portfolio/portretten: staande tegels van 150 × 210
 const LANGE_SLEEP = 20000; // px in totaal
 const VUL_AFSTAND = 150; // px: meetpunt telt als "gevuld" binnen deze afstand van een foto
 const VUL_MINIMUM = 0.6;
 
 const alleApparaten = [
-  { naam: 'iPhone 14 (WebKit)', browserType: webkit, device: devices['iPhone 14'], touch: 'synthetisch' },
-  { naam: 'Pixel 7 (Chromium)', browserType: chromium, device: devices['Pixel 7'], touch: 'cdp' },
+  { naam: 'iPhone 14 (WebKit)', browserType: webkit, device: devices['iPhone 14'], touch: 'synthetisch', mobiel: true },
+  { naam: 'Pixel 7 (Chromium)', browserType: chromium, device: devices['Pixel 7'], touch: 'cdp', mobiel: true },
   {
     naam: 'Desktop 1440 × 900 (Chromium)',
     browserType: chromium,
@@ -187,10 +192,13 @@ async function tik(page, ctx, x, y) {
 /** Een foto die volledig in beeld staat (boven de overlay) en bij een bekende serie hoort. */
 const kiesFoto = (page) =>
   page.evaluate(() => {
-    const data = JSON.parse(document.getElementById('portfolio-data').textContent);
+    const payload = JSON.parse(document.getElementById('portfolio-data').textContent);
+    const data = Array.isArray(payload) ? payload : payload.photos;
+    const metTitel = !data.every((foto) => !foto.title);
     const canvas = document.querySelector('.portfolio__canvas').getBoundingClientRect();
     const overlay = document.querySelector('.portfolio__overlay').getBoundingClientRect();
-    const home = document.querySelector('.portfolio__home').getBoundingClientRect();
+    const nav = document.querySelector('.portfolio__nav').getBoundingClientRect();
+    const home = { bottom: nav.bottom };
     for (const el of document.querySelectorAll('.portfolio__tile')) {
       const r = el.getBoundingClientRect();
       const foto = data[Number(el.dataset.index)];
@@ -199,7 +207,7 @@ const kiesFoto = (page) =>
         r.right < canvas.right - 10 &&
         r.top > home.bottom + 10 &&
         r.bottom < overlay.top - 10;
-      if (binnen && foto.title && r.width > 30 && r.height > 30) {
+      if (binnen && (foto.title || !metTitel) && r.width > 30 && r.height > 30) {
         el.dataset.testDoel = '';
         return { x: r.left + r.width / 2, y: r.top + r.height / 2, titel: foto.title };
       }
@@ -278,11 +286,17 @@ for (const apparaat of apparaten) {
     await Promise.all(beelden.wachtrij);
     const t0 = await telling(page);
     r.laden = oordeel(
-      t0.dom < MAX_NODES && t0.zichtbaar >= MIN_VISIBLE,
+      t0.dom <= MAX_NODES && t0.zichtbaar >= MIN_VISIBLE,
       `${t0.dom} in DOM, ${t0.zichtbaar} zichtbaar (tegel ${t0.tegel}, ${t0.plaatsen} plaatsen)`,
     );
     r.beelden = `${beelden.verzoeken} verzoeken, ${(beelden.bytes / 1024 / 1024).toFixed(2)} MB (incl. vooraf ophalen); eerste scherm compleet na ${eersteScherm} ms`;
     if (eersteScherm < 0) r.beelden = oordeel(false, r.beelden);
+    if (apparaat.mobiel) {
+      r.beelden = oordeel(
+        beelden.bytes <= MAX_BYTES_MOBIEL && eersteScherm >= 0,
+        `${r.beelden} (maximaal ${(MAX_BYTES_MOBIEL / 1024 / 1024).toFixed(1)} MB)`,
+      );
+    }
 
     // Slepen
     await startTeller(page);
@@ -321,7 +335,7 @@ for (const apparaat of apparaten) {
     const tLang = await telling(page);
     maxDom = Math.max(maxDom, tLang.dom, tLang.max);
     r.langeSleep = oordeel(
-      vul >= VUL_MINIMUM && maxDom < MAX_NODES,
+      vul >= VUL_MINIMUM && maxDom <= MAX_NODES,
       `offset (${ver.x.toFixed(0)}, ${ver.y.toFixed(0)}), ${Math.round(vul * 100)}% gevuld, max ${maxDom} in DOM`,
     );
     r.maxDom = maxDom;
@@ -414,32 +428,35 @@ for (const apparaat of apparaten) {
     const foutenZonderJs = verzamelFouten(page);
     fouten.push(foutenZonderJs);
     const antwoord = await page.goto(URL_PORTFOLIO, { waitUntil: 'load' });
-    const stand = await page.evaluate(() => ({
-      h1: document.querySelector('h1')?.textContent?.trim(),
-      h1Zichtbaar: (() => {
-        const h1 = document.querySelector('h1');
-        const rect = h1?.getBoundingClientRect();
-        return Boolean(rect && rect.width > 0 && rect.height > 0);
-      })(),
-      aantalH1: document.querySelectorAll('h1').length,
-      fotos: document.querySelectorAll('.portfolio__noscript-grid img').length,
-      altOk: [...document.querySelectorAll('.portfolio__noscript-grid img')].every((img) => img.alt.length > 0),
-      werk: Boolean(document.querySelector('.portfolio__noscript a[href="/series"]')),
-      geenHeader: document.querySelector('.site-header') === null,
-      home: Boolean(document.querySelector('a.portfolio__home[href="/"]')),
-    }));
+    const stand = await page.evaluate((galerij) => {
+      const fotos = [...document.querySelectorAll('.portfolio__bron img')];
+      const h1 = document.querySelector('h1');
+      const rect = h1?.getBoundingClientRect();
+      const eerste = fotos[0]?.getBoundingClientRect();
+      return {
+        h1: h1?.textContent?.trim(),
+        h1Zichtbaar: Boolean(rect && rect.width > 0 && rect.height > 0),
+        aantalH1: document.querySelectorAll('h1').length,
+        fotos: fotos.length,
+        fotoZichtbaar: Boolean(eerste && eerste.width > 20 && eerste.height > 20 && eerste.left >= 0),
+        altOk: fotos.every((img) => img.alt.length > 0),
+        werk: Boolean(document.querySelector(galerij ? '.portfolio__links a[href="/portretfotos"]' : '.portfolio__links a[href="/series"]')),
+        geenHeader: document.querySelector('.site-header') === null,
+        home: Boolean(document.querySelector('a.portfolio__home[href="/"]')),
+      };
+    }, GALERIJ);
+    const fotosOk = stand.fotos >= 30 && stand.fotoZichtbaar;
     r.zonderJs = oordeel(
       antwoord?.ok() &&
-        stand.h1 === 'Portfolio' &&
+        stand.h1 === H1 &&
         stand.h1Zichtbaar &&
         stand.aantalH1 === 1 &&
-        stand.fotos > 0 &&
-        stand.fotos <= 48 &&
+        fotosOk &&
         stand.altOk &&
         stand.werk &&
         stand.geenHeader &&
         stand.home,
-      `h1 "${stand.h1}" (${stand.aantalH1}×), ${stand.fotos} miniaturen, link /series ${stand.werk ? 'ja' : 'nee'}, header ${stand.geenHeader ? 'weg' : 'aanwezig'}, home-knop ${stand.home ? 'ja' : 'nee'}`,
+      `h1 "${stand.h1}" (${stand.aantalH1}×), ${stand.fotos} foto's als raster, link ${GALERIJ ? '/portretfotos' : '/series'} ${stand.werk ? 'ja' : 'nee'}, header ${stand.geenHeader ? 'weg' : 'aanwezig'}, home-knop ${stand.home ? 'ja' : 'nee'}`,
     );
     await context.close();
   }

@@ -1,6 +1,6 @@
 ---
 /**
- * Foto uit src/assets/home/ via <Picture> (AVIF + WebP + JPEG-fallback).
+ * Foto uit src/assets/home/ via <Picture> (AVIF in <source>, WebP in <img>; zie src/lib/beeld.ts).
  * Ontbreekt het bestand, dan komt er een neutraal blok met dezelfde verhouding
  * en een TODO(paul), zodat de build niet faalt en de layout niet verspringt.
  *
@@ -9,6 +9,7 @@
  */
 import { Picture } from 'astro:assets';
 import { getHomeImage } from '../lib/images';
+import { FALLBACK_FORMAAT, FORMATEN } from '../lib/beeld';
 
 interface Props {
   name: string;
@@ -50,13 +51,13 @@ const image = getHomeImage(name);
         height={height}
         widths={widths}
         sizes={sizes}
-        formats={['avif', 'webp']}
-        fallbackFormat="jpg"
+        formats={FORMATEN}
+        fallbackFormat={FALLBACK_FORMAAT}
         fit="cover"
         position={position}
         loading={loading}
         fetchpriority={fetchpriority}
-        decoding={loading === 'eager' ? 'sync' : 'async'}
+        decoding="async"
       />
     ) : (
       <div class="photo__placeholder">

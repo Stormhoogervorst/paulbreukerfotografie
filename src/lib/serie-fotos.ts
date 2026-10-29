@@ -1,12 +1,18 @@
 /**
  * Foto's en indeling van een projectpagina (src/pages/[project].astro).
  *
- * - Bron: src/assets/portfolio/<slug>/ (de mapnaam is hoofdletterongevoelig: "Asfalt" hoort bij /asfalt). Op bestandsnaam
- *   gesorteerd, met cijfers als getal ("2" vóór "10"), dus cijfervoorvoegsels als 01-, 02- bepalen de volgorde.
+ * - Bron: src/assets/portfolio/<slug>/ (de mapnaam is hoofdletter- en leesteken-ongevoelig: "Asfalt" hoort bij /asfalt,
+ *   "Groeten uit lent" bij /groeten-uit-lent). Op bestandsnaam gesorteerd, met cijfers als getal ("2" vóór "10"), dus
+ *   cijfervoorvoegsels als 01-, 02- bepalen de volgorde. Dezelfde foto in twee mappen van één project komt één keer voor
+ *   (src/data/portfolio-dubbelen.json, gemaakt door scripts/foto-mapping.mjs). Bestanden die Paul.* of paul.* heten
+ *   (zijn eigen portret) horen niet in een serie.
  * - Maten komen uit de bronbestanden (astro:assets), niet uit de data.
- * - Alt-tekst: `altTeksten[bestandsnaam]` in src/data/series.ts, anders een algemene tekst (en een waarschuwing).
+ * - Alt-tekst: src/data/alt-teksten.ts (op pad, met de `altTeksten` per project uit src/data/series.ts), anders een
+ *   algemene tekst (en een waarschuwing).
  */
 import type { ImageMetadata } from 'astro';
+import { altVoor } from '../data/alt-teksten';
+import dubbelen from '../data/portfolio-dubbelen.json';
 import type { Serie } from '../data/series';
 
 export interface SerieFoto {
@@ -32,7 +38,12 @@ const ENKELE_FOTO_VW = 46;
 const MOBIEL_VW = 89;
 
 const modules = import.meta.glob<{ default: ImageMetadata }>(
-  '../assets/portfolio/**/*.{jpg,jpeg,png,webp,avif,JPG,JPEG,PNG}',
+  [
+    '../assets/portfolio/**/*.{jpg,jpeg,png,webp,avif,JPG,JPEG,PNG}',
+    // Zie src/data/portfolio.ts: uitgesloten dubbelen worden niet geïmporteerd (anders staan ze als origineel in /_astro).
+    '!../assets/portfolio/bruiloften portfolio/006.jpg',
+    '!../assets/portfolio/experimenteel/047a.jpg',
+  ],
   { eager: true },
 );
 
@@ -42,16 +53,29 @@ const vergelijk = new Intl.Collator('nl', { numeric: true, sensitivity: 'base' }
 
 const verhoudingVan = (image: ImageMetadata): number => Math.round((image.width / image.height) * 10000) / 10000;
 
-/** Alle foto's in de map van een project, op bestandsnaam gesorteerd. */
+const slugify = (waarde: string): string =>
+  waarde
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const PAUL_BESTAND = /^paul[^/]*$/i;
+const dubbel = new Set<string>(dubbelen);
+
+/** Alle foto's in de map(pen) van een project, op bestandsnaam gesorteerd. */
 export function fotosVan(serie: Serie): SerieFoto[] {
   return Object.entries(modules)
     .flatMap(([pad, module]) => {
-      const [map, ...rest] = pad.slice(ROOT.length).split('/');
-      if (rest.length !== 1 || map.toLowerCase() !== serie.slug.toLowerCase()) return [];
+      const relatief = pad.slice(ROOT.length);
+      const [map, ...rest] = relatief.split('/');
+      if (rest.length !== 1 || slugify(map) !== serie.slug) return [];
       const bestand = rest[0];
+      if (PAUL_BESTAND.test(bestand) || dubbel.has(relatief)) return [];
       const image = module.default;
-      const alt = serie.altTeksten?.[bestand]?.trim();
-      if (!alt) console.warn(`[serie] ${serie.slug}: geen alt-tekst voor "${bestand}" (algemene tekst gebruikt).`);
+      const alt = altVoor(map, bestand);
+      if (!alt) console.warn(`[serie] ${serie.slug}: geen alt-tekst voor "${relatief}" (algemene tekst gebruikt).`);
       return [
         {
           bestand,

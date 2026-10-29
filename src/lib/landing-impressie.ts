@@ -5,10 +5,12 @@ import type { ImageObjectInput } from './schema';
 /**
  * Geoptimaliseerde afbeeldingen (WebP, bronbreedte) van de Impressie-foto's van een landingspagina, voor
  * JSON-LD (`ImageGallery`) en de afbeeldingensitemap. Beide gebruiken dezelfde `getImage`-parameters, dus dezelfde URL's.
- * Breedtes boven het origineel worden niet opgeschaald.
+ * Breedte: de grootste uit de srcset van de pagina, nooit boven het origineel.
  */
 export const IMPRESSIE_CREDIT = 'Paul Breuker';
 export const IMPRESSIE_COPYRIGHT = '© Paul Breuker';
+/** Grootste breedte in de srcset van LandingImpressie (WIDTHS aldaar). */
+const IMPRESSIE_MAX_BREEDTE = 1280;
 
 export interface ImpressieAfbeelding {
   /** Pad van de geoptimaliseerde afbeelding ("/_astro/…"). */
@@ -22,9 +24,11 @@ export async function impressieAfbeeldingen(pagina: LandingPagina): Promise<Impr
   if (!pagina.impressie) return [];
   return Promise.all(
     pagina.impressie.fotos.map(async (foto) => {
-      const { width, height } = foto.afbeelding;
-      const resultaat = await getImage({ src: foto.afbeelding, width, height, format: 'webp', quality: 80 });
-      return { src: resultaat.src, alt: foto.alt, width, height };
+      // Dezelfde variant als de grootste breedte op de pagina (LandingImpressie): geen extra bestand in de build.
+      const breedte = Math.min(foto.afbeelding.width, IMPRESSIE_MAX_BREEDTE);
+      const hoogte = Math.round((breedte * foto.afbeelding.height) / foto.afbeelding.width);
+      const resultaat = await getImage({ src: foto.afbeelding, width: breedte, height: hoogte, format: 'webp' });
+      return { src: resultaat.src, alt: foto.alt, width: breedte, height: hoogte };
     }),
   );
 }

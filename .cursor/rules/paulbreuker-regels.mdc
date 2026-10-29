@@ -30,7 +30,7 @@ Doelgroepen met eigen ingang: bruidsparen (regio Nijmegen/Arnhem, belangrijkste)
 
 ## SEO per pagina (verplicht)
 
-- Eén primair zoekwoord per URL. Voorkom kannibalisatie tussen kunstseries (/love-marriage, /portretten) en commerciële pagina's (/fotograaf-bruiloft, /zakelijke-portretfoto).
+- Eén primair zoekwoord per URL. Voorkom kannibalisatie tussen kunstseries (/love-marriage) en galerijen (/portfolio/portretten) en commerciële pagina's (/fotograaf-bruiloft, /zakelijke-portretfoto).
 - Eén `BaseLayout` met een `SEOHead`-component voor: unieke `title` (rond 60 tekens), `description` (rond 155 tekens), `canonical`, Open Graph en Twitter. Elke pagina geeft deze waarden door, geen standaardwaarden laten doorlekken.
 - Precies één `<h1>`, daarna een logische H2/H3-opbouw.
 - JSON-LD via een herbruikbare component. Types: `WebSite`, `BreadcrumbList`, `LocalBusiness`/`ProfessionalService`, `Person`, `Service` + `Offer`, `ImageObject`/`ImageGallery`, `Event` (alleen aankomend met echte data), `Book`. Geen `AggregateRating` of `Review` op eigen pagina's voor Pauls eigen bedrijf.
@@ -49,12 +49,13 @@ De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze,
 
 ## URL's
 
-- Pauls projecten zijn precies deze acht, met de slugs /asfalt, /asty-mwaka, /de-gaarkeuken, /groeten-uit-lent, /het-gezicht-van-nijmegen, /love-marriage, /take-me-to-the-river en /tradities. Behoud de bestaande slugs; /tradities is nieuw (geen oude URL, dus geen redirect nodig). /panoramas en /portretten zijn geen projecten en staan niet op /series; hun bestaande routes en bestanden blijven ongemoeid tot er per URL is besloten (zie het open punt in de README). Verwijder ze niet en maak er geen redirects voor zonder akkoord.
+- Pauls projecten zijn precies deze negen, met de slugs /asfalt, /asty-mwaka, /de-gaarkeuken, /groeten-uit-lent, /het-gezicht-van-nijmegen, /love-marriage, /take-me-to-the-river, /tradities en /oude-honden. Behoud de bestaande slugs; /tradities en /oude-honden zijn nieuw (geen oude URL, dus geen redirect nodig). /panoramas is geen project en staat niet op /series; de bestaande route en bestanden blijven ongemoeid tot er per URL is besloten (zie het open punt in de README). Verwijder ze niet en maak er geen redirect voor zonder akkoord. `/portretten` is niet langer een eigen pagina: het is een oude URL met een permanente 301 (`permanent: true` in `vercel.json`) naar /portretfotos. De galerij met alle portretten staat op /portfolio/portretten (galerij-pagina, gelinkt vanaf /portretfotos met "bekijk meer portretten →"; zelfde canvas als /portfolio). Verwijs nergens meer naar /portretten.
+- Nieuwe mappen onder `src/assets/portfolio/` leveren alleen foto's voor `/portfolio`. Een project (pagina, kaart op `/series`, schema-item) bestaat pas als het in `src/data/series.ts` staat; maak nooit automatisch een project of route uit een map.
 - `/promoties` is geen pagina op deze site: permanente 301 (`permanent: true` in `vercel.json`) naar https://www.fotograafpromotiesradboud.nl/. Neem `/promoties` niet op in navigatie, sitemap of interne links. Verwijs voor promotiefotografie met een gewone tekstlink naar de Radboud-site.
 - Nieuwe commerciële URL's: /fotograaf-bruiloft (algemene bruiloftpagina, primair zoekwoord "fotograaf bruiloft"), /portretfotos (particuliere portretten, primair zoekwoord "portretfoto laten maken"), /zakelijke-portretfoto, /linkedin-foto-laten-maken, later /trouwfotograaf-nijmegen, /trouwfotograaf-arnhem en /trouwlocaties/[locatie].
 - /trouwfotograaf-nijmegen en /trouwfotograaf-arnhem zijn gereserveerd voor latere lokale pagina's met eigen inhoud; /fotograaf-bruiloft is de algemene bruiloftpagina. Geen sjabloonpagina's waarbij alleen de plaatsnaam wisselt.
-- Overig: /series, /portfolio, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, /blog/[slug].
-- /portfolio is het oneindige fotocanvas (beleving, indexeerbaar, lage SEO-prioriteit). /series blijft het zoekmachinevriendelijke serie-overzicht; concurreer niet met /series of de seriepagina's om zoekwoorden. /series is de hernoemde /werk: `/werk` heeft een permanente redirect naar `/series` in `vercel.json` en komt nergens meer voor in navigatie, sitemap of interne links.
+- Overig: /series, /portfolio, /portfolio/portretten, /portfolio/bruiloften, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, /blog/[slug].
+- /portfolio is het oneindige fotocanvas (beleving, indexeerbaar, lage SEO-prioriteit). /portfolio/portretten is hetzelfde canvas (gedeeld component `FotoCanvas`) met alle portretten van Paul: indexeerbaar, in de sitemap, lage SEO-prioriteit; geen eigen zoekwoorddoel naast /portretfotos. /portfolio/bruiloften is hetzelfde canvas met alle foto's uit de map `bruiloften portfolio` (data: src/data/bruiloften.ts): indexeerbaar, in de sitemap, lage SEO-prioriteit; geen eigen zoekwoorddoel naast /fotograaf-bruiloft en /love-marriage; gelinkt vanaf /fotograaf-bruiloft ("meer werk in het portfolio") en vanaf /portfolio. /series blijft het zoekmachinevriendelijke serie-overzicht; concurreer niet met /series of de seriepagina's om zoekwoorden. /series is de hernoemde /werk: `/werk` heeft een permanente redirect naar `/series` in `vercel.json` en komt nergens meer voor in navigatie, sitemap of interne links.
 - Houd URL's kort, kleine letters, koppeltekens, geen trailing-slash-variaties, geen querystrings voor content.
 - Oude Joomla-URL's krijgen een 301 in `vercel.json` (bijvoorbeeld het cv naar /over-paul). Geen redirectketens. Voeg bij elke verwijderde of hernoemde URL meteen de redirect toe.
 - Locatiepagina's (/trouwlocaties/...) alleen met echte, eigen foto's en feiten van Paul. Geen sjabloonpagina's waarbij alleen de plaatsnaam wisselt.
@@ -69,7 +70,7 @@ De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze,
 
 ## Contact en conversie
 
-- E-mail en telefoon zichtbaar in kop of voet op elke pagina, als gewone tekst met `mailto:` en `tel:` (geen JavaScript-verberging). WhatsApp optioneel. Uitzondering op verzoek: /portfolio heeft geen header en footer, alleen een knop "← home" linksboven en de link "Contact →" in de overlay.
+- E-mail en telefoon zichtbaar in kop of voet op elke pagina, als gewone tekst met `mailto:` en `tel:` (geen JavaScript-verberging). WhatsApp optioneel. Uitzondering op verzoek: /portfolio, /portfolio/portretten en /portfolio/bruiloften hebben geen header en footer, alleen de knop "← home" linksboven (op /portfolio/portretten en /portfolio/bruiloften ook "← portfolio") en de link "Contact →" in de overlay.
 - Elke bruiloft- en portretpagina eindigt in een kort formulier.
   - Bruiloftformulier: trouwdatum en locatie bovenaan, dan namen, aantal gasten, gewenst pakket, "hoe ken je mij?".
   - Portretformulier: naam, type (headshot, zakelijk, team, kunstportret), aantal personen, locatie, bericht. Geen "waarvoor", "gewenste periode" of "hoe ken je mij?" (bewust weggelaten op /portretfotos).

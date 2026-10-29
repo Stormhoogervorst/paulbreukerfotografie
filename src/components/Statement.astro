@@ -7,7 +7,14 @@
  * Geen eigen buitenmarges: de verticale ruimte komt van de .sectie-wrapper om de component heen.
  * Toegankelijkheid: standaard is het label een <p> en krijgt de sectie `aria-label`. Met `labelAlsKop` is het label de
  * <h2> van de sectie (homepage "(over paul)") en verwijst `aria-labelledby` ernaar.
+ *
+ * Optioneel `foto`: kleine foto onder het label, in dezelfde linkerkolom en links op één lijn met het label (alleen
+ * homepage "(over paul)"). Zonder `foto` is de opmaak en de HTML ongewijzigd.
  */
+import { Picture } from 'astro:assets';
+import { BREEDTES_PAUL, FALLBACK_FORMAAT, FORMATEN } from '../lib/beeld';
+import type { ImageMetadata } from 'astro';
+
 interface Props {
   /** Klein label links, bijvoorbeeld "(werkwijze)". */
   label: string;
@@ -20,9 +27,11 @@ interface Props {
   labelAlsKop?: boolean;
   /** id van het label, voor `aria-labelledby` (alleen bij `labelAlsKop`). */
   id?: string;
+  /** Kleine foto onder het label (bronbestand met vaste width/height; nooit breder dan het bronbestand). */
+  foto?: { afbeelding: ImageMetadata; alt: string };
 }
 
-const { label, tekst, link, ariaLabel, labelAlsKop = false, id } = Astro.props;
+const { label, tekst, link, ariaLabel, labelAlsKop = false, id, foto } = Astro.props;
 const Label = labelAlsKop ? 'h2' : 'p';
 
 if (labelAlsKop && !id) throw new Error('Statement: `id` is verplicht bij `labelAlsKop`.');
@@ -35,7 +44,32 @@ if (!labelAlsKop && !ariaLabel) throw new Error('Statement: `ariaLabel` is verpl
   aria-label={labelAlsKop ? undefined : ariaLabel}
 >
   <div class="statement__inner">
-    <Label id={labelAlsKop ? id : undefined} class="statement__label statement-label">{label}</Label>
+    {
+      foto ? (
+        <div class="statement__kop">
+          <Label id={labelAlsKop ? id : undefined} class="statement__label statement-label">
+            {label}
+          </Label>
+          <Picture
+            class="statement__foto"
+            src={foto.afbeelding}
+            alt={foto.alt}
+            width={foto.afbeelding.width}
+            height={foto.afbeelding.height}
+            widths={BREEDTES_PAUL}
+            sizes="(min-width: 700px) min(9vw, 10rem), 20vw"
+            formats={FORMATEN}
+            fallbackFormat={FALLBACK_FORMAAT}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      ) : (
+        <Label id={labelAlsKop ? id : undefined} class="statement__label statement-label">
+          {label}
+        </Label>
+      )
+    }
 
     <div class="statement__body">
       <p class="statement__tekst statement-tekst">{tekst}</p>
@@ -74,6 +108,34 @@ if (!labelAlsKop && !ariaLabel) throw new Error('Statement: `ariaLabel` is verpl
     margin-top: calc(2rem - 0.4rem);
   }
 
+  /* Label + foto (alleen met `foto`). Mobiel: label, 4vw, foto (20vw, links), 6vw, tekst. De foto wordt nooit breder
+     dan het bronbestand en nooit bijgesneden (hoogte volgt uit de verhouding). Geen rand, schaduw, filter of hover. */
+  .statement__kop {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 6vw;
+  }
+
+  .statement__kop .statement__label {
+    margin: 0;
+  }
+
+  .statement__foto {
+    display: block;
+    width: min(20vw, 100%);
+    max-width: 400px;
+    height: auto;
+    margin-top: 4vw;
+  }
+
+  @media (min-width: 700px) {
+    .statement__foto {
+      width: min(9vw, 10rem);
+      margin-top: 2vw;
+    }
+  }
+
   /* Zachte fade bij verschijnen in beeld. Alleen waar scroll-gestuurde animatie bestaat,
      en nooit bij prefers-reduced-motion. Zonder ondersteuning staat de tekst gewoon zichtbaar. */
   @media (prefers-reduced-motion: no-preference) {
@@ -108,6 +170,15 @@ if (!labelAlsKop && !ariaLabel) throw new Error('Statement: `ariaLabel` is verpl
       align-self: start;
       margin: 0;
       padding-top: calc(var(--tekst-size) * 0.18);
+    }
+
+    /* Met foto: label en foto samen in de linkerkolom. De kolom is net zo hoog als de tekst rechts: het label staat
+       bovenaan, de onderkant van de foto op de basislijn van de laatste tekstregel (de regelruimte onder de laatste
+       regel, ongeveer 0,21 × de tekstgrootte, telt niet mee). De tekst rechts verandert niet. */
+    .statement__kop {
+      align-self: stretch;
+      justify-content: space-between;
+      margin-bottom: calc(var(--tekst-size) * 0.21);
     }
   }
 </style>

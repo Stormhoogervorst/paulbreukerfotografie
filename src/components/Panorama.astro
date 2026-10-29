@@ -6,6 +6,7 @@
  * Content: home.panorama in src/data/home.ts.
  */
 import { Picture } from 'astro:assets';
+import { BREEDTES_HERO, FALLBACK_FORMAAT, FORMATEN } from '../lib/beeld';
 import { home } from '../data/home';
 import type { ImageMetadata } from 'astro';
 import { getHomeImage } from '../lib/images';
@@ -31,10 +32,10 @@ const alt = bron ? (eigenAlt ?? '') : homeAlt;
         alt={alt}
         width={image.width}
         height={image.height}
-        widths={[640, 1000, 1300]}
+        widths={BREEDTES_HERO}
         sizes="100vw"
-        formats={['avif', 'webp']}
-        fallbackFormat="jpg"
+        formats={FORMATEN}
+        fallbackFormat={FALLBACK_FORMAAT}
         loading="lazy"
         decoding="async"
       />

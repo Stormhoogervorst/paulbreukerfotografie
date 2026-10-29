@@ -18,7 +18,7 @@ Opgesteld op 28 oktober 2026 op basis van de briefing en een check van de huidig
   - /het-gezicht-van-nijmegen
   - /promoties
 
-  Van deze tien zijn acht projecten (de nieuwe site voegt /tradities toe); /panoramas en /portretten zijn geen projecten en /promoties is een redirect. Zie de tabel in sectie 2 (laag 2).
+  Van deze tien zijn negen projecten (de nieuwe site voegt /tradities en /oude-honden toe); /panoramas is geen project, /portretten is een oude URL met een 301 naar /portretfotos (de galerij met alle portretten staat op /portfolio/portretten) en /promoties is een redirect. Zie de tabel in sectie 2 (laag 2).
 - Het cv staat op een Joomla-URL met querystring (`/?view=article&id=141:curriculum-vitae&catid=8`). Die moet een 301 krijgen naar /over-paul.
 - Het e-mailadres zit achter JavaScript-bescherming en is voor crawlers onzichtbaar. In de nieuwe site staat het gewoon als tekst met `mailto:`.
 - De homepage heeft voor zover te zien geen commerciële zoekintentie: geen prijzen, geen "trouwfotograaf", geen "zakelijke portretfoto". Dat is de grootste SEO-winst.
@@ -48,9 +48,11 @@ Principe: één primair zoekwoord per URL. Commerciële pagina's en kunstseries 
 
 | URL | Inhoud |
 |---|---|
-| `/series` | Overzicht van de acht projecten (kaarten met foto en titel). Blijft het zoekmachinevriendelijke serie-overzicht. Hernoemd van `/werk`, dat een 301 naar `/series` heeft |
-| `/portfolio` | Beleving: alle foto's op één oneindig, sleepbaar canvas. Indexeerbaar, in de sitemap en in de afbeeldingensitemap (`/sitemap-images.xml`), maar lage SEO-prioriteit: geen eigen zoekwoorddoel naast /series en de seriepagina's. Zonder header en footer (home-knop en link naar contact) |
-| Acht projecten: `/asfalt`, `/asty-mwaka`, `/de-gaarkeuken`, `/groeten-uit-lent`, `/het-gezicht-van-nijmegen`, `/love-marriage`, `/take-me-to-the-river`, `/tradities` | Bestaande slugs behouden (platte structuur), nieuwe teksten en schema. `/tradities` is nieuw: geen oude URL, dus geen redirect nodig. `/panoramas` en `/portretten` zijn geen projecten en staan niet op /series; per URL beslissen we later (zie README, open punten) |
+| `/series` | Overzicht van de negen projecten (kaarten met foto en titel). Blijft het zoekmachinevriendelijke serie-overzicht. Hernoemd van `/werk`, dat een 301 naar `/series` heeft |
+| `/portfolio` | Beleving: alle foto's op één oneindig, sleepbaar canvas. Indexeerbaar, in de sitemap en in de afbeeldingensitemap (`/sitemap-images.xml`), maar lage SEO-prioriteit: geen eigen zoekwoorddoel naast /series en de seriepagina's. Zonder header en footer (home-knop en link naar contact) De foto's komen uit alle mappen onder `src/assets/portfolio/` (ook nieuwe mappen, ontdubbeld); een nieuwe map levert alleen foto's voor /portfolio en wordt nooit automatisch een project, pagina of kaart: een project bestaat pas in `src/data/series.ts`. |
+| `/portfolio/bruiloften` | Galerij-pagina: alle bruiloftfoto's van Paul (map `bruiloften portfolio`) op hetzelfde canvas als /portfolio (gedeeld component `FotoCanvas`; alle foto's als gewone `<img>` met alt in de HTML). Gelinkt vanaf /fotograaf-bruiloft ("meer werk in het portfolio") en vanaf /portfolio. Indexeerbaar, in de sitemap en de afbeeldingensitemap, lage SEO-prioriteit: geen eigen zoekwoorddoel naast /fotograaf-bruiloft en /love-marriage. JSON-LD: `CollectionPage` met `ImageGallery` |
+| `/portfolio/portretten` | Galerij-pagina: alle portretten van Paul op hetzelfde canvas als /portfolio (gedeeld component `FotoCanvas`; alle foto's als gewone `<img>` met alt in de HTML). Gelinkt vanaf /portfolio en vanaf /portretfotos ("bekijk meer portretten →"). Indexeerbaar, in de sitemap en de afbeeldingensitemap, lage SEO-prioriteit: geen eigen zoekwoorddoel naast /portretfotos. JSON-LD: `CollectionPage` met `ImageGallery` |
+| Negen projecten: `/asfalt`, `/asty-mwaka`, `/de-gaarkeuken`, `/groeten-uit-lent`, `/het-gezicht-van-nijmegen`, `/love-marriage`, `/oude-honden`, `/take-me-to-the-river`, `/tradities` | Bestaande slugs behouden (platte structuur), nieuwe teksten en schema. `/tradities` en `/oude-honden` zijn nieuw: geen oude URL, dus geen redirect nodig. `/panoramas` is geen project en staat niet op /series; per URL beslissen we later (zie README, open punten). `/portretten` is geen eigen pagina meer: oude URL met een 301 (`permanent: true` in `vercel.json`) naar /portretfotos |
 | `/exposities` | Kunsthal, Valkhof, Photoville New York, nieuwe exposities als Event |
 | `/pers` | Volkskrant, Telegraaf, EenVandaag met link naar het bronartikel |
 | `/over-paul` | 35 jaar werk, cv, palmares. Vervangt de Joomla-cv-URL |
@@ -81,7 +83,7 @@ De Radboud-site voor promotiefotografie blijft apart. De bestaande `/promoties` 
 - Astro met statische output, standaard vrijwel zonder JavaScript. Alleen het formulier-endpoint draait on-demand (`prerender = false`). Alle content staat in de initiële HTML. Interactieve onderdelen (galerij, lightbox) zijn islands met `client:visible` of `client:idle`.
 - Eén `BaseLayout` met een `SEOHead`-component die per pagina zorgt voor: unieke `title` (rond 60 tekens), `description` (rond 155 tekens), `canonical`, Open Graph en Twitter-kaarten, en JSON-LD.
 - Eén H1 per pagina, logische H2/H3-hiërarchie.
-- `@astrojs/sitemap` (met filter voor `/bedankt`) en `src/pages/robots.txt.ts`. De sitemap bevat alleen indexeerbare, canonieke URL's. Stel `lastmod` in waar je echte wijzigingsdata hebt. Afbeeldingensitemap: `src/pages/sitemap-images.xml.ts` (alle foto's van /portfolio, grootste variant), vermeld in `robots.txt`.
+- `@astrojs/sitemap` (met filter voor `/bedankt`) en `src/pages/robots.txt.ts`. De sitemap bevat alleen indexeerbare, canonieke URL's. Stel `lastmod` in waar je echte wijzigingsdata hebt. Afbeeldingensitemap: `src/pages/sitemap-images.xml.ts` (alle foto's van /portfolio en /portfolio/portretten, grootste variant), vermeld in `robots.txt`.
 - Afbeeldingen: `<Image>` of `<Picture>` uit `astro:assets`, AVIF/WebP, vaste `width`/`height`, `loading="eager"` met `fetchpriority="high"` alleen op het LCP-beeld, `sizes` correct instellen, lazy loading voor de rest. Alt-teksten in het Nederlands en beschrijvend, geen keyword stuffing.
 - Prestatiedoelen (mobiel, veldmeting): LCP onder 2,5 s, CLS onder 0,1, INP onder 200 ms. Een beeld-eerst site wint of verliest hier.
 - Lettertypen self-hosted (bijvoorbeeld Fontsource) met `font-display: swap`, geen render-blocking externe CSS.
@@ -109,7 +111,7 @@ Let op: geen `AggregateRating` of `Review`-markup op Pauls eigen pagina's voor z
 ## 5. Interne linking
 
 - Home linkt naar de drie ingangen: /fotograaf-bruiloft, /zakelijke-portretfoto, /series.
-- Elke serie-pagina linkt naar de relevante commerciële pagina. Voorbeeld: /love-marriage naar /fotograaf-bruiloft met een beschrijvende ankertekst ("fotograaf voor je bruiloft"), en /portretten naar /zakelijke-portretfoto.
+- Elke serie-pagina linkt naar de relevante commerciële pagina. Voorbeeld: /love-marriage naar /fotograaf-bruiloft met een beschrijvende ankertekst ("fotograaf voor je bruiloft"), en /portfolio/portretten naar /portretfotos en /zakelijke-portretfoto.
 - Elke commerciële pagina linkt terug naar 2 tot 3 relevante series als bewijs.
 - Blog en locatiepagina's linken omhoog naar hun doelpagina en sideways naar verwante locaties.
 - Header en footer: e-mail en telefoon zichtbaar op elke pagina; navigatie met maximaal 6 items.
@@ -128,7 +130,7 @@ Volgorde commerciële landingspagina (bindend): De secties op een landingspagina
 
 Paul werkt voor klantsessies niet in een studio. Gebruik de woorden studio, fotostudio en studiosessie niet voor het aanbod aan klanten. In teksten over bestaande projecten (zoals Asty Mwaka en Take me to the river) mag het woord voorkomen als het zo in Pauls eigen tekst staat. Controleer het woord "studio" alleen op de pagina's met aanbod (/portretfotos, /fotograaf-bruiloft, /zakelijke-portretfoto). Hij fotografeert in natuurlijk licht, bij de klant thuis, op het werk, buiten of op een plek die de klant kiest. Hij maakte een portretserie bij een gaarkeuken in Rusland (project De Gaarkeuken, /de-gaarkeuken).
 
-Elke commerciële portretpagina (/portretfotos, /zakelijke-portretfoto, /linkedin-foto-laten-maken) verwijst terug naar /portretten en /de-gaarkeuken als bewijs.
+Elke commerciële portretpagina (/portretfotos, /zakelijke-portretfoto, /linkedin-foto-laten-maken) verwijst terug naar /portfolio/portretten en /de-gaarkeuken als bewijs.
 
 ## 7. Conversie
 
@@ -141,7 +143,7 @@ Elke commerciële portretpagina (/portretfotos, /zakelijke-portretfoto, /linkedi
 ## 8. Migratie en lancering
 
 1. Voor livegang: exporteer uit Search Console de top-pagina's en -zoekopdrachten, inclusief afbeeldingsverkeer. Inventariseer backlinks.
-2. Bouw een redirectmap (in `vercel.json`, met `permanent: true`) voor elke oude URL die niet 1:1 terugkomt. Behoud de serie-slugs waar mogelijk. Vaste regels: `/promoties` naar https://www.fotograafpromotiesradboud.nl/, `/werk` naar `/series` en de Joomla-cv-URL naar `/over-paul`.
+2. Bouw een redirectmap (in `vercel.json`, met `permanent: true`) voor elke oude URL die niet 1:1 terugkomt. Behoud de serie-slugs waar mogelijk. Vaste regels: `/promoties` naar https://www.fotograafpromotiesradboud.nl/, `/werk` naar `/series`, `/portretten` naar `/portretfotos` (ook met trailing slash, in één stap) en de Joomla-cv-URL naar `/over-paul`.
 3. Test redirects op een preview voordat het domein wordt omgezet. Geen redirectketens.
 4. Na livegang: sitemap indienen, URL's laten inspecteren, 4 weken lang wekelijks dekking en rankings bekijken.
 5. Controleer of oude afbeeldings-URL's (`/images/...`) significant verkeer hadden. Zo ja, redirect de belangrijkste.

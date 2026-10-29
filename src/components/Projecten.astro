@@ -6,10 +6,12 @@
  */
 import Marquee from './Marquee.astro';
 import Photo from './Photo.astro';
-import { home } from '../data/home';
+import { home, type HomeProject } from '../data/home';
 import { getHomeImage } from '../lib/images';
 
-const { titel, items, allLink } = home.projecten;
+const { titel, allLink } = home.projecten;
+// Als HomeProject[] getypeerd (in home.ts staat de lijst met `satisfies`, dat alleen de aanwezige velden onthoudt): zo bestaat het optionele `jaar` ook voor een kaart die het nu niet gebruikt.
+const items: HomeProject[] = home.projecten.items;
 
 // Hoge foto (rechts): natuurlijke verhouding uit het bestand, geen uitsnede. Ontbreekt het bestand, dan valt de placeholder terug op 2 / 3.
 const rechtsFoto = items.find((project) => project.positie === 'rechts')?.photo.name;
@@ -22,7 +24,7 @@ const rechtsHoogte = rechtsBron?.height ?? 900;
 const kaart = {
   links: { width: 1200, height: 1440, widths: [480, 800, 1200, 1600], sizes: '(min-width: 900px) 24vw, 85vw' }, // 5 / 6
   midden: { width: 1200, height: 1000, widths: [480, 800, 1200, 1600], sizes: '(min-width: 900px) 36vw, 70vw' }, // 6 / 5
-  rechts: { width: rechtsBreedte, height: rechtsHoogte, widths: [300, 450, rechtsBreedte], sizes: '(min-width: 900px) 18vw, 56vw' }, // natuurlijk
+  rechts: { width: rechtsBreedte, height: rechtsHoogte, widths: [300, rechtsBreedte], sizes: '(min-width: 900px) 18vw, 56vw' }, // natuurlijk
 } as const;
 ---
 

@@ -1,14 +1,19 @@
 /**
- * Series (projecten): één bron voor het overzicht /series (src/pages/series.astro) en de detailpagina's
- * (src/pages/[project].astro, foto's en indeling in src/lib/serie-fotos.ts; de omslag wordt alleen op /series gebruikt). Pauls projecten zijn precies deze acht
- * (zie .cursor/rules/paulbreuker-regels.mdc). /panoramas en /portretten zijn geen projecten.
+ * LET OP: een project bestaat pas als het in deze lijst staat (`serieLijst`). Nieuwe mappen onder src/assets/portfolio/
+ * (bijvoorbeeld experimenteel, oostblok reportage) leveren alleen foto's voor /portfolio en worden NOOIT
+ * automatisch een project, pagina, kaart op /series, schema-item of route: de pagina's ([project].astro), /series, de
+ * sitemap en het JSON-LD lezen alleen uit deze lijst, niet uit de mappen. (Deze lijst heette eerder werk.ts, naar /werk.)
  *
- * Detailpagina: de foto's komen uit de map src/assets/portfolio/<slug>/ (hoofdletterongevoelig), op bestandsnaam
- * gesorteerd. Een project zonder foto krijgt geen pagina (en staat dus niet in de sitemap).
+ * Series (projecten): één bron voor het overzicht /series (src/pages/series.astro) en de detailpagina's
+ * (src/pages/[project].astro, foto's en indeling in src/lib/serie-fotos.ts; de omslag wordt alleen op /series gebruikt). Pauls projecten zijn precies deze negen
+ * (zie .cursor/rules/paulbreuker-regels.mdc). /panoramas en /portfolio/portretten zijn geen projecten.
+ *
+ * Detailpagina: de foto's komen uit de map src/assets/portfolio/<slug>/ (hoofdletter- en leestekenongevoelig, dus
+ * "Groeten uit lent" hoort bij groeten-uit-lent), op bestandsnaam gesorteerd; alt-teksten staan in src/data/alt-teksten.ts. Een project zonder foto krijgt geen pagina (en staat dus niet in de sitemap).
  *
  * - De volgorde van de lijst is de volgorde op de pagina (en in de JSON-LD). Wijzig alleen de volgorde hieronder.
  * - De href is "/" + slug (zie `serieHref`).
- * - `onderregel` is optioneel en wordt alleen getoond als hij bestaat. Verzin geen tekst: jaartal en plaats of een
+ * - `onderregel` is optioneel en wordt alleen op de kaart in /series getoond (niet op de detailpagina), en alleen als hij bestaat. Verzin geen tekst: jaartal en plaats of een
  *   korte omschrijving komen van Paul (TODO(paul) per project).
  * - Omslagfoto's: love-marriage, take-me-to-the-river en asty-mwaka gebruiken dezelfde bestanden als de homepage-sectie
  *   Projecten (src/assets/home/project-*.jpg); de overige de eerste foto (alfabetisch) uit src/assets/portfolio/<map>/.
@@ -20,14 +25,15 @@ import takeMeToTheRiver from '../assets/home/project-take-me-to-the-river.jpg';
 import astyMwaka from '../assets/home/project-asty-mwaka.jpg';
 import gaarkeuken from '../assets/portfolio/de-gaarkeuken/Gaarkeuken 01-min.jpg';
 import tradities from '../assets/portfolio/tradities/breuker tradities 01-min.jpg';
-import asfalt from '../assets/portfolio/Asfalt/L1039810-min-2.jpg';
+import asfalt from '../assets/portfolio/Asfalt/L1039951.jpg';
 import groetenUitLent from '../assets/portfolio/groeten-uit-lent/breuker lent 05-min.jpg';
-import hetGezichtVanNijmegen from '../assets/portfolio/het-gezicht-van-nijmegen/GEZICHT 03-min.jpg';
+import hetGezichtVanNijmegen from '../assets/portfolio/het-gezicht-van-nijmegen/008kl.jpg';
+import oudeHonden from '../assets/portfolio/oude honden/rechts7.jpg';
 
 export interface Serie {
   slug: string;
   titel: string;
-  /** Optioneel, onder de titel (ook de regel onder de H1 op de detailpagina). Leeg of weggelaten: niet getoond. */
+  /** Optioneel, onder de titel op de kaart in /series. Op de detailpagina wordt hij niet getoond. Leeg of weggelaten: niet getoond. */
   onderregel?: string;
   omslag: ImageMetadata;
   /** Nederlandse, beschrijvende alt-tekst (wie/wat/waar) van de omslag. */
@@ -89,6 +95,13 @@ export const serieLijst: Serie[] = [
         'Een vrouw in een bloemetjesjurk wast een baby in de gootsteen van een keuken en kijkt in de camera. Achter haar maakt een man een foto en staat een man in pak bij de deur.',
       'bruiloft 20-min.jpg':
         'Een bruid in een witte jurk wordt in een slaapkamer aangekleed. Een vrouw in een grijs vest helpt haar, een knielende vrouw schikt de tule rok en een meisje in een wit jurkje staat ertussen; rechts kijkt een vrouw in een witte jurk toe.',
+      // TODO(paul): alt-teksten van 21 t/m 23 controleren (plaats en jaar van de foto's zijn niet bekend).
+      'bruiloft 21-min.jpg':
+        'Een jongen in een donker pak en een meisje in een wit jurkje zitten in een geopende zwarte oldtimer op een grasveld. Hij leunt peinzend met zijn hand tegen zijn mond, zij leunt met haar hoofd tegen de portierstijl; naast haar ligt een boeket.',
+      'bruiloft 22-min.jpg':
+        'Zwart-witfoto op een zandweg door het bos: een bruid met sluier en een bruidegom met corsage staan arm in arm bij een lichte auto met open kofferbak, terwijl een man op zijn hurken een band verwisselt.',
+      'bruiloft 23-min.jpg':
+        'Een man in een zwart pak met stropdas speelt op een groot koperen blaasinstrument, een sousafoon, voor een rustig, grijs water met palen in de verte.',
     },
   },
   {
@@ -216,17 +229,9 @@ export const serieLijst: Serie[] = [
     seo: { description: 'Asfalt: een fotoserie van Paul Breuker over gerepareerde gaten in het wegdek, gezien als ongeplande abstracte kunstwerken op straat.' },
     // TODO(paul): commercieleLink (welke commerciële pagina past bij deze serie?).
     omslag: asfalt,
-    // TODO(paul): alt controleren; het is een abstracte close-up en ik weet niet wat de bedoeling van de foto is.
-    alt: 'Close-up van roodbruin asfalt met daarop een grijsblauwe, kronkelende lijn die lussen vormt, naast een rechte donkere streep.',
-    // TODO(paul): alt-teksten controleren.
-    altTeksten: {
-      'L1039810-min-2.jpg':
-        'Close-up van roodbruin asfalt met daarop een grijsblauwe, kronkelende lijn die lussen vormt, naast een rechte donkere streep.',
-      'L1039998-min-dba42075.jpg':
-        'Close-up van grijs asfalt met een lichte en een donkere, kronkelende lijn die elkaar kruisen en lussen vormen.',
-      'L1039999-min-550ea5c5.jpg':
-        'Close-up van grijs asfalt met een donkere, kronkelende lijn met een kleine lus bovenaan en een grote boog eronder.',
-    },
+    // TODO(paul): alt controleren; het is een abstracte close-up en ik weet niet wat de bedoeling van de foto is. De omslag is
+    // Asfalt/L1039951.jpg: een gekozen vervanger voor het oude L1039810-min-2.jpg (zie scripts/foto-mapping.md).
+    alt: 'Close-up van asfalt met links een roodbruin vlak met witte driehoeken en een brede zwarte teerstrook die van boven naar beneden loopt.',
   },
   {
     slug: 'asty-mwaka',
@@ -240,17 +245,6 @@ export const serieLijst: Serie[] = [
     // TODO(paul): commercieleLink (welke commerciële pagina past bij deze serie?).
     omslag: astyMwaka,
     alt: 'Portret van een jonge vrouw met een volle afrokrullen, zilverkleurige oogschaduw en paarse lippenstift, in een glanzend lichtblauw shirt. Ze kijkt ernstig recht in de camera.',
-    // TODO(paul): alt-teksten controleren.
-    altTeksten: {
-      'ASTY 03-min.jpg':
-        'Portret van een jonge vrouw met lang, glad zwart haar, rode lippenstift en gouden kettingen, voor een onscherpe boekenkast.',
-      'ASTY 04-min.jpg':
-        'Portret van een jonge vrouw met bruine krullen met lichtere accenten en een zwart-wit gestreept shirt. Ze kijkt in de camera.',
-      'ASTY 05-min.jpg':
-        'Portret van een jonge vrouw met lang zwart haar, grote gouden oorhangers, felroze lippenstift en een zwarte top met ruches.',
-      'ASTY 07-min.jpg':
-        'Portret van een jonge vrouw met kort, krullend kastanjebruin haar, grote ronde oorringen, rode lippenstift en een grijze coltrui.',
-    },
   },
   {
     slug: 'groeten-uit-lent',
@@ -283,12 +277,19 @@ export const serieLijst: Serie[] = [
     // TODO(paul): commercieleLink (welke commerciële pagina past bij deze serie?).
     omslag: hetGezichtVanNijmegen,
     alt: 'Een reusachtig metalen gezicht met een versierde band om het hoofd staat in een grote industriële hal, waar twee werkers op de vloer bezig zijn.',
-    // TODO(paul): alt-teksten controleren.
-    altTeksten: {
-      'GEZICHT 03-min.jpg':
-        'Een reusachtig metalen gezicht met een versierde band om het hoofd staat in een grote industriële hal, waar twee werkers op de vloer bezig zijn.',
-      'GEZICHT 08-min.jpg':
-        'Een reusachtig, wit bekleed gezicht met een raster om het hoofd staat in een grote industriële hal. Een werker op een ladder en een man op de vloer zijn bezig.',
-    },
+  },
+  {
+    slug: 'oude-honden',
+    titel: 'Oude honden',
+    onderregel: 'Reportage over de ouder wordende hond',
+    introductie: [
+      'Door de jaren heen heb ik een bijzondere fascinatie ontwikkeld voor het fotograferen van oude honden. In deze reportage leg ik de kwetsbare, maar krachtige pracht van de ouder wordende hond vast. Elke grijze haar en elke blik vertelt een eigen verhaal van een lang en trouw hondenleven.',
+      'Dit doorlopende project is onlangs bekroond met een eigen boek, waarin al deze prachtige senioren een blijvende plek hebben gekregen.',
+    ],
+    seo: { description: 'Oude honden: een doorlopende fotoreportage van Paul Breuker over de kwetsbare, maar krachtige pracht van de ouder wordende hond. Nu ook als boek.' },
+    // TODO(paul): commercieleLink (welke commerciële pagina past bij deze serie?) en een link naar /boek zodra het boek een eigen plek heeft.
+    omslag: oudeHonden,
+    // TODO(paul): alt-teksten controleren (de bestaande teksten staan in src/data/alt-teksten.ts); jaartal en plaats ontbreken.
+    alt: 'Een grijze, krullende hond met een lichtbruine snuit zit op een klinkerpad tussen planten en een wit beeld van een gans.',
   },
 ];

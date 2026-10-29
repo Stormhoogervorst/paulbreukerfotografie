@@ -11,6 +11,7 @@
  *   de homepage, en de bovenkant van de eerste regel van de inleiding staat op dezelfde lijn.
  */
 import { Picture } from 'astro:assets';
+import { FALLBACK_FORMAAT, FORMATEN } from '../../lib/beeld';
 import type { LandingHero } from '../../data/landing/types';
 
 interface Props {
@@ -93,10 +94,10 @@ const strip = fotos.map((foto, index) => {
             alt={foto.alt}
             width={foto.width}
             height={foto.height}
-            widths={[240, 360, 480, 640, 800, 1000, 1400]}
+            widths={[320, 480, 780, 1280]}
             sizes={foto.sizes}
-            formats={['avif', 'webp']}
-            fallbackFormat="jpg"
+            formats={FORMATEN}
+            fallbackFormat={FALLBACK_FORMAAT}
             loading={foto.loading}
             fetchpriority={foto.fetchpriority}
             decoding="async"

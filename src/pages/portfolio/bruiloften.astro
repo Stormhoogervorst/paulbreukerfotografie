@@ -1,0 +1,88 @@
+---
+/**
+ * /portfolio/bruiloften: alle bruiloftfoto's van Paul op hetzelfde oneindige canvas als /portfolio (galerij-pagina,
+ * gelinkt vanaf /fotograaf-bruiloft). Data: src/data/bruiloften.ts. Canvas: src/components/canvas/FotoCanvas.astro.
+ * Geen eigen zoekwoorddoel naast /fotograaf-bruiloft en /love-marriage: lage SEO-prioriteit, beleving.
+ */
+import { getImage } from 'astro:assets';
+import FotoCanvas from '../../components/canvas/FotoCanvas.astro';
+import { bruiloften } from '../../data/bruiloften';
+import { getPortfolioImages } from '../../lib/portfolio-images';
+import { breadcrumbList, fotoCollectie } from '../../lib/schema';
+import type { CanvasConfig } from '../../scripts/foto-canvas';
+
+/** In het schema komen de eerste 30 foto's als ImageObject. */
+const SCHEMA_MAX = 30;
+
+/** Cellen: de standaardwaarden van het canvas. Op mobiel laadt de marge rond het eerste scherm pas na de eerste aanraking. */
+const config: CanvasConfig = { holdMarginMobile: true };
+
+const aantal = bruiloften.length;
+const title = 'Bruiloften | Bruiloftfotografie door Paul Breuker';
+const description = `${aantal} foto's van bruiloften door Paul Breuker, van de ochtend tot het feest. Sleep door de beelden, klik voor groot formaat of vraag je bruiloft aan.`;
+
+// Deelafbeelding (1200 × 630): de eerste liggende foto.
+const ogPhoto = bruiloften.find((foto) => foto.width > foto.height) ?? bruiloften[0];
+const ogImage = ogPhoto
+  ? (
+      await getImage({
+        src: ogPhoto.image,
+        width: 1200,
+        height: 630,
+        fit: 'cover',
+        format: 'jpg',
+        quality: 80,
+      })
+    ).src
+  : undefined;
+
+const schemaFotos = await Promise.all(
+  bruiloften.slice(0, SCHEMA_MAX).map(async (foto) => {
+    const { large } = await getPortfolioImages(foto);
+    const groot = large[large.length - 1];
+    return {
+      url: groot.src,
+      name: foto.alt,
+      width: groot.width,
+      height: Math.round((groot.width * foto.height) / foto.width),
+      creditText: 'Paul Breuker',
+      copyrightNotice: '© Paul Breuker',
+    };
+  }),
+);
+---
+
+<FotoCanvas
+  title={title}
+  description={description}
+  canonical="/portfolio/bruiloften"
+  ogImage={ogImage}
+  jsonLd={[
+    breadcrumbList([
+      { name: 'Home', path: '/' },
+      { name: 'Portfolio', path: '/portfolio' },
+      { name: 'Bruiloften', path: '/portfolio/bruiloften' },
+    ]),
+    fotoCollectie({
+      name: 'Bruiloften',
+      description,
+      path: '/portfolio/bruiloften',
+      totaal: aantal,
+      images: schemaFotos,
+    }),
+  ]}
+  fotos={bruiloften}
+  h1="Bruiloften"
+  instructie="Sleep om te verkennen. Klik op een foto voor groot formaat."
+  terug={[
+    { label: 'portfolio', href: '/portfolio' },
+    { label: 'home', href: '/' },
+  ]}
+  links={[
+    { label: 'Fotograaf voor je bruiloft', href: '/fotograaf-bruiloft' },
+    { label: 'Contact', href: '/contact' },
+  ]}
+  config={config}
+  bron="html"
+  lijstLabel="Alle bruiloftfoto's"
+/>

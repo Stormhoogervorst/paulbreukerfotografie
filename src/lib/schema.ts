@@ -542,6 +542,64 @@ export function collectionPage(input: CollectionPageInput): CollectionPageSchema
   };
 }
 
+// ---------------------------------------------------------------------------
+// CollectionPage + ImageGallery (galerij-pagina's zoals /portfolio/portretten)
+// ---------------------------------------------------------------------------
+
+export interface FotoCollectieSchema extends JsonLdNode {
+  '@type': 'CollectionPage';
+  name: string;
+  description: string;
+  url: string;
+  inLanguage: 'nl-NL';
+  isPartOf: IdRef;
+  mainEntity: {
+    '@type': 'ImageGallery';
+    name: string;
+    url: string;
+    /** Totaal aantal foto's op de pagina (kan groter zijn dan het aantal ImageObjects in `hasPart`). */
+    numberOfItems: number;
+    hasPart: Array<Omit<ImageObjectSchema, '@context'>>;
+  };
+}
+
+export interface FotoCollectieInput {
+  name: string;
+  description: string;
+  /** Pad of URL van de galerijpagina. */
+  path: string;
+  /** Totaal aantal foto's op de pagina. */
+  totaal: number;
+  /** De foto's die als ImageObject in het schema komen (in volgorde van de pagina). */
+  images: ImageObjectInput[];
+}
+
+/**
+ * Galerijpagina: CollectionPage met een ImageGallery van ImageObjects (contentUrl, name, creator via @id, creditText,
+ * copyrightNotice). Geen AggregateRating of Review.
+ */
+export function fotoCollectie(input: FotoCollectieInput): FotoCollectieSchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: input.name,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    inLanguage: 'nl-NL',
+    isPartOf: { '@id': WEBSITE_ID },
+    mainEntity: {
+      '@type': 'ImageGallery',
+      name: input.name,
+      url: absoluteUrl(input.path),
+      numberOfItems: input.totaal,
+      hasPart: input.images.map((image) => {
+        const { '@context': _context, ...node } = imageObject(image);
+        return node;
+      }),
+    },
+  };
+}
+
 /** Alle JSON-LD-nodes die deze module kan opleveren. */
 export type AnySchema =
   | WebSiteSchema
@@ -553,4 +611,5 @@ export type AnySchema =
   | ImageObjectSchema
   | ImageGallerySchema
   | FaqPageSchema
-  | CollectionPageSchema;
+  | CollectionPageSchema
+  | FotoCollectieSchema;

@@ -1,7 +1,7 @@
 /**
  * Data voor /portretfotos (landingspagina voor particuliere portretten: één persoon, duo, gezin, kunstportret; primair
  * zoekwoord "portretfoto laten maken"). Zakelijke portretten, teams en LinkedIn-foto's staan op /zakelijke-portretfoto;
- * de kunstserie /portretten en het project /de-gaarkeuken zijn aparte pagina's (contextuele links vanuit OverPaul).
+ * de galerij met alle portretten (/portfolio/portretten) en het project /de-gaarkeuken zijn aparte pagina's (contextuele links vanuit OverPaul).
  *
  * Paul werkt niet in een studio: hij fotografeert in natuurlijk licht, op een plek die de klant kiest. Gebruik de
  * woorden studio, studiosessie en fotostudio nooit voor zijn eigen aanbod (alleen in de ontkenning "zonder studio").
@@ -18,12 +18,12 @@ import { PRIVACY } from '../site';
 import { euro } from '../../lib/prijs';
 import { linkSegmenten } from '../../lib/segmenten';
 import paulFoto from '../../assets/landing/paul.webp';
-import portret01 from '../../assets/portfolio/portretten/Portret 1.jpg';
-import portret02 from '../../assets/portfolio/portretten/Portret 2.jpg';
-import portret05 from '../../assets/portfolio/portretten/portret 5.jpg';
-import beek03 from '../../assets/portfolio/portretten/PORTRET BEEK 03-min.jpg';
-import beek08 from '../../assets/portfolio/portretten/PORTRET BEEK 08-min.jpg';
-import beek10 from '../../assets/portfolio/portretten/PORTRET BEEK 10-min.jpg';
+import hero1 from '../../assets/portfolio/portretten/3.jpg';
+import hero2 from '../../assets/portfolio/portretten/_MG_0926.jpg';
+import hero3 from '../../assets/portfolio/portretten/DSC04527.jpg';
+import impressie1 from '../../assets/portfolio/portretten/107A4529.jpg';
+import impressie2 from '../../assets/portfolio/portretten/58m.jpg';
+import impressie3 from '../../assets/portfolio/portretten/_MG_1353.jpg';
 
 // ---------------------------------------------------------------------------
 // Prijzen uit de pakketten (nu nog geen: zie portret-pakketten.ts)
@@ -92,30 +92,29 @@ export const portretfotos: LandingPagina = {
     ctaSecundair: { label: 'Bekijk de pakketten', href: '#pakketten' },
     /**
      * Fotostrip (drie foto's, in volgorde; desktop alle drie, mobiel alleen de tweede, rand tot rand; zie MOBIEL_FOTOS in
-     * LandingHero.astro). Alle bronnen staan in src/assets/portfolio/portretten/ (de serie Portretten) en zijn staand
-     * (2:3, 600 × 900 px). Gekozen omdat daarop het licht en de omgeving het best te zien zijn:
-     *  1. PORTRET BEEK 08-min.jpg = oudere man, lichte vlek rechts achter hem (LCP en Open Graph)
-     *  2. portret 5.jpg           = jonge vrouw, warm onscherp interieur (op mobiel de enige foto in de hero)
-     *  3. Portret 2.jpg           = jongen, onscherp raam met kleurvlakken achter hem
-     * De overige foto's staan in Impressie (drie van de vier; zie daar). Wisselen: vervang de import bovenin en de `afbeelding` hieronder.
-     * TODO(paul): alt-teksten laten controleren (beschreven naar wat op de foto's te zien is: personen, kleding, licht en
-     * achtergrond; de plek zelf is op deze close-ups nauwelijks te zien, dus geen plaats of ruimte benoemd).
-     * TODO(paul): foto's van een sessie op locatie (thuis, op het werk, buiten) aanleveren: alle zeven zijn close-ups en
-     * laten de plek nauwelijks zien. Bronnen zijn 600 px breed: lever minimaal 1400 px breed aan (de Open Graph-afbeelding
-     * van 1200 px breed wordt nu opgeschaald).
+     * LandingHero.astro). Alle bronnen staan in src/assets/portfolio/portretten/ (de galerij /portfolio/portretten). De
+     * oude bronnen (PORTRET BEEK 08-min.jpg, portret 5.jpg, Portret 2.jpg; 600 × 900 px) zijn uit die map verdwenen. De
+     * vervangers komen uit dezelfde serie en zijn gekozen met een perceptuele hash (zie scripts/foto-mapping.md):
+     *  1. 3.jpg         = oudere vrouw, zwart-wit (LCP en Open Graph; was PORTRET BEEK 08-min.jpg; "onzeker", afstand 20)
+     *  2. _MG_0926.jpg  = jonge man met capuchon (op mobiel de enige foto in de hero; was portret 5.jpg; "gekozen vervanger")
+     *  3. DSC04527.jpg  = kind in groene trui (was Portret 2.jpg; "onzeker", afstand 17)
+     * De overige foto's staan in Impressie (zie daar). Wisselen: vervang de import bovenin en de `afbeelding` hieronder.
+     * TODO(paul): keuze van deze drie foto's beoordelen (de inhoud wijkt af van de oude foto's, zie scripts/foto-mapping.md) en
+     * alt-teksten laten controleren. Foto's van een sessie op locatie (thuis, op het werk, buiten) aanleveren: dit zijn
+     * close-ups en laten de plek nauwelijks zien.
      */
     fotos: [
       {
-        afbeelding: beek08,
-        alt: 'Portret van een oudere man met een kaal hoofd, in een blauwe trui over een geruit overhemd. Hij kijkt rustig in de camera; achter hem is de ruimte onscherp, met rechts een lichte baan.',
+        afbeelding: hero1,
+        alt: 'Zwart-witportret van een oudere vrouw met een getinte bril, kettingen en een blouse met bloemenprint, tegen een zwarte achtergrond. Ze kijkt rustig in de camera.',
       },
       {
-        afbeelding: portret05,
-        alt: 'Portret van een jonge vrouw met een afrokapsel, grijsblauwe oogschaduw, paarse lippenstift, gouden oorringen en een zilverglanzend shirt. Ze kijkt ernstig in de camera; achter haar is een warm verlicht interieur onscherp te zien.',
+        afbeelding: hero2,
+        alt: 'Portret van een jonge man met een brede lach, in een grijs-blauw jack met capuchon en een beige muts. De achtergrond is licht en onscherp.',
       },
       {
-        afbeelding: portret02,
-        alt: 'Portret van een jongen met warrig bruin haar in een donkerblauw shirt. Hij kijkt kalm in de camera; achter hem is een raam met gekleurde vlakken onscherp zichtbaar.',
+        afbeelding: hero3,
+        alt: 'Portret van een kind met warrig lichtbruin haar in een donkergroene trui. Het kijkt rustig in de camera; de achtergrond is licht en onscherp.',
       },
     ],
   },
@@ -132,12 +131,14 @@ export const portretfotos: LandingPagina = {
 
   /**
    * Impressie: drie staande foto's uit de serie Portretten op één rij (indeling "rij", zie LandingImpressie.astro), van
-   * links naar rechts (relatieve hoogtes 0,88 / 1 / 0,76). Alle drie zijn staand (2:3, 600 × 900 px). Bronnen
-   * (src/assets/portfolio/portretten/); geen enkele staat in de hero:
-   *  1. PORTRET BEEK 10-min.jpg = oudere vrouw met parelketting
-   *  2. Portret 1.jpg           = oude man met witte snor
-   *  3. PORTRET BEEK 03-min.jpg = jonge man met krullend haar
-   * Niet gebruikt op deze pagina: PORTRET BEEK 04-min.jpg (meisje met bloemenkrans, roodroze achtergrond).
+   * links naar rechts (relatieve hoogtes 0,88 / 1 / 0,76). Alle drie zijn staand. Bronnen
+   * (src/assets/portfolio/portretten/); geen enkele staat in de hero. De oude bronnen (PORTRET BEEK 10-min.jpg,
+   * Portret 1.jpg, PORTRET BEEK 03-min.jpg) staan niet meer in die map; vervangen door foto's uit dezelfde serie, gekozen
+   * met een perceptuele hash (zie scripts/foto-mapping.md):
+   *  1. 107A4529.jpg  = meisje met donker haar (was PORTRET BEEK 10-min.jpg; "onzeker", afstand 18)
+   *  2. 58m.jpg       = oude vrouw met hoofddoek, zwart-wit (was Portret 1.jpg; "gekozen vervanger")
+   *  3. _MG_1353.jpg  = meisje met staartjes (was PORTRET BEEK 03-min.jpg; "gekozen vervanger")
+   * (PORTRET BEEK 04-min.jpg, meisje met bloemenkrans, werd hier niet gebruikt.)
    */
   // TODO(paul): alt-teksten laten controleren door Paul (beschreven naar wat op de foto's te zien is).
   impressie: {
@@ -145,20 +146,20 @@ export const portretfotos: LandingPagina = {
     indeling: 'rij',
     fotos: [
       {
-        afbeelding: beek10,
-        alt: 'Portret van een oudere vrouw met kortgeknipt wit haar, parelkettingen en parelachtige oorbellen, in een blouse met bloemenprint. Ze kijkt rustig in de camera; de achtergrond is licht en onscherp.',
+        afbeelding: impressie1,
+        alt: 'Portret van een meisje met donker haar tot op haar schouders en een donkerblauw shirt met bloemetjes. Ze kijkt in de camera; achter haar is een raam onscherp te zien.',
       },
       {
-        afbeelding: portret01,
-        alt: 'Portret van een oude man met een kaal hoofd, een grote witte snor en blauwe ogen, in een grijsblauw colbert met een klein speldje op de revers. Hij kijkt strak in de camera; de achtergrond is onscherp, met warme lichtvlekken.',
+        afbeelding: impressie2,
+        alt: 'Zwart-witfoto van een oude vrouw met een hoofddoek en een donkere jas, die met haar handen op haar knieën voor een muur zit.',
       },
       {
-        afbeelding: beek03,
-        alt: 'Portret van een jonge man met zwart krullend haar, een kleine baard en een grijsgroen shirt. Hij kijkt in de camera; de achtergrond is effen, licht en onscherp.',
+        afbeelding: impressie3,
+        alt: 'Portret van een meisje met blond haar in twee staartjes met roze elastiekjes, in een rode jurk met stippen. Ze kijkt opzij in de camera.',
       },
     ],
-    // /portfolio bestaat (src/pages/portfolio.astro).
-    link: { label: 'meer portretten in het portfolio', href: '/portfolio' },
+    // /portfolio/portretten bestaat (src/pages/portfolio/portretten.astro). De pijl → tekent LandingImpressie zelf (svg).
+    link: { label: 'bekijk meer portretten', href: '/portfolio/portretten' },
   },
 
   /**
@@ -167,7 +168,7 @@ export const portretfotos: LandingPagina = {
    */
   // TODO(paul): tekst laten goedkeuren (jaartallen 1984/1995, de werkwijze "zonder studio en met natuurlijk licht, op de plek waar jij bent", de zin over de portretserie bij een gaarkeuken in Rusland).
   // TODO(paul): bevestig dat /de-gaarkeuken dit project is (portretserie bij een gaarkeuken in Rusland) en voeg jaartal en plaats van de serie toe.
-  // TODO(paul): /de-gaarkeuken, /portretten, /love-marriage en /take-me-to-the-river bestaan nog niet (404); zie README, "Nog te bouwen".
+  // TODO(paul): /de-gaarkeuken, /love-marriage en /take-me-to-the-river bestaan nog niet (404); zie README, "Nog te bouwen".
   overPaul: {
     label: 'Over Paul',
     lead: [
@@ -179,7 +180,7 @@ export const portretfotos: LandingPagina = {
         ' Ik werk zonder studio en met natuurlijk licht, op de plek waar jij bent. Bij een gaarkeuken in Rusland maakte ik een portretserie: ',
         { tekst: 'De Gaarkeuken', href: '/de-gaarkeuken' },
         '. Mijn vrije portretten vind je in de serie ',
-        { tekst: 'Portretten', href: '/portretten' },
+        { tekst: 'Portretten', href: '/portfolio/portretten' },
         '. Of het nu daar is of bij jou thuis, ik neem de tijd voor de persoon voor de camera.',
       ],
       [

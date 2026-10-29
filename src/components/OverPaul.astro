@@ -1,8 +1,16 @@
 ---
 import Statement from './Statement.astro';
 import { home } from '../data/home';
+// Zelfde bronbestand als de foto van Paul op de landingspagina's (geen tweede kopie).
+import paulFoto from '../assets/landing/paul.webp';
 
 const { label, tekst } = home.overPaul;
 ---
 
-<Statement label={label} tekst={tekst} labelAlsKop id="over-paul-titel" />
+<Statement
+  label={label}
+  tekst={tekst}
+  labelAlsKop
+  id="over-paul-titel"
+  foto={{ afbeelding: paulFoto, alt: 'Portret van Paul Breuker' }}
+/>

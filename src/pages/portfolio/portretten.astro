@@ -1,0 +1,94 @@
+---
+/**
+ * /portfolio/portretten: alle portretten van Paul op hetzelfde oneindige canvas als /portfolio (galerij-pagina,
+ * gelinkt vanaf /portretfotos). Data: src/data/portretten.ts. Canvas: src/components/canvas/FotoCanvas.astro.
+ * De oude URL /portretten is een 301 naar /portretfotos (vercel.json).
+ */
+import { getImage } from 'astro:assets';
+import FotoCanvas from '../../components/canvas/FotoCanvas.astro';
+import { portretten } from '../../data/portretten';
+import { getPortfolioImages } from '../../lib/portfolio-images';
+import { breadcrumbList, fotoCollectie } from '../../lib/schema';
+import type { CanvasConfig } from '../../scripts/foto-canvas';
+
+/** Deelafbeelding (1200 × 630): de enige liggende foto die goed in dit formaat past (staande foto's verliezen te veel). */
+const OG_FILE = 'a004.jpg';
+/** In het schema komen de eerste 30 foto's als ImageObject. */
+const SCHEMA_MAX = 30;
+
+/** Staande foto's (2:3): hogere cellen dan op /portfolio. Op mobiel laadt de marge rond het eerste scherm pas na de eerste aanraking. */
+const config: CanvasConfig = {
+  cellDesktop: [250, 340],
+  cellMobile: [150, 210],
+  holdMarginMobile: true,
+};
+
+const aantal = portretten.length;
+const title = 'Portretten | Portretfotografie door Paul Breuker';
+const description = `${aantal} portretten van mensen en beroepen door Paul Breuker. Sleep door de beelden, klik voor groot formaat of laat zelf een portretfoto maken.`;
+
+const ogPhoto = portretten.find((foto) => foto.file === OG_FILE) ?? portretten[0];
+const ogImage = ogPhoto
+  ? (
+      await getImage({
+        src: ogPhoto.image,
+        width: 1200,
+        height: 630,
+        fit: 'cover',
+        position: 'top',
+        format: 'jpg',
+        quality: 80,
+      })
+    ).src
+  : undefined;
+
+const schemaFotos = await Promise.all(
+  portretten.slice(0, SCHEMA_MAX).map(async (foto) => {
+    const { large } = await getPortfolioImages(foto);
+    const groot = large[large.length - 1];
+    return {
+      url: groot.src,
+      name: foto.alt,
+      width: groot.width,
+      height: Math.round((groot.width * foto.height) / foto.width),
+      creditText: 'Paul Breuker',
+      copyrightNotice: '© Paul Breuker',
+    };
+  }),
+);
+---
+
+<FotoCanvas
+  title={title}
+  description={description}
+  canonical="/portfolio/portretten"
+  ogImage={ogImage}
+  jsonLd={[
+    breadcrumbList([
+      { name: 'Home', path: '/' },
+      { name: 'Portfolio', path: '/portfolio' },
+      { name: 'Portretten', path: '/portfolio/portretten' },
+    ]),
+    fotoCollectie({
+      name: 'Portretten',
+      description,
+      path: '/portfolio/portretten',
+      totaal: aantal,
+      images: schemaFotos,
+    }),
+  ]}
+  fotos={portretten}
+  h1="Portretten"
+  instructie="Sleep om te verkennen. Klik op een foto voor groot formaat."
+  terug={[
+    { label: 'portfolio', href: '/portfolio' },
+    { label: 'home', href: '/' },
+  ]}
+  links={[
+    { label: 'Portretfoto laten maken', href: '/portretfotos' },
+    { label: 'Contact', href: '/contact' },
+  ]}
+  config={config}
+  bron="html"
+  lijstLabel="Alle portretten"
+/>

@@ -19,6 +19,7 @@
  * Content: `pagina.overPaul` (zie src/data/landing/types.ts en src/data/paul.ts).
  */
 import { Picture } from 'astro:assets';
+import { BREEDTES_PAUL, FALLBACK_FORMAAT, FORMATEN } from '../../lib/beeld';
 import type { LandingOverPaul, Segment } from '../../data/landing/types';
 
 interface Props {
@@ -28,8 +29,6 @@ interface Props {
 const { overPaul } = Astro.props;
 const { afbeelding, alt } = overPaul.foto;
 
-/** Bronbestand is klein (400 × 400): breedtes aanpassen op het origineel, niet opschalen. */
-const WIDTHS = [200, 320, afbeelding.width];
 
 const KOP_ID = 'over-paul-landing-titel';
 ---
@@ -42,10 +41,10 @@ const KOP_ID = 'over-paul-landing-titel';
         alt={alt}
         width={afbeelding.width}
         height={afbeelding.height}
-        widths={WIDTHS}
+        widths={BREEDTES_PAUL}
         sizes="(min-width: 900px) 17vw, 40vw"
-        formats={['avif', 'webp']}
-        fallbackFormat="jpg"
+        formats={FORMATEN}
+        fallbackFormat={FALLBACK_FORMAAT}
         loading="lazy"
         decoding="async"
       />

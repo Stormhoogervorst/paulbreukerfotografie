@@ -4,7 +4,7 @@
  * /asty-mwaka, /groeten-uit-lent en /het-gezicht-van-nijmegen. Eén sjabloon, data-gedreven (src/data/series.ts), foto's
  * uit src/assets/portfolio/<slug>/ (src/lib/serie-fotos.ts).
  *
- * Vaste opbouw (verandert nooit): header, titelblok (H1 met onderregel), Introductie,
+ * Vaste opbouw (verandert nooit): header, titelblok (alleen de H1), Introductie,
  * fotoraster (twee per rij), doorlinkrij, footer. Een onderdeel verschijnt alleen als de data ervoor bestaat.
  * Elk onderdeel zit in een eigen wrapper met alleen padding; geen margins die van buren afhangen.
  *
@@ -17,6 +17,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { serieLijst, serieHref, type Serie } from '../data/series';
 import { fotosVan, rijenVan, titelKlasse } from '../lib/serie-fotos';
 import { breadcrumbList, imageGallery } from '../lib/schema';
+import { BREEDTES_FOTO, FALLBACK_FORMAAT, FORMATEN } from '../lib/beeld';
+
+/**
+ * `width` en `height` van <Picture> bepalen ook de `src` van de <img> (een extra WebP op die maat, bovenop `widths`). Houd die
+ * gelijk aan de grootste variant, zodat die dezelfde als een van `widths` is en er geen volledige kopie van de bron bijkomt.
+ */
+const MAX_FOTO_BREEDTE = BREEDTES_FOTO[BREEDTES_FOTO.length - 1];
 
 interface Props {
   serie: Serie;
@@ -76,8 +83,9 @@ const SCHEMA_MAX = 20;
 const schemaFotos = alleFotos.slice(0, SCHEMA_MAX);
 const schemaAfbeeldingen = await Promise.all(
   schemaFotos.map(async (foto) => {
-    const breedte = Math.min(1600, foto.width);
-    const bestand = await getImage({ src: foto.image, width: breedte, format: 'webp', quality: 80 });
+    // Dezelfde variant als de grootste breedte van het fotoraster (BREEDTES_FOTO): geen extra bestand in de build.
+    const breedte = Math.min(BREEDTES_FOTO[BREEDTES_FOTO.length - 1], foto.width);
+    const bestand = await getImage({ src: foto.image, width: breedte, format: 'webp' });
     return {
       url: bestand.src,
       caption: foto.alt,
@@ -99,11 +107,7 @@ const jsonLd = [
 ];
 
 // ---------- Afbeeldingen ----------
-const IS_DEV = import.meta.env.DEV; // de dev-server codeert AVIF per verzoek (seconden per foto): daar alleen WebP
-const formaten: Array<'avif' | 'webp'> = IS_DEV ? ['webp'] : ['avif', 'webp'];
-/** Breedtes voor srcset: nooit boven het bronbestand (geen opschaling). */
-const BREEDTES = [480, 800, 1200, 1600, 2400];
-const breedtes = (bron: number) => [...new Set([...BREEDTES.filter((breedte) => breedte < bron), bron])];
+// Breedtes en formaten: src/lib/beeld.ts (nooit boven het bronbestand: astro:assets laat die weg).
 const klasse = titelKlasse(serie.titel);
 ---
 
@@ -116,7 +120,6 @@ const klasse = titelKlasse(serie.titel);
 >
   <div class="titelblok">
     <h1 class={`titelblok__titel titelblok__titel--${klasse}`}>{serie.titel}</h1>
-    {serie.onderregel && <p class="titelblok__onderregel">{serie.onderregel}</p>}
   </div>
 
   {
@@ -144,15 +147,15 @@ const klasse = titelKlasse(serie.titel);
                 <Picture
                   src={foto.image}
                   alt={foto.alt}
-                  width={foto.width}
-                  height={foto.height}
-                  widths={breedtes(foto.width)}
+                  width={Math.min(foto.width, MAX_FOTO_BREEDTE)}
+                  height={Math.round((foto.height * Math.min(foto.width, MAX_FOTO_BREEDTE)) / foto.width)}
+                  widths={BREEDTES_FOTO}
                   sizes={foto.sizes}
-                  formats={formaten}
-                  fallbackFormat="jpg"
+                  formats={FORMATEN}
+                  fallbackFormat={FALLBACK_FORMAAT}
                   loading={rijIndex === 0 && fotoIndex === 0 ? 'eager' : 'lazy'}
                   fetchpriority={rijIndex === 0 && fotoIndex === 0 ? 'high' : undefined}
-                  decoding={rijIndex === 0 && fotoIndex === 0 ? 'sync' : 'async'}
+                  decoding="async"
                   class="foto__beeld"
                 />
               </div>
@@ -192,7 +195,7 @@ const klasse = titelKlasse(serie.titel);
 
 <style>
   /* ---------- Titelblok (mobiel) ---------- */
-  /* Alleen padding en een gap tussen H1 en onderregel binnen de wrapper. */
+  /* Alleen padding binnen de wrapper. */
   .titelblok {
     display: flex;
     flex-direction: column;
@@ -222,16 +225,6 @@ const klasse = titelKlasse(serie.titel);
 
   .titelblok__titel--lang {
     font-size: 9vw;
-  }
-
-  .titelblok__onderregel {
-    max-width: none;
-    margin: 0;
-    font-size: max(1rem, 4.5vw);
-    font-weight: 500;
-    line-height: 1.2;
-    color: var(--ink);
-    text-wrap: balance;
   }
 
   /* ---------- Introductie (mobiel) ---------- */
@@ -317,11 +310,6 @@ const klasse = titelKlasse(serie.titel);
     .titelblok__titel--lang {
       font-size: 8vw;
     }
-
-    .titelblok__onderregel {
-      font-size: max(1.125rem, 2.4vw);
-    }
-
 
     /* Introductie: gecentreerde kolom van 54vw (begint op 23vw), label links in de kolom, tekst eronder. */
     .intro__kolom {

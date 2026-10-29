@@ -1,12 +1,14 @@
 import type { APIRoute } from 'astro';
 import { portfolio, type PortfolioPhoto } from '../data/portfolio';
+import { bruiloften } from '../data/bruiloften';
+import { portretten } from '../data/portretten';
 import { getPortfolioImages } from '../lib/portfolio-images';
 import { fotograafBruiloft } from '../data/landing/fotograaf-bruiloft';
 import { impressieAfbeeldingen } from '../lib/landing-impressie';
 import { absoluteUrl } from '../lib/schema';
 
 /**
- * Afbeeldingensitemap voor /portfolio en de Impressie van landingspagina's. Eén <url> met alle foto's; boven de 1000 afbeeldingen
+ * Afbeeldingensitemap voor /portfolio, /portfolio/portretten, /portfolio/bruiloften en de Impressie van landingspagina's. Eén <url> met alle foto's; boven de 1000 afbeeldingen
  * (limiet per <url>) per serie gesplitst over meerdere <url>-elementen.
  */
 const MAX_PER_URL = 1000;
@@ -37,6 +39,40 @@ function chunks(photos: PortfolioPhoto[]): PortfolioPhoto[][] {
 /** Landingspagina's met een Impressie: hun foto's staan bij de eigen pagina-URL. Voeg nieuwe landingspagina's hier toe. */
 const LANDINGSPAGINAS = [fotograafBruiloft];
 
+/** /portfolio/portretten: alle portretten, grote versie (zelfde varianten als op de pagina). */
+async function portrettenUrl(): Promise<string> {
+  if (portretten.length === 0) return '';
+  const images = await Promise.all(
+    portretten.map(async (photo) => {
+      const { large } = await getPortfolioImages(photo);
+      return [
+        '    <image:image>',
+        `      <image:loc>${escapeXml(absoluteUrl(large[large.length - 1].src))}</image:loc>`,
+        `      <image:title>${escapeXml(photo.alt)}</image:title>`,
+        '    </image:image>',
+      ].join('\n');
+    }),
+  );
+  return ['  <url>', `    <loc>${absoluteUrl('/portfolio/portretten')}</loc>`, ...images, '  </url>'].join('\n');
+}
+
+/** /portfolio/bruiloften: alle bruiloftfoto's, grote versie (zelfde varianten als op de pagina). */
+async function bruiloftenUrl(): Promise<string> {
+  if (bruiloften.length === 0) return '';
+  const images = await Promise.all(
+    bruiloften.map(async (photo) => {
+      const { large } = await getPortfolioImages(photo);
+      return [
+        '    <image:image>',
+        `      <image:loc>${escapeXml(absoluteUrl(large[large.length - 1].src))}</image:loc>`,
+        `      <image:title>${escapeXml(photo.alt)}</image:title>`,
+        '    </image:image>',
+      ].join('\n');
+    }),
+  );
+  return ['  <url>', `    <loc>${absoluteUrl('/portfolio/bruiloften')}</loc>`, ...images, '  </url>'].join('\n');
+}
+
 async function landingUrls(): Promise<string[]> {
   const urls = await Promise.all(
     LANDINGSPAGINAS.map(async (pagina) => {
@@ -58,6 +94,8 @@ async function landingUrls(): Promise<string[]> {
 
 export const GET: APIRoute = async () => {
   const landing = await landingUrls();
+  const portrettenPagina = await portrettenUrl();
+  const bruiloftenPagina = await bruiloftenUrl();
   const urls = await Promise.all(
     chunks(portfolio).map(async (group) => {
       const images = await Promise.all(
@@ -80,6 +118,8 @@ export const GET: APIRoute = async () => {
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
     ...landing,
+    ...(portrettenPagina ? [portrettenPagina] : []),
+    ...(bruiloftenPagina ? [bruiloftenPagina] : []),
     ...urls,
     '</urlset>',
     '',

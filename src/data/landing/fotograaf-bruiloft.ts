@@ -110,8 +110,8 @@ export const fotograafBruiloft: LandingPagina = {
         alt: 'Een lachende bruid met sluier zit achter in een oude auto; door het open raam kijkt een vrouw met een strohoed met wijd open mond naar binnen.',
       },
     ],
-    // /portfolio bestaat (src/pages/portfolio.astro).
-    link: { label: 'meer werk in het portfolio', href: '/portfolio' },
+    // /portfolio/bruiloften bestaat (src/pages/portfolio/bruiloften.astro): alle bruiloftfoto's op het canvas.
+    link: { label: 'meer werk in het portfolio', href: '/portfolio/bruiloften' },
   },
 
   /**

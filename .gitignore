@@ -26,3 +26,10 @@ pnpm-debug.log*
 
 # schermafdrukken van scripts/vergelijk (lokale vergelijking)
 scripts/vergelijk/*.png
+
+# volledige backup van de bronfoto's voor scripts/optimaliseer-bronfotos.mjs (niet committen)
+_originelen/
+
+# .tif-bestanden in src/assets: Astro herkent ze niet en de site gebruikt ze niet (naast elk gebruikt bestand staat een .jpg).
+# De originelen staan in _originelen/ (zelfde mappenstructuur, ook niet gecommit).
+src/assets/**/*.tif

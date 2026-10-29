@@ -24,6 +24,7 @@
  * Content: `pagina.impressie` (zie src/data/landing/types.ts).
  */
 import { Picture } from 'astro:assets';
+import { FALLBACK_FORMAAT, FORMATEN } from '../../lib/beeld';
 import type { LandingImpressie } from '../../data/landing/types';
 
 interface Props {
@@ -83,7 +84,7 @@ const rijenMobiel: { rijen: RijConfig[]; afstand: number } = {
   afstand: 3, // vw
 };
 
-const WIDTHS = [320, 480, 640, 960, 1280];
+const WIDTHS = [480, 780, 1280];
 const MIN_HOOGTEVERHOUDING = 0.6;
 
 interface Slot {
@@ -217,8 +218,8 @@ if (indeling === 'rij') {
                     height={height}
                     widths={WIDTHS}
                     sizes={sizes}
-                    formats={['avif', 'webp']}
-                    fallbackFormat="jpg"
+                    formats={FORMATEN}
+                    fallbackFormat={FALLBACK_FORMAAT}
                     loading="lazy"
                     decoding="async"
                   />
@@ -247,8 +248,8 @@ if (indeling === 'rij') {
                       height={height}
                       widths={WIDTHS}
                       sizes={`(min-width: 900px) ${breedteDesktop[index]}vw, ${breedteMobiel[index]}vw`}
-                      formats={['avif', 'webp']}
-                      fallbackFormat="jpg"
+                      formats={FORMATEN}
+                      fallbackFormat={FALLBACK_FORMAAT}
                       loading="lazy"
                       decoding="async"
                     />

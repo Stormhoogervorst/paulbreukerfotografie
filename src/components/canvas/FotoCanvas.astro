@@ -1,0 +1,664 @@
+---
+/**
+ * Gedeeld foto-canvas: één oneindig, sleepbaar canvas met lightbox (slepen om te verkennen, klikken voor groot formaat,
+ * sluiten). Gebruikt door /portfolio (src/pages/portfolio.astro) en /portfolio/portretten
+ * (src/pages/portfolio/portretten.astro). Het component rendert de hele pagina (BaseLayout zonder header en footer).
+ *
+ * Gedrag: src/scripts/foto-canvas.ts. Plaatsing: src/lib/portfolio-layout.ts (deterministisch; elke foto behoudt zijn
+ * eigen beeldverhouding en past in een cel van `config.cellDesktop` / `config.cellMobile`). Beeldvarianten:
+ * src/lib/portfolio-images.ts. De CSS-klassen heten nog `.portfolio__*` (zo blijft /portfolio ongewijzigd).
+ *
+ * Laden (zie ook foto-canvas.ts): miniaturen van 600 en 960 px (alleen AVIF, in de <img>), met het gemiddelde kleurvlak van
+ * de foto als achtergrond tijdens het laden. Alleen tegels in of vlak bij beeld (ongeveer een halve schermhoogte) krijgen
+ * een afbeelding. De grote versie voor de lightbox (één variant van 2200 px) laadt pas na een klik.
+ *
+ * Props: `fotos`, `h1`, `instructie`, `links` (rechtsonder), `terug` (linksboven), `ogImage` en de SEO-velden voor
+ * BaseLayout. Zie `Props` voor de rest.
+ *
+ * `bron`: waar de foto's voor zoekmachines en zonder JavaScript staan.
+ *  - "noscript" (standaard, /portfolio): een raster van maximaal 48 miniaturen in <noscript>.
+ *  - "html" (/portfolio/portretten): alle foto's als gewone <img> met alt in de initiële HTML, in een lijst buiten beeld
+ *    (zonder JavaScript een zichtbaar raster). Alleen de eerste zes rond het startpunt van het canvas (op een
+ *    referentiescherm van 390 px) zijn eager met normale prioriteit (gemeten: een `fetchpriority="high"` op de lijstfoto
+ *    verslechtert de LCP, omdat de LCP-tegel van het script een andere foto kan zijn); de rest is lazy en ver buiten
+ *    beeld, dus niet opgehaald. De LCP-tegel (de enige met fetchpriority="high") maakt het script met JavaScript.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPortfolioImages, toSrcset, type ImagePhoto } from '../../lib/portfolio-images';
+import { generateLayout } from '../../lib/portfolio-layout';
+import type { AnySchema } from '../../lib/schema';
+import type { CanvasConfig, ClientPhoto } from '../../scripts/foto-canvas';
+
+export interface CanvasFoto extends ImagePhoto {
+  alt: string;
+  series?: string | null;
+  /** Serienaam voor onder de grote weergave; zonder titel geen bijschrift. */
+  seriesTitle?: string | null;
+  seriesHref?: string | null;
+}
+
+export interface CanvasLink {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  /** SEO, doorgegeven aan BaseLayout. */
+  title: string;
+  description: string;
+  canonical: string;
+  ogImage?: string;
+  jsonLd?: AnySchema[];
+  /** Foto's in de volgorde van de bron (de plaatsing op het canvas is geschud en deterministisch). */
+  fotos: CanvasFoto[];
+  /** De enige H1 van de pagina (zichtbaar linksonder). */
+  h1: string;
+  /** Instructietekst onder de H1; vervaagt na de eerste interactie. */
+  instructie: string;
+  /** Links rechtsonder; elke link krijgt een pijl → erachter. */
+  links: CanvasLink[];
+  /** Knoppen linksboven; elke knop krijgt een pijl ← ervoor. */
+  terug: CanvasLink[];
+  /** Plaatsing en laden; niet gezette waarden vallen terug op de standaard van /portfolio (zie foto-canvas.ts). */
+  config?: CanvasConfig;
+  bron?: 'noscript' | 'html';
+  /** Alleen bij bron="noscript": link onder het raster. */
+  noscriptLink?: CanvasLink;
+  /** Toegankelijke naam van de lijst bij bron="html". */
+  lijstLabel?: string;
+}
+
+const NOSCRIPT_LIMIT = 48;
+const EAGER_COUNT = 6;
+/** Referentiescherm (mobiel) om te bepalen welke foto's bij het startpunt in beeld komen. */
+const REFERENCE_VIEW = { w: 390, h: 780 };
+/** Zelfde startpositie als in foto-canvas.ts (offX/offY bij de start). */
+const START_OFFSET = { x: 0.25, y: 0.15 };
+
+const {
+  title,
+  description,
+  canonical,
+  ogImage,
+  jsonLd,
+  fotos,
+  h1,
+  instructie,
+  links,
+  terug,
+  config,
+  bron = 'noscript',
+  noscriptLink,
+  lijstLabel = "Alle foto's",
+} = Astro.props;
+
+const images = await Promise.all(fotos.map((foto) => getPortfolioImages(foto)));
+
+const clientPhotos: ClientPhoto[] = fotos.map((foto, i) => {
+  const { thumbs, large, color } = images[i];
+  return {
+    id: foto.id,
+    series: foto.series ?? null,
+    title: foto.seriesTitle ?? null,
+    href: foto.seriesHref ?? null,
+    width: foto.width,
+    height: foto.height,
+    alt: foto.alt,
+    color,
+    thumbSrc: thumbs[0].src,
+    thumbSrcset: toSrcset(thumbs),
+    largeSrc: large[large.length - 1].src,
+    largeSrcset: toSrcset(large),
+  };
+});
+
+const json = JSON.stringify({ photos: clientPhotos, ...(config ? { config } : {}) }).replace(/</g, '\\u003c');
+
+// ---- bron="noscript": om en om uit de series, zodat het raster gemengd is.
+const noscriptIndices: number[] = [];
+if (bron === 'noscript') {
+  const bySeries = new Map<string, number[]>();
+  fotos.forEach((foto, i) => {
+    const key = foto.series ?? '';
+    bySeries.set(key, [...(bySeries.get(key) ?? []), i]);
+  });
+  for (let round = 0; noscriptIndices.length < Math.min(NOSCRIPT_LIMIT, fotos.length); round += 1) {
+    for (const list of bySeries.values()) {
+      if (list[round] !== undefined && noscriptIndices.length < NOSCRIPT_LIMIT) {
+        noscriptIndices.push(list[round]);
+      }
+    }
+  }
+}
+
+// ---- bron="html": de zes foto's die bij het startpunt (referentiescherm) het dichtst bij het midden staan.
+const cellMobile = config?.cellMobile ?? [150, 130];
+const cellDesktop = config?.cellDesktop ?? [290, 230];
+const eager = new Map<number, number>(); // foto-index -> breedte (px) op het referentiescherm
+if (bron === 'html' && fotos.length > 0) {
+  const [cellW, cellH] = cellMobile;
+  const layout = generateLayout(
+    fotos.map((foto) => ({ id: foto.id, series: foto.series ?? null, width: foto.width, height: foto.height })),
+    { cellW, cellH, viewportW: REFERENCE_VIEW.w, viewportH: REFERENCE_VIEW.h, ...(config?.gap !== undefined ? { gap: config.gap } : {}) },
+  );
+  const centerX = REFERENCE_VIEW.w / 2 + Math.round(cellW * START_OFFSET.x);
+  const centerY = REFERENCE_VIEW.h / 2 + Math.round(cellH * START_OFFSET.y);
+  const nearest = new Map<number, { dist: number; w: number }>();
+  for (const item of layout.items) {
+    for (const kx of [-1, 0, 1]) {
+      for (const ky of [-1, 0, 1]) {
+        const dx = kx * layout.tileW + item.x + item.w / 2 - centerX;
+        const dy = ky * layout.tileH + item.y + item.h / 2 - centerY;
+        const dist = dx * dx + dy * dy;
+        const current = nearest.get(item.photo);
+        if (!current || dist < current.dist) nearest.set(item.photo, { dist, w: item.w });
+      }
+    }
+  }
+  [...nearest.entries()]
+    .sort((a, b) => a[1].dist - b[1].dist)
+    .slice(0, EAGER_COUNT)
+    .forEach(([index, { w }]) => eager.set(index, w));
+}
+const eagerOrder = [...eager.keys()];
+
+/** Breedte van een foto op het canvas bij schaal 1 (de grootste tegel) in een cel. */
+function maxWidth(foto: CanvasFoto, [cellW, cellH]: readonly [number, number]): number {
+  const gap = config?.gap ?? 20;
+  const fit = Math.min((cellW - gap) / foto.width, (cellH - gap) / foto.height);
+  return Math.max(1, Math.round(foto.width * fit));
+}
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  ogImage={ogImage}
+  header={false}
+  footer={false}
+  htmlClass="page-portfolio"
+  jsonLd={jsonLd}
+>
+  <div class="portfolio" data-portfolio>
+    <nav class="portfolio__nav" aria-label="Terug">
+      {
+        terug.map((link) => (
+          <a class="portfolio__home" href={link.href}><span aria-hidden="true">←</span> {link.label}</a>
+        ))
+      }
+    </nav>
+
+    <div
+      class="portfolio__canvas"
+      tabindex="0"
+      role="region"
+      aria-label="Fotogalerij: sleep of gebruik de pijltjestoetsen om te verkennen"
+    >
+      <div class="portfolio__world"></div>
+    </div>
+
+    {
+      bron === 'noscript' ? (
+        <noscript>
+          <div class="portfolio__noscript">
+            <ul class="portfolio__noscript-grid">
+              {noscriptIndices.map((i) => {
+                const photo = fotos[i];
+                const thumb = images[i].thumbs;
+                const sizes = '(min-width: 700px) 220px, 45vw';
+                const img = (
+                  <picture>
+                    <img
+                      src={thumb[0].src}
+                      srcset={toSrcset(thumb)}
+                      sizes={sizes}
+                      width={thumb[0].width}
+                      height={Math.round((thumb[0].width * photo.height) / photo.width)}
+                      alt={photo.alt}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </picture>
+                );
+                return <li>{photo.seriesHref ? <a href={photo.seriesHref}>{img}</a> : img}</li>;
+              })}
+            </ul>
+            {noscriptLink && (
+              <p>
+                <a href={noscriptLink.href}>{noscriptLink.label}</a>
+              </p>
+            )}
+          </div>
+        </noscript>
+      ) : (
+        <>
+          <ul class="portfolio__bron" aria-label={lijstLabel}>
+            {fotos.map((foto, i) => {
+              const thumb = images[i].thumbs;
+              const rank = eagerOrder.indexOf(i);
+              const isEager = rank !== -1;
+              const sizes = `(min-width: 700px) ${maxWidth(foto, cellDesktop)}px, ${isEager ? eager.get(i) : maxWidth(foto, cellMobile)}px`;
+              return (
+                <li>
+                  <picture>
+                    <img
+                      src={thumb[0].src}
+                      srcset={toSrcset(thumb)}
+                      sizes={sizes}
+                      width={thumb[0].width}
+                      height={Math.round((thumb[0].width * foto.height) / foto.width)}
+                      alt={foto.alt}
+                      loading={isEager ? 'eager' : 'lazy'}
+                      decoding="async"
+                    />
+                  </picture>
+                </li>
+              );
+            })}
+          </ul>
+          <noscript>
+            <style is:inline>
+              .portfolio__canvas { display: none; }
+              /* !important: de gescopete stijl van het component (met data-astro-cid) is specifieker dan deze regel. */
+              .portfolio__bron { inset: 0 !important; width: auto !important; padding: 5rem var(--gutter) 8rem !important; overflow: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(45vw, 220px), 1fr)); gap: var(--space-4); align-items: center; background: var(--canvas); z-index: 1; }
+            </style>
+          </noscript>
+        </>
+      )
+    }
+
+    <div class="portfolio__overlay">
+      <div class="portfolio__intro">
+        <h1 class="portfolio__title">{h1}</h1>
+        <p class="portfolio__hint">{instructie}</p>
+      </div>
+      <ul class="portfolio__links">
+        {
+          links.map((link) => (
+            <li><a href={link.href}>{link.label} <span aria-hidden="true">→</span></a></li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <dialog class="lightbox" aria-label="Foto in groot formaat">
+      <figure class="lightbox__figure">
+        <!-- Twee lagen op dezelfde plek: de miniatuur (tijdelijk, al in de cache) en de grote versie (pas na het klikken geladen). -->
+        <div class="lightbox__stage">
+          <picture class="lightbox__laag lightbox__laag--klein">
+            <img class="lightbox__klein" alt="" aria-hidden="true" decoding="async" />
+          </picture>
+          <picture class="lightbox__laag lightbox__laag--groot">
+            <img class="lightbox__img" alt="" decoding="async" />
+          </picture>
+        </div>
+        <figcaption class="lightbox__caption" hidden></figcaption>
+      </figure>
+      <button type="button" class="lightbox__nav lightbox__nav--vorige" aria-label="Vorige foto"><span aria-hidden="true">←</span> vorige</button>
+      <button type="button" class="lightbox__nav lightbox__nav--volgende" aria-label="Volgende foto">volgende <span aria-hidden="true">→</span></button>
+      <button type="button" class="lightbox__close">sluiten</button>
+      <!-- Verborgen: hier laden de vorige en volgende foto voor (alleen na het openen). -->
+      <div class="lightbox__voorladen" hidden></div>
+    </dialog>
+  </div>
+
+  <script is:inline type="application/json" id="portfolio-data" set:html={json} />
+  <script>
+    import '../../scripts/foto-canvas';
+  </script>
+</BaseLayout>
+
+<style>
+  :global(html.page-portfolio),
+  :global(html.page-portfolio body) {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  :global(html.page-portfolio body) {
+    height: 100svh;
+    min-height: 0;
+  }
+
+  :global(html.page-portfolio main) {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .portfolio {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: var(--canvas);
+  }
+
+  /* ---------- Terug-knoppen (geen header op deze pagina) ---------- */
+  .portfolio__nav {
+    position: absolute;
+    top: max(var(--space-3), env(safe-area-inset-top));
+    left: var(--gutter);
+    z-index: 3;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .portfolio__home {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    background: var(--paper);
+    border: 1px solid rgb(21 21 21 / 0.12);
+    font-size: var(--font-size-small);
+    line-height: 1;
+    text-decoration: none;
+  }
+
+  .portfolio__home:hover {
+    text-decoration: underline;
+  }
+
+  /* ---------- Canvas ---------- */
+  .portfolio__canvas {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: pinch-zoom;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .portfolio__canvas.is-dragging {
+    cursor: grabbing;
+  }
+
+  .portfolio__canvas:focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: -3px;
+    border-radius: 0;
+  }
+
+  .portfolio__world {
+    position: absolute;
+    top: 0;
+    left: 0;
+    will-change: transform;
+  }
+
+  .portfolio__world :global(.portfolio__tile) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background-color: var(--canvas);
+    cursor: inherit;
+  }
+
+  .portfolio__world :global(.portfolio__tile:focus-visible) {
+    outline: 3px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 0;
+  }
+
+  .portfolio__world :global(.portfolio__tile picture) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .portfolio__world :global(.portfolio__tile img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    opacity: 0;
+    /* Alleen opacity, 150 ms. Tot de foto binnen is, staat de tegel in het gemiddelde kleurvlak van de foto (inline). */
+    transition: opacity 150ms ease-out;
+  }
+
+  .portfolio__world :global(.portfolio__tile.is-loaded img) {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .portfolio__world :global(.portfolio__tile img) {
+      opacity: 1;
+      transition: none;
+    }
+  }
+
+  /* ---------- Zonder JavaScript ---------- */
+  .portfolio__noscript {
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+    padding: 5rem var(--gutter) 8rem;
+    background: var(--canvas);
+  }
+
+  .portfolio__noscript-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(45vw, 220px), 1fr));
+    gap: var(--space-4);
+    align-items: center;
+  }
+
+  .portfolio__noscript-grid img {
+    width: 100%;
+    height: auto;
+  }
+
+  .portfolio__noscript p {
+    margin-top: var(--space-5);
+    font-size: var(--font-size-small);
+  }
+
+  /* ---------- Lijst met alle foto's in de HTML (bron="html") ---------- */
+  /* Ver buiten beeld, zodat de lazy afbeeldingen niet laden; wel gewoon in de HTML (en voor schermlezers). */
+  .portfolio__bron {
+    position: absolute;
+    top: 0;
+    left: -10000px;
+    width: 240px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .portfolio__bron img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ---------- Overlay ---------- */
+  .portfolio__overlay {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: 3rem var(--gutter) max(var(--space-3), env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--canvas) 35%, transparent);
+    pointer-events: none;
+    font-size: var(--font-size-small);
+    line-height: 1.4;
+  }
+
+  .portfolio__title {
+    margin: 0 0 var(--space-1);
+    font-size: 1.25rem;
+    letter-spacing: -0.01em;
+  }
+
+  .portfolio__hint {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--ink-zacht);
+    transition: opacity 0.6s ease;
+  }
+
+  .portfolio__hint.is-faded {
+    opacity: 0;
+  }
+
+  .portfolio__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    column-gap: var(--space-4);
+  }
+
+  .portfolio__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: none;
+    pointer-events: auto;
+  }
+
+  .portfolio__links a span {
+    margin-left: 0.3em;
+  }
+
+  .portfolio__links a:hover {
+    text-decoration: underline;
+  }
+
+  /* ---------- Grote weergave ---------- */
+  .lightbox {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgb(230 230 230 / 0.97);
+    color: var(--ink);
+  }
+
+  .lightbox[open] {
+    display: grid;
+    place-items: center;
+  }
+
+  .lightbox::backdrop {
+    background: transparent;
+  }
+
+  .lightbox__figure {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  /* De foto staat op dezelfde plek in twee lagen (miniatuur eronder, grote versie erboven). De grootte volgt uit de
+     verhouding en past in 90% van het scherm; de achtergrond is het gemiddelde kleurvlak van de foto (--kleur). */
+  .lightbox__stage {
+    --ratio: 1.5;
+    display: grid;
+    width: min(90vw, calc((90svh - 4rem) * var(--ratio)));
+    aspect-ratio: var(--ratio);
+    background-color: var(--kleur, transparent);
+  }
+
+  .lightbox__laag {
+    display: block;
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
+  .lightbox__laag--groot {
+    opacity: 0;
+    transition: opacity 150ms ease-out;
+  }
+
+  .lightbox__stage.is-ready .lightbox__laag--groot {
+    opacity: 1;
+  }
+
+  .lightbox__klein,
+  .lightbox__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+  }
+
+  .lightbox__caption {
+    font-size: var(--font-size-small);
+  }
+
+  .lightbox__caption :global(a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .lightbox__close {
+    position: fixed;
+    top: var(--space-2);
+    right: var(--space-2);
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--font-size-small);
+    cursor: pointer;
+  }
+
+  .lightbox__close:hover,
+  .lightbox__nav:hover {
+    text-decoration: underline;
+  }
+
+  .lightbox__nav {
+    position: fixed;
+    bottom: max(var(--space-2), env(safe-area-inset-bottom));
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--font-size-small);
+    cursor: pointer;
+  }
+
+  .lightbox__nav--vorige {
+    left: var(--space-2);
+  }
+
+  .lightbox__nav--volgende {
+    right: var(--space-2);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .portfolio__hint,
+    .lightbox__laag--groot {
+      transition: none;
+    }
+  }
+</style>

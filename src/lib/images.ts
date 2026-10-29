@@ -6,7 +6,13 @@ import type { ImageMetadata } from 'astro';
  * `undefined` terug en toont de pagina een placeholder in plaats van te falen.
  */
 const modules = import.meta.glob<{ default: ImageMetadata }>(
-  '../assets/home/*.{jpg,jpeg,png,webp,avif}',
+  [
+    '../assets/home/*.{jpg,jpeg,png,webp,avif}',
+    // Niet gebruikt op de site (zie src/data/home.ts). Importeren is genoeg om het origineel in /_astro te zetten, dus
+    // staan ze hier uitgesloten. Wil je er een weer gebruiken: haal de regel hieronder weg.
+    '!../assets/home/gaarkeuken-3.jpg',
+    '!../assets/home/project-het-gezicht-van-nijmegen.jpg',
+  ],
   { eager: true },
 );
 

@@ -12,6 +12,7 @@
  * Content: `pagina.beeld` (zie src/data/landing/types.ts).
  */
 import { Picture } from 'astro:assets';
+import { BREEDTES_HERO, FALLBACK_FORMAAT, FORMATEN } from '../../lib/beeld';
 import type { LandingBeeld } from '../../data/landing/types';
 
 interface Props {
@@ -29,10 +30,10 @@ const { width, height } = afbeelding;
     alt={alt}
     width={width}
     height={height}
-    widths={[480, 800, width]}
+    widths={BREEDTES_HERO}
     sizes="100vw"
-    formats={['avif', 'webp']}
-    fallbackFormat="jpg"
+    formats={FORMATEN}
+    fallbackFormat={FALLBACK_FORMAAT}
     loading="lazy"
     decoding="async"
   />

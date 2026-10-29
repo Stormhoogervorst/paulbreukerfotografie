@@ -9,6 +9,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PaginaKop from '../components/PaginaKop.astro';
 import { serieLijst, serieHref } from '../data/series';
 import { breadcrumbList, collectionPage } from '../lib/schema';
+import { BREEDTES_KAART, FALLBACK_FORMAAT, FORMATEN } from '../lib/beeld';
 
 const title = 'Fotoseries en projecten | Paul Breuker';
 const description =
@@ -27,9 +28,6 @@ const jsonLd = [
   }),
 ];
 
-/** Breedtes voor srcset: nooit boven het bronbestand (geen opschaling). */
-const BREEDTES = [480, 800, 1200];
-const breedtes = (bron: number) => [...new Set([...BREEDTES.filter((breedte) => breedte < bron), bron])];
 ---
 
 <BaseLayout title={title} description={description} canonical="/series" jsonLd={jsonLd}>
@@ -46,13 +44,13 @@ const breedtes = (bron: number) => [...new Set([...BREEDTES.filter((breedte) => 
                 alt={project.alt}
                 width={project.omslag.width}
                 height={project.omslag.height}
-                widths={breedtes(project.omslag.width)}
+                widths={BREEDTES_KAART}
                 sizes="(min-width: 700px) 46vw, 89vw"
-                formats={['avif', 'webp']}
-                fallbackFormat="jpg"
-                loading={index < 2 ? 'eager' : 'lazy'}
+                formats={FORMATEN}
+                fallbackFormat={FALLBACK_FORMAAT}
+                loading={index === 0 ? 'eager' : 'lazy'}
                 fetchpriority={index === 0 ? 'high' : undefined}
-                decoding={index < 2 ? 'sync' : 'async'}
+                decoding="async"
                 class="kaart__foto"
               />
               <h2 class="kaart__titel">{project.titel}</h2>
@@ -119,7 +117,7 @@ const breedtes = (bron: number) => [...new Set([...BREEDTES.filter((breedte) => 
     font-size: max(1rem, 1.5vw);
     font-weight: 500;
     line-height: 1.3;
-    color: rgb(21 21 21 / 0.6);
+    color: var(--ink-gedempt);
   }
 
   .kaart__link:hover .kaart__titel {

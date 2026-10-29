@@ -1,0 +1,20 @@
+# Wat de Vercel CLI niet mag uploaden (bij een deploy vanuit de map; bij een deploy vanuit git geldt .gitignore).
+# Als deze file bestaat, gebruikt de CLI haar in plaats van .gitignore: houd beide lijsten gelijk.
+
+# volledige backup van de bronfoto's (honderden MB, zie scripts/optimaliseer-bronfotos.mjs)
+_originelen/
+
+# .tif-bestanden in src/assets (niet gebruikt door de site)
+src/assets/**/*.tif
+
+# build, afgeleide bestanden en lokale dingen
+dist/
+.astro/
+.env
+.env.production
+.DS_Store
+.idea/
+npm-debug.log*
+
+# lokale vergelijkingen en meetresultaten
+scripts/vergelijk/
