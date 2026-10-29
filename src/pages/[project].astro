@@ -199,10 +199,10 @@ const klasse = titelKlasse(serie.titel);
   .titelblok {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 2vw;
     padding: 8vw var(--gutter) 5vw;
-    text-align: center;
+    text-align: left;
   }
 
   /* Zelfde stijl als de H1 op /series; de grootte hangt af van de lengte van de titel (klassen via titelKlasse()). */
@@ -311,10 +311,9 @@ const klasse = titelKlasse(serie.titel);
       font-size: 8vw;
     }
 
-    /* Introductie: gecentreerde kolom van 54vw (begint op 23vw), label links in de kolom, tekst eronder. */
+    /* Introductie: kolom van 54vw, links uitgelijnd met de H1 (begint bij de gutter), label en tekst eronder. */
     .intro__kolom {
       width: 54vw;
-      margin-inline: auto;
     }
 
     .intro__label {
