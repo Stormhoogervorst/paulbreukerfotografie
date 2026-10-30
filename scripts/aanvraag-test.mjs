@@ -9,7 +9,8 @@
  * Controles (portret): geldige aanvraag leidt naar /bedankt?type=portret (met de stappen van het portret), lege
  * verzending toont fouten, honeypot gevuld logt niets, ongeldig e-mailadres geeft 400, een klik op de cta van
  * "Kunstportret" scrolt naar #aanvragen met dat pakket voorgeselecteerd en het veld "locatie" staat in de gelogde
- * aanvraag. Daarnaast regressiecontroles voor het bruiloftformulier.
+ * aanvraag. Daarnaast controles voor het bruiloftformulier, met het veld "pakket" (Digitaal, Volledig analoog, Combinatie,
+ * Nog niet zeker): de cta's op de kaarten en de link "op aanvraag" in de noot vullen het pakket vooraf in.
  *
  * Controles (contact, /contact): geldige aanvraag leidt naar /bedankt?type=contact (met de stappen van het contactformulier)
  * en wordt gelogd, lege verzending toont fouten en zet de focus op het eerste ongeldige veld, honeypot gevuld logt niets,
@@ -106,6 +107,7 @@ const geldigBruiloft = {
   locatie: 'Kasteel Doorwerth',
   namen: 'Anna en Bram',
   email: 'anna@example.com',
+  pakket: 'digitaal',
   tijd: '5000',
 };
 
@@ -249,11 +251,36 @@ await controle('bruiloft API (regressie): geldige aanvraag, 303 zonder JavaScrip
   eis(aantalMails() === voor + 1, 'geen dry-run gelogd');
   eis(log.includes('Onderwerp: Nieuwe bruiloftaanvraag: Anna en Bram, 12 juni 2099'), 'onderwerp ontbreekt');
   eis(log.includes('Verstuurd via paulbreuker.nl/fotograaf-bruiloft'), 'bron ontbreekt');
+  eis(log.includes('Gewenst pakket: Digitaal'), 'het gekozen pakket ontbreekt in de mail');
   const { tijd: _t, ...velden } = geldigBruiloft;
   const redirect = await postFormulier(velden);
   eis(redirect.status === 303 && redirect.location === '/bedankt?type=bruiloft', `${redirect.status} ${redirect.location}`);
   const fout = await postJson({ ...geldigBruiloft, email: 'x', namen: '' });
   eis(fout.status === 400 && fout.json?.fouten?.email && fout.json?.fouten?.namen, JSON.stringify(fout.json));
+});
+
+await controle('bruiloft API: alle vier de pakketopties zijn geldig; leeg, onbekend en een vervallen pakket geven 400', async () => {
+  for (const [waarde, label] of [
+    ['digitaal', 'Digitaal'],
+    ['analoog', 'Volledig analoog'],
+    ['combinatie', 'Combinatie'],
+    ['onbekend', 'Nog niet zeker'],
+  ]) {
+    const voor = aantalMails();
+    const ok = await postJson({ ...geldigBruiloft, pakket: waarde });
+    eis(ok.status === 200 && ok.json?.ok === true, `${waarde}: status ${ok.status} ${JSON.stringify(ok.json)}`);
+    await wacht(500);
+    eis(aantalMails() === voor + 1, `${waarde}: geen dry-run gelogd`);
+    eis(log.includes(`Gewenst pakket: ${label}`), `${waarde}: "Gewenst pakket: ${label}" ontbreekt in het log`);
+  }
+  for (const pakket of ['', 'reportage', 'album', 'collectie']) {
+    const antwoord = await postJson({ ...geldigBruiloft, pakket });
+    eis(antwoord.status === 400 && antwoord.json?.fouten?.pakket, `pakket "${pakket}": ${antwoord.status} ${JSON.stringify(antwoord.json)}`);
+  }
+  const zonder = { ...geldigBruiloft };
+  delete zonder.pakket;
+  const geen = await postJson(zonder);
+  eis(geen.status === 400 && geen.json?.fouten?.pakket, `zonder pakket: ${geen.status} ${JSON.stringify(geen.json)}`);
 });
 
 // ---------------------------------------------------------------------------
@@ -272,16 +299,16 @@ async function nieuwePagina(pad) {
   return { context, pagina };
 }
 
-await controle('portret UI: klik op de cta van "Kunstportret" scrolt naar #aanvragen en kiest dat pakket', async () => {
+await controle('portret UI: geen sectie Pakketten en geen link naar #pakketten; het formulier heeft wel het pakketveld', async () => {
   const { context, pagina } = await nieuwePagina('/portretfotos');
   try {
-    await pagina.locator('a[data-pakket="kunstportret"]').click();
-    await pagina.waitForFunction(() => location.hash === '#aanvragen');
-    const waarde = await pagina.locator('#aanvraag-pakket').inputValue();
-    eis(waarde === 'kunstportret', `pakketveld = "${waarde}"`);
-    await pagina.waitForTimeout(600);
-    const top = await pagina.locator('#aanvragen').evaluate((el) => Math.round(el.getBoundingClientRect().top));
-    eis(Math.abs(top) < 200, `#aanvragen staat ${top}px van de bovenkant`);
+    eis((await pagina.locator('#pakketten').count()) === 0, 'de sectie #pakketten staat nog op de pagina');
+    eis((await pagina.locator('a[href="#pakketten"]').count()) === 0, 'er is nog een link naar #pakketten');
+    eis((await pagina.locator('a[data-pakket]').count()) === 0, 'er zijn nog pakket-cta’s');
+    const opties = await pagina.locator('#aanvraag-pakket option').evaluateAll((els) => els.map((el) => el.value));
+    eis(opties.includes('kunstportret'), `opties: ${opties.join('|')}`);
+    await pagina.selectOption('#aanvraag-pakket', 'kunstportret');
+    eis((await pagina.locator('#aanvraag-pakket').inputValue()) === 'kunstportret', 'pakket is niet te kiezen');
   } finally {
     await context.close();
   }
@@ -304,11 +331,11 @@ await controle('portret UI: lege verzending toont fouten en verstuurt niets', as
   }
 });
 
-await controle('portret UI: geldige aanvraag (via de cta) leidt naar /bedankt?type=portret, locatie staat in het log', async () => {
+await controle('portret UI: geldige aanvraag leidt naar /bedankt?type=portret, locatie staat in het log', async () => {
   const { context, pagina } = await nieuwePagina('/portretfotos');
   try {
     const voor = aantalMails();
-    await pagina.locator('a[data-pakket="kunstportret"]').click();
+    await pagina.selectOption('#aanvraag-pakket', 'kunstportret');
     await pagina.fill('#aanvraag-naam', 'Ine Jansen');
     await pagina.fill('#aanvraag-email', 'ine@example.com');
     await pagina.fill('#aanvraag-locatie', 'Buiten, bij de Waal');
@@ -450,12 +477,60 @@ await controle('bruiloft UI (regressie): /bedankt?type=bruiloft toont de stappen
   }
 });
 
-await controle('bruiloft UI (regressie): klik op een pakket-cta springt naar #aanvragen en laat het formulier ongemoeid', async () => {
+/** Pakketten-sectie van een bruiloftspagina: twee kaarten (Digitaal en Volledig analoog), geen oude pakketten en de noot met de link "op aanvraag". */
+for (const pad of ['/fotograaf-bruiloft', '/trouwfotograaf-nijmegen']) {
+  await controle(`bruiloft UI (${pad}): twee pakketten en een noot; de cta's en "op aanvraag" vullen het pakket vooraf in`, async () => {
+    const { context, pagina } = await nieuwePagina(pad);
+    try {
+      const namen = await pagina.locator('#pakketten .pakket__naam').allTextContents();
+      eis(namen.join('|') === 'Digitaal|Volledig analoog', `pakketten: ${namen.join('|')}`);
+      const prijzen = (await pagina.locator('#pakketten .pakket__bedrag').allTextContents()).map((t) => t.replace(/\s/g, ''));
+      eis(prijzen.join('|') === '€3.950|€6.950', `prijzen: ${prijzen.join('|')}`);
+      const noot = (await pagina.locator('#pakketten .pakketten__noot').textContent())?.trim();
+      eis(noot === 'Een combinatie van digitaal en analoog is op aanvraag ook mogelijk.', `noot: ${noot}`);
+      eis((await pagina.locator('#pakketten .pakketten__noot a').getAttribute('href')) === '#aanvragen', 'de link "op aanvraag" wijst niet naar #aanvragen');
+      eis((await pagina.locator('#pakketten').textContent())?.match(/Reportage|Collectie|fotoalbum|foto’s/) === null, 'oude pakketten of een aantal foto’s staan nog in de sectie');
+
+      for (const [selector, verwacht] of [
+        ['a[data-pakket="analoog"]', 'analoog'],
+        ['a[data-pakket="digitaal"]', 'digitaal'],
+        ['#pakketten .pakketten__noot a[data-pakket="combinatie"]', 'combinatie'],
+      ]) {
+        await pagina.evaluate(() => history.replaceState(null, '', location.pathname));
+        await pagina.locator(selector).first().click();
+        await pagina.waitForFunction(() => location.hash === '#aanvragen');
+        const waarde = await pagina.locator('#aanvraag-pakket').inputValue();
+        eis(waarde === verwacht, `${selector}: pakketveld = "${waarde}", verwacht "${verwacht}"`);
+      }
+      const opties = await pagina.locator('#aanvraag-pakket option').evaluateAll((els) => els.map((el) => `${el.value}:${el.textContent.trim()}`));
+      eis(
+        opties.join('|') === ':Maak een keuze|digitaal:Digitaal|analoog:Volledig analoog|combinatie:Combinatie|onbekend:Nog niet zeker',
+        `opties: ${opties.join('|')}`,
+      );
+    } finally {
+      await context.close();
+    }
+  });
+}
+
+await controle('bruiloft UI: verzenden zonder pakket geeft een foutmelding bij het pakketveld; met pakket leidt naar /bedankt', async () => {
   const { context, pagina } = await nieuwePagina('/fotograaf-bruiloft');
   try {
-    await pagina.locator('a[data-pakket="album"]').click();
-    await pagina.waitForFunction(() => location.hash === '#aanvragen');
-    eis((await pagina.locator('#aanvraag-pakket').count()) === 0, 'het bruiloftformulier heeft ineens een pakketveld');
+    const voor = aantalMails();
+    await pagina.fill('#aanvraag-locatie', 'Kasteel Doorwerth');
+    await pagina.fill('#aanvraag-namen', 'Anna en Bram');
+    await pagina.fill('#aanvraag-email', 'anna@example.com');
+    await pagina.check('#aanvraag-geenDatum');
+    await pagina.locator('form[data-aanvraag] button[type="submit"]').click();
+    await pagina.waitForTimeout(500);
+    const fout = (await pagina.locator('#aanvraag-pakket-fout').textContent()) ?? '';
+    eis(fout.startsWith('Let op:'), `geen foutmelding bij pakket: "${fout}"`);
+    eis(aantalMails() === voor, 'er is toch een mail gelogd');
+    await pagina.selectOption('#aanvraag-pakket', 'combinatie');
+    await pagina.locator('form[data-aanvraag] button[type="submit"]').click();
+    await pagina.waitForURL(/\/bedankt\?type=bruiloft$/, { timeout: 15000 });
+    eis(aantalMails() === voor + 1, 'geen dry-run gelogd');
+    eis(log.includes('Gewenst pakket: Combinatie'), 'het pakket "Combinatie" ontbreekt in het log');
   } finally {
     await context.close();
   }

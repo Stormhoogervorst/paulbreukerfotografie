@@ -3,9 +3,14 @@
  *
  * - `velden` is de configuratie waaruit LandingFormulier.astro het formulier rendert (volgorde van boven naar beneden).
  * - `schema` valideert altijd op de server (src/pages/api/aanvraag.ts); de browservalidatie is alleen een extra.
+ * - Het veld "pakket" (gewenst pakket) heeft de opties Digitaal (digitaal), Volledig analoog (analoog), Combinatie
+ *   (combinatie) en Nog niet zeker (onbekend). De eerste twee komen uit de pakkettendata (src/data/landing/bruiloft-pakketten.ts;
+ *   waarde is de slug van de cta, label de naam). De cta's op de pakketkaarten (data-pakket) en de link "op aanvraag" in de
+ *   noot onder de pakketten (data-pakket="combinatie") vullen het veld vooraf in (src/scripts/formulier.ts).
  * - Mails zijn platte tekst. Alles wat in een onderwerp komt, gaat door `eenRegel()` (geen regeleinden).
  */
 import { z } from 'zod';
+import { pakketten } from '../../data/landing/bruiloft-pakketten';
 import {
   bevestigingsMail,
   eenRegel,
@@ -13,6 +18,7 @@ import {
   emailVeld,
   enkeleRegel,
   kanaalSchema,
+  keuze,
   kanaalVeld,
   optieLabel,
   optioneel,
@@ -23,7 +29,7 @@ import {
   verstuurdVia,
   KANALEN,
 } from './gedeeld';
-import type { VeldConfig } from './types';
+import type { VeldConfig, VeldOptie } from './types';
 
 export { eenRegel, KANALEN };
 
@@ -41,7 +47,18 @@ const MELDING = {
   locatieLang: 'Gebruik maximaal 160 tekens.',
   namenLeeg: 'Vul jullie namen in.',
   namenLang: 'Gebruik maximaal 120 tekens.',
+  pakket: 'Kies een optie.',
 } as const;
+
+// ---------------------------------------------------------------------------
+// Opties
+// ---------------------------------------------------------------------------
+
+export const PAKKETTEN: VeldOptie[] = [
+  ...pakketten.items.map((pakket) => ({ waarde: pakket.cta.pakket, label: pakket.naam })),
+  { waarde: 'combinatie', label: 'Combinatie' },
+  { waarde: 'onbekend', label: 'Nog niet zeker' },
+];
 
 // ---------------------------------------------------------------------------
 // Velden (configuratie voor het renderen)
@@ -77,6 +94,14 @@ export const velden: VeldConfig[] = [
   },
   emailVeld(),
   telefoonVeld(),
+  {
+    type: 'select',
+    naam: 'pakket',
+    label: 'Gewenst pakket',
+    verplicht: true,
+    opties: PAKKETTEN,
+    meldingen: { leeg: MELDING.pakket, ongeldig: MELDING.pakket },
+  },
   kanaalVeld(),
 ];
 
@@ -105,6 +130,7 @@ const basis = z.object({
   namen: enkeleRegel(120, MELDING.namenLeeg, MELDING.namenLang),
   email: emailSchema,
   telefoon: telefoonSchema,
+  pakket: keuze(PAKKETTEN, MELDING.pakket),
   kanaal: kanaalSchema,
 });
 
@@ -153,6 +179,7 @@ function waarden(data: Aanvraag): Array<[string, string | undefined]> {
     [label('namen'), data.namen],
     [label('email'), data.email],
     [label('telefoon'), data.telefoon],
+    [label('pakket'), optieLabel(PAKKETTEN, data.pakket)],
     [label('kanaal'), optieLabel(KANALEN, data.kanaal)],
   ];
 }

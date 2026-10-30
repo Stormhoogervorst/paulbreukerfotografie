@@ -33,7 +33,7 @@ Principe: één primair zoekwoord per URL. Commerciële pagina's en kunstseries 
 | URL | Doel / primair zoekwoord | Eindigt in |
 |---|---|---|
 | `/` | Merk + wie is Paul + drie ingangen (bruiloft, portret, kunst) | Doorverwijzen + contact |
-| `/fotograaf-bruiloft` | fotograaf bruiloft (algemene bruiloftpagina). Prijzen vanaf €3.250, werkwijze, reviews, FAQ | Bruiloftformulier |
+| `/fotograaf-bruiloft` | fotograaf bruiloft (algemene bruiloftpagina). Twee opties: Digitaal vanaf €3.950 en Volledig analoog €6.950, combinatie op aanvraag (bedragen uit `bruiloft-pakketten.ts`; nergens een aantal foto's), werkwijze, reviews, FAQ | Bruiloftformulier |
 | `/trouwfotograaf-nijmegen` | trouwfotograaf nijmegen. Gereserveerd voor een latere lokale pagina met eigen inhoud | Bruiloftformulier |
 | `/trouwfotograaf-arnhem` | trouwfotograaf arnhem. Alleen live als er genoeg eigen Arnhem-inhoud is | Bruiloftformulier |
 | `/trouwlocaties/[locatie]` | trouwen op/in [locatie] + fotograaf. Alleen locaties waar Paul echt heeft gefotografeerd | Bruiloftformulier |
@@ -43,6 +43,8 @@ Principe: één primair zoekwoord per URL. Commerciële pagina's en kunstseries 
 | `/teamfoto-laten-maken` | teamfoto / personeelsfoto. Pas in fase 3 | Portretformulier |
 
 /trouwfotograaf-nijmegen en /trouwfotograaf-arnhem zijn gereserveerd voor latere lokale pagina's met eigen inhoud; /fotograaf-bruiloft is de algemene bruiloftpagina. Geen sjabloonpagina's waarbij alleen de plaatsnaam wisselt.
+
+/trouwfotograaf-nijmegen bestaat: de lokale bruiloftspagina (primair zoekwoord "trouwfotograaf nijmegen"; data in `src/data/landing/trouwfotograaf-nijmegen.ts`); /fotograaf-bruiloft blijft de algemene pagina. /trouwfotograaf-arnhem volgt later volgens hetzelfde patroon, met eigen inhoud.
 
 ### Laag 2: autoriteit en kunst
 

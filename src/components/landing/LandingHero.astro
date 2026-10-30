@@ -68,7 +68,15 @@ const strip = fotos.map((foto, index) => {
 
     <div class="landing-hero__intro">
       <div class="landing-hero__tekst">
-        {hero.intro.map((alinea) => <p>{alinea}</p>)}
+        {
+          hero.intro.map((alinea) => (
+            <p>
+              {typeof alinea === 'string'
+                ? alinea
+                : alinea.map((segment) => (typeof segment === 'string' ? segment : <a href={segment.href}>{segment.tekst}</a>))}
+            </p>
+          ))
+        }
       </div>
       <div class="landing-hero__ctas">
         {

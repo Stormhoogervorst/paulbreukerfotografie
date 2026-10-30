@@ -39,7 +39,7 @@ const KOP_ID = 'vragen-titel';
       vragen.items.map((item, index) => (
         <details class="vraag" open={index === 0}>
           <summary class="vraag__titel">
-            <span class="vraag__tekst">{item.vraag}</span>
+            {vragen.vraagAlsKop ? <h3 class="vraag__tekst vraag__tekst--kop">{item.vraag}</h3> : <span class="vraag__tekst">{item.vraag}</span>}
             <span class="vraag__icoon" aria-hidden="true" />
           </summary>
           <div class="vraag__antwoord">
@@ -109,6 +109,15 @@ const KOP_ID = 'vragen-titel';
 
   .vraag__tekst {
     min-width: 0;
+  }
+
+  /* Vraag als <h3> (data-veld `vraagAlsKop`): dezelfde letter als de <summary>, zonder koppenstijl uit global.css. */
+  .vraag__tekst--kop {
+    margin: 0;
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    text-wrap: inherit;
   }
 
   /* Plusteken van twee lijnen, 1px dik, zonder cirkel of achtergrond. Het midden ligt op het midden van de eerste regel. */

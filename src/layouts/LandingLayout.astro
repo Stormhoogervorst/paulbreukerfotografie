@@ -10,8 +10,10 @@ import LandingBeeld from '../components/landing/LandingBeeld.astro';
 import LandingFormulier from '../components/landing/LandingFormulier.astro';
 import LandingHero from '../components/landing/LandingHero.astro';
 import LandingImpressie from '../components/landing/LandingImpressie.astro';
+import LandingLocaties from '../components/landing/LandingLocaties.astro';
 import LandingOverPaul from '../components/landing/LandingOverPaul.astro';
 import LandingPakketten from '../components/landing/LandingPakketten.astro';
+import LandingUitleg from '../components/landing/LandingUitleg.astro';
 import LandingVragen from '../components/landing/LandingVragen.astro';
 import Statement from '../components/Statement.astro';
 import { impressieAfbeeldingen, impressieSchemaAfbeeldingen } from '../lib/landing-impressie';
@@ -25,6 +27,12 @@ interface Props {
 
 const { pagina } = Astro.props;
 const pad = `/${pagina.slug}`;
+/** Uitleg-blokken direct na Impressie in plaats van na Vragen (zie de volgorde in de opmerking hieronder). */
+const uitlegNaImpressie = pagina.uitlegPlek === 'na-impressie';
+/** Pakketten direct na Impressie in plaats van ervoor (zie de volgorde in de opmerking hieronder). */
+const pakkettenNaImpressie = pagina.pakkettenPlek === 'na-impressie';
+/** OverPaul direct vóór Pakketten in plaats van na Uitleg (zie de volgorde in de opmerking hieronder). */
+const overPaulVoorPakketten = pagina.overPaulPlek === 'voor-pakketten';
 
 // Open Graph-afbeelding: de eerste hero-foto, bijgesneden op 1200 x 630.
 const ogAfbeelding = await getImage({
@@ -66,7 +74,10 @@ const jsonLd = [
     priceFrom: laagstePakketPrijs ?? pagina.schema.vanPrijs,
     packages: pakketOffers,
     serviceType: pagina.schema.serviceType,
-    areaServed: pagina.schema.werkgebied,
+    areaServed:
+      pagina.schema.werkgebiedType === 'City'
+        ? pagina.schema.werkgebied.map((naam) => ({ '@type': 'City' as const, name: naam }))
+        : pagina.schema.werkgebied,
   }),
   ...(pagina.impressie
     ? [
@@ -79,7 +90,8 @@ const jsonLd = [
     : []),
   // FAQPage uit dezelfde data als de zichtbare vragen: de platte tekst van het antwoord (alinea's gescheiden door een
   // regeleinde), dus de zichtbare tekst en de JSON-LD komen letterlijk overeen.
-  ...(pagina.vragen
+  // `schema.faqSchema: false` laat de FAQPage weg (de vragen blijven zichtbaar); /trouwfotograaf-nijmegen doet dat.
+  ...(pagina.vragen && pagina.schema.faqSchema !== false
     ? [
         faqPage({
           path: `${pad}#vragen`,
@@ -107,11 +119,17 @@ const jsonLd = [
     3. Pakketten
     4. Impressie
     5. OverPaul
+    5b. Locaties ("Waar ik fotografeer"; alleen met data; nog niet in de regels-lijst, zie README)
     6. Vragen
     7. Uitleg
     8. Reviews
     9. Aanvraagformulier
     10. Beeld (foto van rand tot rand, geen kop)
+    UITZONDERING op uitdrukkelijk verzoek (nu alleen /trouwfotograaf-nijmegen): met `pakkettenPlek === 'na-impressie'`
+    staan Pakketten na Impressie, met `overPaulPlek === 'voor-pakketten'` staat OverPaul direct vóór Pakketten, en met
+    `uitlegPlek === 'na-impressie'` staan de Uitleg-blokken direct na Pakketten. Volgorde daar: Hero, Werkwijze,
+    Impressie, OverPaul, Pakketten, Uitleg, Locaties, Vragen, Reviews, Formulier. Zonder die velden verandert er niets
+    aan de bindende volgorde hierboven.
     Daarna volgt de gedeelde footer (via BaseLayout). Een sectie wordt alleen getoond als de data ervoor bestaat.
     Elke sectie zit in een eigen .sectie-wrapper met alleen padding-block (--sectie-ruimte); geen margins die van
     buren afhangen.
@@ -134,9 +152,17 @@ const jsonLd = [
   }
 
   {
-    pagina.pakketten && (
+    overPaulVoorPakketten && !pakkettenNaImpressie && pagina.overPaul && (
       <div class="sectie">
-        <LandingPakketten pakketten={pagina.pakketten} />
+        <LandingOverPaul overPaul={pagina.overPaul} />
+      </div>
+    )
+  }
+
+  {
+    !pakkettenNaImpressie && pagina.pakketten && (
+      <div class="sectie">
+        <LandingPakketten pakketten={pagina.pakketten} noot={pagina.pakkettenNoot} nootPakket={pagina.pakkettenNootPakket} />
       </div>
     )
   }
@@ -150,9 +176,44 @@ const jsonLd = [
   }
 
   {
-    pagina.overPaul && (
+    overPaulVoorPakketten && pakkettenNaImpressie && pagina.overPaul && (
       <div class="sectie">
         <LandingOverPaul overPaul={pagina.overPaul} />
+      </div>
+    )
+  }
+
+  {
+    pakkettenNaImpressie && pagina.pakketten && (
+      <div class="sectie">
+        <LandingPakketten pakketten={pagina.pakketten} noot={pagina.pakkettenNoot} nootPakket={pagina.pakkettenNootPakket} />
+      </div>
+    )
+  }
+
+  <!-- Uitleg op de afwijkende plek (alleen met `uitlegPlek: 'na-impressie'`): elk blok een eigen .sectie-wrapper. -->
+  {
+    uitlegNaImpressie &&
+      pagina.uitleg?.map((blok, index) => (
+        <div class="sectie">
+          <LandingUitleg blok={blok} nummer={index + 1} />
+        </div>
+      ))
+  }
+
+  {
+    !overPaulVoorPakketten && pagina.overPaul && (
+      <div class="sectie">
+        <LandingOverPaul overPaul={pagina.overPaul} />
+      </div>
+    )
+  }
+
+  <!-- Locaties ("Waar ik fotografeer"): alleen met minstens één plek, anders ook geen lege .sectie-wrapper. -->
+  {
+    pagina.locaties && pagina.locaties.items.length > 0 && (
+      <div class="sectie">
+        <LandingLocaties locaties={pagina.locaties} />
       </div>
     )
   }
@@ -165,10 +226,17 @@ const jsonLd = [
     )
   }
 
-  <!-- Nog te bouwen (in deze volgorde, elk met `{pagina.x && <div class="sectie">…</div>}`; beide komen na Vragen en vóór het formulier):
-    - Uitleg        (pagina.uitleg; de overige H2's van de pagina staan hier)
-    - Reviews       (pagina.reviews)
-  -->
+  <!-- Uitleg op de vaste plek (standaard): na Vragen en vóór Reviews. Elk blok een eigen .sectie-wrapper. -->
+  {
+    !uitlegNaImpressie &&
+      pagina.uitleg?.map((blok, index) => (
+        <div class="sectie">
+          <LandingUitleg blok={blok} nummer={index + 1} />
+        </div>
+      ))
+  }
+
+  <!-- Nog te bouwen: Reviews (pagina.reviews); komt na Uitleg en vóór het formulier. -->
 
   <!-- Aanvraagformulier: komt na Reviews (of Pakketten) en vóór Beeld. -->
   {

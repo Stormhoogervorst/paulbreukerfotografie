@@ -11,11 +11,13 @@
  *   Daardoor liggen alle haarlijnen en tekstregels over de drie kolommen op dezelfde hoogte. Zonder subgrid-ondersteuning
  *   is er een flex-fallback waarbij alleen de cta onderaan de kolom staat.
  * - Prijs: één <p> met het optionele label (`prijsLabel`, bijvoorbeeld "vanaf") en het bedrag, zodat een schermlezer
- *   bijvoorbeeld "vanaf €3.250" voorleest. Zonder label staat er alleen het bedrag; zonder prijs (`prijs` ontbreekt) is er
+ *   bijvoorbeeld "vanaf €3.950" voorleest. Zonder label staat er alleen het bedrag; zonder prijs (`prijs` ontbreekt) is er
  *   geen prijsregel en blijft de rij leeg.
  * - De <section> heeft id="pakketten": het doel van de CTA in de hero en de link in Werkwijze.
  * - De cta's springen naar #aanvragen en dragen `data-pakket` (slug van het pakket). Heeft het formulier een veld
  *   "pakket", dan kiest src/scripts/formulier.ts daar dit pakket; anders wordt het attribuut niet gebruikt.
+ * - Optioneel `noot` (veld `pakkettenNoot` van de pagina): kleine tekst onder de pakketten in --ink-gedempt; "op aanvraag"
+ *   erin is een gewone tekstlink naar #aanvragen (met `data-pakket={nootPakket}`). Zonder `noot` is de uitvoer ongewijzigd.
  * - Geen eigen buitenmarges: de verticale ruimte rond de sectie komt van de .sectie-wrapper in LandingLayout.astro.
  * - Het enige JavaScript is het bestaande script van Marquee.astro.
  *
@@ -26,9 +28,21 @@ import type { LandingPakketten } from '../../data/landing/types';
 
 interface Props {
   pakketten: LandingPakketten;
+  /** Kleine noot onder de pakketten; alleen gerenderd als hij gevuld is. "op aanvraag" erin wordt een link naar #aanvragen. */
+  noot?: string;
+  /** Slug die de link "op aanvraag" in de noot vooraf invult in het veld "pakket" (`data-pakket`). */
+  nootPakket?: string;
 }
 
-const { pakketten } = Astro.props;
+const { pakketten, noot, nootPakket } = Astro.props;
+
+/** De noot in drie delen: tekst ervoor, de link "op aanvraag" en tekst erna. Zonder "op aanvraag" is de hele noot gewone tekst. */
+const NOOT_LINK = 'op aanvraag';
+const nootPositie = noot ? noot.indexOf(NOOT_LINK) : -1;
+const nootDelen =
+  noot && nootPositie >= 0
+    ? { voor: noot.slice(0, nootPositie), na: noot.slice(nootPositie + NOOT_LINK.length) }
+    : undefined;
 
 /** Id van de <h2> (de eerste herhaling in de marquee); de sectie verwijst ernaar met aria-labelledby. */
 const KOP_ID = 'pakketten-titel';
@@ -95,6 +109,24 @@ const nummer = (index: number) => String(index + 1).padStart(2, '0');
         ))
       }
     </ul>
+
+    {
+      noot && (
+        <p class="pakketten__noot">
+          {nootDelen ? (
+            <>
+              {nootDelen.voor}
+              <a href="#aanvragen" data-pakket={nootPakket}>
+                {NOOT_LINK}
+              </a>
+              {nootDelen.na}
+            </>
+          ) : (
+            noot
+          )}
+        </p>
+      )
+    }
 
     {pakketten.voetnoot && <p class="pakketten__voetnoot">{pakketten.voetnoot}</p>}
   </div>
@@ -258,6 +290,25 @@ const nummer = (index: number) => String(index + 1).padStart(2, '0');
     color: var(--ink-zacht);
   }
 
+  /* Noot onder de pakketten (alleen als `noot` gevuld is): kleiner dan de omschrijving, gedempte kleur, gewone tekstlink. */
+  .pakketten__noot {
+    max-width: none;
+    margin: 6vw 0 0;
+    font-size: var(--font-size-small);
+    line-height: 1.5;
+    color: var(--ink-gedempt);
+  }
+
+  .pakketten__noot a {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .pakketten__noot a:hover {
+    text-decoration-thickness: 2px;
+  }
+
   /* ---------- Pakketten (desktop) ---------- */
   @media (min-width: 900px) {
     .pakketten {
@@ -287,7 +338,8 @@ const nummer = (index: number) => String(index + 1).padStart(2, '0');
       padding-block: 1.5vw 0;
     }
 
-    .pakketten__voetnoot {
+    .pakketten__voetnoot,
+    .pakketten__noot {
       margin-top: 3vw;
     }
 

@@ -11,10 +11,12 @@
  *   Er is geen vooraf laden.
  * - Tegels: achtergrond = gemiddelde kleur van de foto, miniatuur (alleen AVIF) die in 150 ms invaagt (alleen opacity).
  * - Lightbox: de grote versie laadt pas na een klik, met de miniatuur als tijdelijke weergave; daarna laden alleen de vorige
- *   en volgende foto voor. Vorige/volgende: knoppen en pijltjestoetsen, in de volgorde van de lijst.
+ *   en volgende foto voor. Vorige/volgende: knoppen en pijltjestoetsen, in de volgorde van de lijst. Het gedrag staat in de
+ *   gedeelde module src/scripts/lightbox.ts, de markup en stijl in src/components/Lightbox.astro.
  * - Lus: requestAnimationFrame alleen tijdens slepen, uitloop of achterstallig werk.
  */
 import { generateLayout, type Layout, type LayoutItem } from '../lib/portfolio-layout';
+import { createLightbox } from './lightbox';
 
 /** Instellingen per pagina; niet gezette waarden vallen terug op de standaard van /portfolio. */
 export interface CanvasConfig {
@@ -83,8 +85,6 @@ const CELL_MOBILE: [number, number] = [150, 130];
 const MARGE_FACTOR = 0.2;
 const MARGE_MIN = 120;
 const MARGE_MAX = 300;
-/** Ruimte voor de lightbox (px) boven en onder de foto: 90svh min 4rem. */
-const LIGHTBOX_VERTICAAL = 64;
 
 interface Mounted {
   el: HTMLButtonElement;
@@ -120,14 +120,6 @@ if (root && dataEl) {
   const world = root.querySelector<HTMLElement>('.portfolio__world')!;
   const hint = root.querySelector<HTMLElement>('.portfolio__hint');
   const dialog = root.querySelector<HTMLDialogElement>('.lightbox')!;
-  const dialogImg = dialog.querySelector<HTMLImageElement>('.lightbox__img')!;
-  const dialogCaption = dialog.querySelector<HTMLElement>('.lightbox__caption')!;
-  const dialogClose = dialog.querySelector<HTMLButtonElement>('.lightbox__close')!;
-  const dialogPrev = dialog.querySelector<HTMLButtonElement>('.lightbox__nav--vorige')!;
-  const dialogNext = dialog.querySelector<HTMLButtonElement>('.lightbox__nav--volgende')!;
-  const stage = dialog.querySelector<HTMLElement>('.lightbox__stage')!;
-  const smallImg = dialog.querySelector<HTMLImageElement>('.lightbox__klein')!;
-  const preloadBox = dialog.querySelector<HTMLElement>('.lightbox__voorladen')!;
 
   const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const loaded = new Set<string>();
@@ -449,117 +441,30 @@ if (root && dataEl) {
     hint?.classList.add('is-faded');
   };
 
-  // ---------- Dialog ----------
+  // ---------- Lightbox (gedeeld: src/scripts/lightbox.ts) ----------
 
-  let opener: HTMLElement | null = null;
-  let openedAt = 0;
-  let current = -1;
-  let token = 0;
-
-  /** Breedte (px) waarin de foto in de lightbox staat: past in 90vw en in 90svh min 4rem. Bepaalt welke variant laadt. */
-  const lightboxWidth = (photo: ClientPhoto) => {
-    const ratio = photo.width / photo.height;
-    const w = Math.min(window.innerWidth * 0.9, (window.innerHeight * 0.9 - LIGHTBOX_VERTICAAL) * ratio);
-    return Math.max(1, Math.round(w));
-  };
-
-  /** Laadt de vorige en volgende foto voor (alleen die twee; nooit alle grote versies tegelijk). */
-  const preloadNeighbours = (index: number) => {
-    preloadBox.replaceChildren();
-    if (photos.length < 2) return;
-    const indices = new Set([(index - 1 + photos.length) % photos.length, (index + 1) % photos.length]);
-    indices.delete(index);
-    for (const i of indices) {
-      const photo = photos[i];
-      const picture = document.createElement('picture');
-      const img = document.createElement('img');
-      picture.append(img);
-      img.alt = '';
-      img.decoding = 'async';
-      setImageSources(img, photo.largeSrcset, photo.largeSrc, `${lightboxWidth(photo)}px`);
-      preloadBox.append(picture);
-    }
-  };
-
-  /** Toont een foto: eerst de kleinste miniatuur (staat in de cache), daarna de grote versie zodra die binnen is. */
-  const showPhoto = (index: number) => {
-    const photo = photos[index];
-    if (!photo) return;
-    current = index;
-    token += 1;
-    const mine = token;
-
-    stage.classList.remove('is-ready');
-    stage.style.setProperty('--ratio', String(photo.width / photo.height));
-    stage.style.setProperty('--kleur', photo.color);
-
-    smallImg.width = photo.width;
-    smallImg.height = photo.height;
-    setImageSources(smallImg, photo.thumbSrcset, photo.thumbSrc, '1px');
-
-    dialogImg.alt = photo.alt;
-    dialogImg.width = photo.width;
-    dialogImg.height = photo.height;
-    const ready = () => {
-      if (mine !== token) return;
-      stage.classList.add('is-ready');
-      preloadNeighbours(index);
-    };
-    dialogImg.addEventListener('load', ready, { once: true });
-    setImageSources(dialogImg, photo.largeSrcset, photo.largeSrc, `${lightboxWidth(photo)}px`);
-    if (dialogImg.complete && dialogImg.naturalWidth > 0) ready();
-
-    dialogCaption.replaceChildren();
-    if (photo.title) {
-      const label = photo.href ? document.createElement('a') : document.createElement('span');
-      label.className = 'lightbox__series';
-      label.textContent = photo.title;
-      if (photo.href && label instanceof HTMLAnchorElement) label.href = photo.href;
-      dialogCaption.append(label);
-    }
-    dialogCaption.hidden = !photo.title;
-    dialogPrev.hidden = dialogNext.hidden = photos.length < 2;
-  };
-
-  const step = (delta: number) => {
-    if (photos.length < 2) return;
-    showPhoto((current + delta + photos.length) % photos.length);
-  };
+  const lightbox = createLightbox(
+    dialog,
+    photos.map((photo) => ({
+      width: photo.width,
+      height: photo.height,
+      alt: photo.alt,
+      color: photo.color,
+      thumbSrc: photo.thumbSrc,
+      thumbSrcset: photo.thumbSrcset,
+      largeSrc: photo.largeSrc,
+      largeSrcset: photo.largeSrcset,
+      title: photo.title,
+      href: photo.href,
+    })),
+    { terugFocus: () => canvas },
+  );
 
   const openPhoto = (tile: HTMLElement) => {
     const index = Number(tile.dataset.index);
     if (!photos[index]) return;
-    opener = tile;
-    openedAt = performance.now();
-    showPhoto(index);
-    dialog.showModal();
+    lightbox.open(index, tile);
   };
-
-  dialogPrev.addEventListener('click', () => step(-1));
-  dialogNext.addEventListener('click', () => step(1));
-  dialog.addEventListener('keydown', (event) => {
-    if (event.key === 'ArrowLeft') {
-      event.preventDefault();
-      step(-1);
-    } else if (event.key === 'ArrowRight') {
-      event.preventDefault();
-      step(1);
-    }
-  });
-
-  dialog.addEventListener('click', (event) => {
-    if (performance.now() - openedAt < 350) return;
-    const target = event.target as Element;
-    if (!target.closest('img, a, button')) dialog.close();
-  });
-  dialogClose.addEventListener('click', () => dialog.close());
-  dialog.addEventListener('close', () => {
-    token += 1; // laadt een foto die nog binnenkomt niet meer in beeld
-    preloadBox.replaceChildren();
-    if (opener?.isConnected) opener.focus({ preventScroll: true });
-    else canvas.focus({ preventScroll: true });
-    opener = null;
-  });
 
   // ---------- Slepen ----------
 

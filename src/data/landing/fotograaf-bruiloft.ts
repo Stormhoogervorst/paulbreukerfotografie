@@ -2,8 +2,8 @@
  * Data voor /fotograaf-bruiloft (algemene bruiloftpagina, primair zoekwoord "fotograaf bruiloft").
  * /trouwfotograaf-nijmegen en /trouwfotograaf-arnhem zijn gereserveerd voor latere lokale pagina's met eigen inhoud.
  */
-import type { LandingPagina } from './types';
-import { pakketten } from './bruiloft-pakketten';
+import type { LandingPagina, LandingWerkwijze } from './types';
+import { bruiloftPakketPrijs, bruiloftVanPrijs, pakketten, pakkettenNoot, pakkettenNootPakket } from './bruiloft-pakketten';
 import { exposities, kunstenaar, lidmaatschap, specialisatie } from '../paul';
 import { PRIVACY } from '../site';
 import { euro } from '../../lib/prijs';
@@ -18,21 +18,30 @@ import impressie07 from '../../assets/landing/impressie/07-bruiloft-07.jpg';
 import impressie08 from '../../assets/landing/impressie/08-bruiloft-11.jpg';
 import impressie09 from '../../assets/landing/impressie/09-bruiloft-14.jpg';
 
-/** Prijs van een pakket uit `pakketten` als "€3.250"; de FAQ gebruikt dit, zodat de prijzen nooit kunnen afwijken. */
+/** Statement direct onder de hero. Ook op /trouwfotograaf-nijmegen (zelfde tekst en link naar #pakketten). */
+export const bruiloftWerkwijze = {
+  label: '(werkwijze)',
+  tekst:
+    'Ik ben van ’s ochtends vroeg tot ’s avonds laat aanwezig. Zo krijg je een echte fotoreportage van de hele dag: van de voorbereidingen tot het feest ’s avonds. Ik fotografeer de dag zoals hij verloopt.',
+  // #pakketten is de sectie Pakketten (op beide pagina's staat die na Werkwijze).
+  link: { label: 'bekijk de pakketten', href: '#pakketten' },
+} satisfies LandingWerkwijze;
+
+/** Prijs van een pakket uit `pakketten` als "€3.950"; title, description, hero en FAQ gebruiken dit, zodat de prijzen nooit kunnen afwijken. */
 function pakketPrijs(naam: string): string {
-  const prijs = pakketten.items.find((pakket) => pakket.naam === naam)?.prijs;
-  if (prijs === undefined) throw new Error(`Pakket "${naam}" heeft geen prijs.`);
-  return euro(prijs);
+  return euro(bruiloftPakketPrijs(naam));
 }
+
+/** Laagste pakketprijs als "€3.950" (de vanaf-prijs). */
+const vanaf = euro(bruiloftVanPrijs);
 
 export const fotograafBruiloft: LandingPagina = {
   slug: 'fotograaf-bruiloft',
 
   seo: {
-    title: 'Fotograaf bruiloft | Paul Breuker, vanaf €3.250',
+    title: `Fotograaf bruiloft | Paul Breuker, vanaf ${vanaf}`,
     // TODO(paul): werkgebied bevestigen (Nijmegen, Arnhem en "daarbuiten").
-    description:
-      'Ik ben Paul Breuker, bruiloftfotograaf. Ik fotografeer bruiloften in Nijmegen, Arnhem en daarbuiten, met aandacht voor de mensen en het moment. Vanaf €3.250.',
+    description: `Ik ben Paul Breuker, bruiloftfotograaf. Ik fotografeer bruiloften in Nijmegen, Arnhem en daarbuiten, de hele dag, met een ingebonden fotoboek. Vanaf ${vanaf}.`,
   },
 
   breadcrumb: 'Fotograaf bruiloft',
@@ -40,7 +49,7 @@ export const fotograafBruiloft: LandingPagina = {
   hero: {
     h1: 'Fotograaf bruiloft',
     intro: [
-      'Ik fotografeer je bruiloft zoals die is: de mensen, de plek en het moment. Mijn werk is onder meer getoond in de Kunsthallen en Photoville New York (VS). Pakketten voor een bruiloft starten vanaf €3.250.',
+      `Ik fotografeer je bruiloft zoals die is: de mensen, de plek en het moment. Mijn werk is onder meer getoond in de Kunsthallen en Photoville New York (VS). Pakketten voor een bruiloft starten vanaf ${vanaf}.`,
     ],
     // #pakketten (sectie Pakketten) en #aanvragen (Aanvraagformulier) bestaan.
     ctaPrimair: { label: 'Bruiloft aanvragen', href: '#aanvragen' },
@@ -70,14 +79,8 @@ export const fotograafBruiloft: LandingPagina = {
     ],
   },
 
-  // TODO(paul): tekst laten goedkeuren
-  werkwijze: {
-    label: '(werkwijze)',
-    tekst:
-      'Ik ben van ’s ochtends vroeg tot ’s avonds laat aanwezig. Zo krijg je een echte fotoreportage van de hele dag: van de voorbereidingen tot het feest ’s avonds. Ik fotografeer de dag zoals hij verloopt.',
-    // #pakketten is de sectie Pakketten (op de pagina staat die vóór Impressie).
-    link: { label: 'bekijk de pakketten', href: '#pakketten' },
-  },
+  // TODO(paul): tekst laten goedkeuren. Dezelfde sectie staat ook op /trouwfotograaf-nijmegen (`bruiloftWerkwijze`).
+  werkwijze: bruiloftWerkwijze,
 
   /**
    * Impressie: vier foto's uit de serie Love & Marriage, in vaste volgorde (twee rijen van twee, zie LandingImpressie.astro).
@@ -143,9 +146,10 @@ export const fotograafBruiloft: LandingPagina = {
   },
 
   /**
-   * Vragen: vier veelgestelde vragen (zie LandingVragen.astro). De prijzen komen uit `pakketten` hierboven. De platte
+   * Vragen: vijf veelgestelde vragen (zie LandingVragen.astro). De prijzen komen uit `pakketten` hierboven. De platte
    * tekst van de antwoorden is ook de bron voor de FAQPage in de JSON-LD (zie LandingLayout.astro).
    */
+  // TODO(paul): bevestig of een tweede fotograaf nog mogelijk is (hij wordt nergens meer genoemd).
   // TODO(paul): antwoorden door Paul laten goedkeuren, in het bijzonder het antwoord op de uurtarief-vraag (is het waar dat Paul voor bruiloften geen uurtarief hanteert en geen korte opdrachten doet?).
   // TODO(paul): overweeg extra vragen waarop alleen Paul het antwoord weet: wanneer ontvang je de foto’s, werk je ook buiten Nijmegen en Arnhem en tegen welke reiskosten, hoe ver van tevoren moet ik boeken, wat gebeurt er bij slecht weer.
   // TODO(paul): /portfolio en #aanvragen bestaan; /contact nog niet (404).
@@ -156,13 +160,7 @@ export const fotograafBruiloft: LandingPagina = {
         vraag: 'Hoeveel kost een trouwfotograaf?',
         antwoord: [
           [
-            'Dat verschilt per fotograaf en per pakket. Bij mij kost een bruiloft ',
-            pakketPrijs('Reportage'),
-            ' (Reportage), ',
-            pakketPrijs('Album'),
-            ' (Album) of ',
-            pakketPrijs('Collectie'),
-            ' (Collectie). In alle drie fotografeer ik de hele dag, van ’s ochtends vroeg tot ’s avonds laat. Wat er per pakket bij zit, zie je bij ',
+            `Dat verschilt per fotograaf en per pakket. Bij mij kost een bruiloft ${pakketPrijs('Digitaal')}: ik ben dan van ’s ochtends vroeg tot ’s avonds laat aanwezig en maak er een ingebonden fotoboek bij. Fotografeer ik de bruiloft volledig analoog, dan kost het ${pakketPrijs('Volledig analoog')}. Een combinatie van digitaal en analoog is op aanvraag mogelijk. Wat er per pakket bij zit, zie je bij `,
             { tekst: 'de pakketten', href: '#pakketten' },
             '.',
           ],
@@ -172,7 +170,7 @@ export const fotograafBruiloft: LandingPagina = {
         vraag: 'Waarom is een trouwfotograaf zo duur?',
         antwoord: [
           [
-            'Je betaalt niet alleen voor de uren op de dag zelf. Een hele dag fotograferen levert honderden foto’s op, die ik daarna selecteer en bewerk. Daarnaast gaat er tijd zitten in het kennismaken, het voorbereiden van de dag en het opleveren van de galerij. En de apparatuur en het reservemateriaal moeten betrouwbaar zijn op een dag die je maar één keer hebt.',
+            'Je betaalt niet alleen voor de uren op de dag zelf. Een hele dag fotograferen levert veel materiaal op, dat ik daarna selecteer en bewerk. Daarnaast gaat er tijd zitten in het kennismaken, het voorbereiden van de dag en het afwerken van het resultaat. En de apparatuur en het reservemateriaal moeten betrouwbaar zijn op een dag die je maar één keer hebt.',
           ],
         ],
       },
@@ -198,6 +196,17 @@ export const fotograafBruiloft: LandingPagina = {
           ],
         ],
       },
+      {
+        // TODO(paul): digitale levering (online galerij of bestanden?), levertijd van het fotoboek en of afdrukken mogelijk zijn; ook wat Volledig analoog oplevert.
+        vraag: 'Wat krijgen we na de bruiloft?',
+        antwoord: [
+          [
+            'Bij Digitaal maak ik van jullie bruiloft een ingebonden fotoboek. Wat jullie verder krijgen en wanneer, bijvoorbeeld bij de analoge optie, kun je in het ',
+            { tekst: 'aanvraagformulier', href: '#aanvragen' },
+            ' aan me vragen.',
+          ],
+        ],
+      },
     ],
   },
 
@@ -212,6 +221,9 @@ export const fotograafBruiloft: LandingPagina = {
   },
 
   pakketten,
+  // Noot onder de pakketten; "op aanvraag" is de link naar #aanvragen en vult "combinatie" in het formulier in.
+  pakkettenNoot,
+  pakkettenNootPakket,
 
   /**
    * Aanvraagformulier (zie LandingFormulier.astro): anker #aanvragen; staat vóór Beeld. De velden en de
@@ -232,7 +244,7 @@ export const fotograafBruiloft: LandingPagina = {
 
   schema: {
     dienstNaam: 'Bruiloftfotografie',
-    vanPrijs: 3250,
+    vanPrijs: bruiloftVanPrijs,
     // TODO(paul): werkgebied aanvullen of bevestigen.
     werkgebied: ['Nijmegen', 'Arnhem'],
   },

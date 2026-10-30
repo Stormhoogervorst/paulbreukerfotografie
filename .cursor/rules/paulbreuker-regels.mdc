@@ -11,7 +11,7 @@ Detailplan: zie `docs/seo-architectuur.md`. Bij twijfel gelden deze regels.
 
 ## Doel
 
-1. Hoofddoel: aanvragen voor bruiloften (vanaf €3.250) en portretten, via Google.
+1. Hoofddoel: aanvragen voor bruiloften (Digitaal vanaf €3.950) en portretten, via Google.
 2. Paul neerzetten als artistieke, premium fotograaf (35 jaar werk, Kunsthal, Valkhof, Photoville New York).
 3. Boek en exposities onder de aandacht brengen.
 
@@ -23,7 +23,7 @@ Doelgroepen met eigen ingang: bruidsparen (regio Nijmegen/Arnhem, belangrijkste)
 - Geen superlatieven ("de beste", "onvergetelijk", "uniek"). Bewijs in plaats van claims: exposities, persvermeldingen (Volkskrant, Telegraaf, EenVandaag), aantallen.
 - Geen stockbeeld. Elke foto op de site is van Paul. Gebruik geen placeholder-foto's van externe bronnen.
 - Verzin nooit feiten, reviews, prijzen, aantallen of persvermeldingen. Ontbreekt informatie: zet een duidelijke `TODO(paul)` in de code of tekst en meld dat.
-- Prijzen: bruiloftpakketten zichtbaar (vanaf €3.250), portretten met een vanaf-prijs, kunst en exposities op aanvraag.
+- Prijzen: het bruiloftaanbod is zichtbaar: twee opties, Digitaal vanaf €3.950 (hele dag aanwezig, met ingebonden fotoboek) en Volledig analoog €6.950; een combinatie van digitaal en analoog is op aanvraag mogelijk. De bedragen staan alleen in `src/data/landing/bruiloft-pakketten.ts`. Bij het bruiloftaanbod wordt nergens een aantal foto's genoemd, en we gebruiken "ingebonden fotoboek" (niet "album"). Portretten met een vanaf-prijs, kunst en exposities op aanvraag.
 - Beeld eerst: grote foto's, veel witruimte, weinig tekst boven de vouw. De homepage opent met portretten en toont in één oogopslag wie Paul is, wat hij doet (bruiloft, portret, kunst) en hoe je contact opneemt.
 - Paul werkt voor klantsessies niet in een studio. Gebruik de woorden studio, fotostudio en studiosessie niet voor het aanbod aan klanten. In teksten over bestaande projecten (zoals Asty Mwaka en Take me to the river) mag het woord voorkomen als het zo in Pauls eigen tekst staat. Controleer het woord "studio" alleen op de pagina's met aanbod (/portretfotos, /fotograaf-bruiloft, /zakelijke-portretfoto). Hij fotografeert in natuurlijk licht, bij de klant thuis, op het werk, buiten of op een plek die de klant kiest. Hij maakte een portretserie bij een gaarkeuken in Rusland (project De Gaarkeuken, /de-gaarkeuken).
 - Geld-pagina's krijgen onder de beelden 300 tot 600 woorden echte tekst. Serie-pagina's krijgen een korte inleiding, bijschriften en jaartal/plaats.
@@ -54,6 +54,7 @@ De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze,
 - `/promoties` is geen pagina op deze site: permanente 301 (`permanent: true` in `vercel.json`) naar https://www.fotograafpromotiesradboud.nl/. Neem `/promoties` niet op in navigatie, sitemap of interne links. Verwijs voor promotiefotografie met een gewone tekstlink naar de Radboud-site.
 - Nieuwe commerciële URL's: /fotograaf-bruiloft (algemene bruiloftpagina, primair zoekwoord "fotograaf bruiloft"), /portretfotos (particuliere portretten, primair zoekwoord "portretfoto laten maken"), /zakelijke-portretfoto, /linkedin-foto-laten-maken, later /trouwfotograaf-nijmegen, /trouwfotograaf-arnhem en /trouwlocaties/[locatie].
 - /trouwfotograaf-nijmegen en /trouwfotograaf-arnhem zijn gereserveerd voor latere lokale pagina's met eigen inhoud; /fotograaf-bruiloft is de algemene bruiloftpagina. Geen sjabloonpagina's waarbij alleen de plaatsnaam wisselt.
+- /trouwfotograaf-nijmegen bestaat: de lokale bruiloftspagina (primair zoekwoord "trouwfotograaf nijmegen"; data in `src/data/landing/trouwfotograaf-nijmegen.ts`); /fotograaf-bruiloft blijft de algemene pagina. /trouwfotograaf-arnhem volgt later volgens hetzelfde patroon, met eigen inhoud.
 - Overig: /series, /portfolio, /portfolio/portretten, /portfolio/bruiloften, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, /blog/[slug].
 - /portfolio is het oneindige fotocanvas (beleving, indexeerbaar, lage SEO-prioriteit). /portfolio/portretten is hetzelfde canvas (gedeeld component `FotoCanvas`) met alle portretten van Paul: indexeerbaar, in de sitemap, lage SEO-prioriteit; geen eigen zoekwoorddoel naast /portretfotos. /portfolio/bruiloften is hetzelfde canvas met alle foto's uit de map `bruiloften portfolio` (data: src/data/bruiloften.ts): indexeerbaar, in de sitemap, lage SEO-prioriteit; geen eigen zoekwoorddoel naast /fotograaf-bruiloft en /love-marriage; gelinkt vanaf /fotograaf-bruiloft ("meer werk in het portfolio") en vanaf /portfolio. /series blijft het zoekmachinevriendelijke serie-overzicht; concurreer niet met /series of de seriepagina's om zoekwoorden. /series is de hernoemde /werk: `/werk` heeft een permanente redirect naar `/series` in `vercel.json` en komt nergens meer voor in navigatie, sitemap of interne links.
 - Houd URL's kort, kleine letters, koppeltekens, geen trailing-slash-variaties, geen querystrings voor content.

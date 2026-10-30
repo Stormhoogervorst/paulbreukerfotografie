@@ -8,6 +8,9 @@
  * - Optionele velden (jaar, serie, pull quote) die leeg zijn worden niet getoond.
  */
 
+import { bruiloftVanPrijs } from './landing/bruiloft-pakketten';
+import { euro } from '../lib/prijs';
+
 /** Alt-tekst zolang Paul de foto's niet heeft beschreven. Staat in de README-lijst. */
 const TODO_ALT = 'TODO(paul): beschrijf foto';
 
@@ -91,7 +94,7 @@ export const home = {
   seo: {
     title: 'Paul Breuker | Bruiloft, portret en kunst in Nijmegen',
     description:
-      'Paul Breuker fotografeert bruiloften, portretten en kunstseries. Al 35 jaar werk, getoond in onder meer de Kunsthal en het Valkhof. Bruiloften vanaf €3.250.',
+      `Paul Breuker fotografeert bruiloften, portretten en kunstseries. Al 35 jaar werk, getoond in onder meer de Kunsthal en het Valkhof. Bruiloften vanaf ${euro(bruiloftVanPrijs)}.`,
   },
 
   hero: {
@@ -136,9 +139,11 @@ export const home = {
   overPaul: {
     /** Visueel klein label; dit is de H2 van de sectie. */
     label: '(over paul)',
-    // TODO(paul): jaartallen bevestigen (1984, 1995) en vergelijken met "35 jaar" elders op de site en met 1992 (start Love & Marriage).
-    tekst:
-      'Sinds 1984 werk ik als kunstenaar. Eerst als schilder, vanaf 1995 ook als fotograaf. Die twee disciplines voeden elkaar — schilders kijken naar licht, compositie en gebaar; fotografen leggen vast wat ze zien. In mijn werk komen ze samen.',
+    // Tekst van Paul zelf (30 oktober 2026). Twee alinea's: Statement toont elke string als een <p>.
+    tekst: [
+      'Ik ben fotograaf in Nijmegen en woon in Lent. Mijn hele fotografieleven werk ik aan series over thema’s die mij raken: leven, dood en geboorte, sociale reportages en rituelen. Sinds 1992 fotografeer ik bruiloften, en dat doe ik nog steeds. Daarnaast maak ik experimenten, tekeningen en schilderijen waarin droedels en organische vormen de basis zijn.',
+      'Ook portretteer ik graag: staand, half en close-up, alleen, als duo, in een groepje of als groepsportret. Zo werk ik al 35 jaar: bruiloften, kunstseries en portretten.',
+    ],
   },
 
   /**

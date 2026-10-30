@@ -18,8 +18,8 @@ import type { ImageMetadata } from 'astro';
 interface Props {
   /** Klein label links, bijvoorbeeld "(werkwijze)". */
   label: string;
-  /** Lopende tekst rechts. */
-  tekst: string;
+  /** Lopende tekst rechts. Eén alinea of meerdere (elke string een <p>). */
+  tekst: string | string[];
   link?: { label: string; href: string };
   /** Toegankelijke naam van de sectie. Verplicht zolang het label geen kop is. */
   ariaLabel?: string;
@@ -32,6 +32,7 @@ interface Props {
 }
 
 const { label, tekst, link, ariaLabel, labelAlsKop = false, id, foto } = Astro.props;
+const alineas = Array.isArray(tekst) ? tekst : [tekst];
 const Label = labelAlsKop ? 'h2' : 'p';
 
 if (labelAlsKop && !id) throw new Error('Statement: `id` is verplicht bij `labelAlsKop`.');
@@ -72,7 +73,9 @@ if (!labelAlsKop && !ariaLabel) throw new Error('Statement: `ariaLabel` is verpl
     }
 
     <div class="statement__body">
-      <p class="statement__tekst statement-tekst">{tekst}</p>
+      {alineas.map((alinea) => (
+        <p class="statement__tekst statement-tekst">{alinea}</p>
+      ))}
       {
         link && (
           <a class="statement__link statement-link" href={link.href}>
@@ -102,6 +105,10 @@ if (!labelAlsKop && !ariaLabel) throw new Error('Statement: `ariaLabel` is verpl
 
   .statement__label {
     margin: 0 0 var(--space-4);
+  }
+
+  .statement__tekst + .statement__tekst {
+    margin-top: 0.6em;
   }
 
   .statement__link {

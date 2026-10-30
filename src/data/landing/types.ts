@@ -7,7 +7,9 @@
  * De volgorde van de secties ligt vast in `src/layouts/LandingLayout.astro` (zie de regel "Volgorde commerciële
  * landingspagina (bindend)" in `.cursor/rules/paulbreuker-regels.mdc`): Hero, Werkwijze, Pakketten, Impressie, OverPaul,
  * Vragen, Uitleg, Reviews, Aanvraagformulier, Beeld. Een sectie verschijnt alleen als de data ervoor bestaat. Alles na
- * de hero is optioneel; Uitleg en Reviews zijn nog niet gebouwd.
+ * de hero is optioneel; Reviews is nog niet gebouwd. Uitzondering op uitdrukkelijk verzoek: /trouwfotograaf-nijmegen zet
+ * Pakketten na Impressie (`pakkettenPlek`), OverPaul direct vóór Pakketten (`overPaulPlek`) en Uitleg daarna
+ * (`uitlegPlek`). Locaties staat na Uitleg (geen andere pagina gebruikt Locaties).
  */
 import type { ImageMetadata } from 'astro';
 
@@ -20,8 +22,11 @@ export interface LandingLink {
 export interface LandingHero {
   /** De enige <h1> van de pagina. Sentence case, maximaal drie regels. */
   h1: string; // \n geeft een vaste regelbreuk
-  /** Alinea's van de inleiding (ik-vorm van Paul, geen superlatieven). */
-  intro: string[];
+  /**
+   * Alinea's van de inleiding (ik-vorm van Paul, geen superlatieven). Een alinea is gewone tekst (string) of een lijst
+   * Segmenten (tekst en links, bijvoorbeeld naar series); zonder links blijft de uitvoer gelijk.
+   */
+  intro: Array<string | Segment[]>;
   ctaPrimair: LandingLink;
   ctaSecundair?: LandingLink;
   /**
@@ -51,17 +56,48 @@ export interface LandingSchema {
    * LandingLayout.astro); dit veld is dan alleen de terugval.
    */
   vanPrijs?: number;
+  /**
+   * `false` laat de FAQPage weg uit de JSON-LD (de vragen blijven zichtbaar). Ontbreekt het veld, dan komt er een FAQPage
+   * uit `pagina.vragen` (de standaard).
+   */
+  faqSchema?: boolean;
   /** Plaatsen of regio's voor `areaServed`. */
   werkgebied: string[];
+  /**
+   * Ontbreekt het, dan zijn de namen in `werkgebied` gewone teksten in `areaServed`. Met "City" wordt elke naam een
+   * `{ "@type": "City", name }` (voor pagina's over één plaats, zoals /trouwfotograaf-nijmegen).
+   */
+  werkgebiedType?: 'City';
 }
 
 // ---------------------------------------------------------------------------
 // Secties na de hero (Werkwijze, Impressie en Pakketten zijn gebouwd; de overige vormen zijn voorlopig)
 // ---------------------------------------------------------------------------
 
-export interface LandingUitleg {
+/**
+ * Onderdeel van een Uitleg-blok, in de volgorde waarin het getoond wordt:
+ * - "alinea": gewone alinea (Segmenten: tekst en links);
+ * - "kop": subkop (<h3>) binnen het blok;
+ * - "lijst": opsomming; met `genummerd` een genummerde lijst (<ol>), anders een lijst met streepjes (<ul>).
+ */
+export type UitlegOnderdeel =
+  | { soort: 'alinea'; tekst: Segment[] }
+  | { soort: 'kop'; tekst: string }
+  | { soort: 'lijst'; genummerd?: boolean; items: Segment[][] };
+
+/**
+ * Uitleg: lange tekst met een kop (component: src/components/landing/LandingUitleg.astro). `pagina.uitleg` is een lijst
+ * van blokken; elk blok is een eigen sectie met een eigen <h2> (subkoppen zijn <h3>). Zonder `uitlegPlek` staan de blokken
+ * op hun vaste plek na Vragen en vóór Reviews; zie `LandingPagina.uitlegPlek` voor de uitzondering.
+ */
+export interface LandingUitlegBlok {
+  /** Anker van het blok (zonder #), bijvoorbeeld "kosten". Ontbreekt het, dan is het "uitleg-1", "uitleg-2" enz. */
+  id?: string;
+  /** Klein label links (alleen visueel, voor schermlezers verborgen; de <h2> is de toegankelijke naam). Ontbreekt het, dan is de linkerkolom leeg. */
+  label?: string;
+  /** De <h2> van het blok. */
   kop: string;
-  alineas: string[];
+  inhoud: UitlegOnderdeel[];
 }
 
 /** CTA van een pakket: springt naar het formulier en kiest daar dit pakket (via `data-pakket`). */
@@ -101,6 +137,24 @@ export interface LandingPakketten {
   items: LandingPakket[];
 }
 
+/** Een plek waar Paul heeft gefotografeerd (alleen echte plekken; nooit verzinnen). */
+export interface LandingLocatie {
+  naam: string;
+  plaats: string;
+  /** Slug van een /trouwlocaties/[slug]-pagina. Zonder slug is de naam gewone tekst; met slug een link. */
+  slug?: string;
+}
+
+/**
+ * Locaties ("Waar ik fotografeer"): lijst plekken, direct na OverPaul en vóór Vragen
+ * (component: src/components/landing/LandingLocaties.astro). Zonder items rendert de sectie niets.
+ */
+export interface LandingLocaties {
+  /** Titel in de marquee; de eerste herhaling is de <h2> van de sectie. */
+  titel: string;
+  items: LandingLocatie[];
+}
+
 export interface LandingImpressieFoto {
   /** Bronbestand uit `src/assets/landing/impressie/`. Behoudt zijn eigen verhouding (geen uitsnede). */
   afbeelding: ImageMetadata;
@@ -136,8 +190,11 @@ export interface LandingWerkwijze {
   link?: LandingLink;
 }
 
-/** Stuk lopende tekst: een gewone string of een link ({ tekst, href }). Wordt zonder `set:html` gerenderd. */
-export type Segment = string | { tekst: string; href: string };
+/**
+ * Stuk lopende tekst: een gewone string of een link ({ tekst, href }). Wordt zonder `set:html` gerenderd.
+ * `extern: true` zet `rel="noopener"` op de link (voor links naar andere sites); alleen LandingUitleg.astro leest dit veld.
+ */
+export type Segment = string | { tekst: string; href: string; extern?: boolean };
 
 /**
  * OverPaul: links een foto van Paul, rechts label, grote openingsalinea, gewone alinea's en kleine links, direct onder
@@ -193,6 +250,11 @@ export interface LandingVraag {
 export interface LandingVragen {
   /** Titel in de marquee; de eerste herhaling is de <h2> van de sectie. */
   titel: string;
+  /**
+   * Met `true` staat elke vraag als <h3> in de <summary> (voor pagina's met een H2-H3-opbouw voor de vragen). Ontbreekt
+   * het, dan is de vraag gewone tekst in de <summary> en blijft de uitvoer gelijk.
+   */
+  vraagAlsKop?: boolean;
   items: LandingVraag[];
 }
 
@@ -232,11 +294,38 @@ export interface LandingPagina {
   // Secties na de hero, in de volgorde waarin ze op de pagina komen.
   werkwijze?: LandingWerkwijze;
   pakketten?: LandingPakketten;
+  /**
+   * Plek van Pakketten. Standaard direct na Werkwijze en vóór Impressie (de bindende volgorde). Met
+   * `pakkettenPlek: 'na-impressie'` staan ze direct na Impressie (nu alleen /trouwfotograaf-nijmegen, op uitdrukkelijk
+   * verzoek).
+   */
+  pakkettenPlek?: 'na-impressie';
+  /**
+   * Plek van OverPaul. Standaard na Impressie (of na Uitleg, als die na Impressie staat). Met
+   * `overPaulPlek: 'voor-pakketten'` staat OverPaul direct vóór Pakketten (nu alleen /trouwfotograaf-nijmegen, op
+   * uitdrukkelijk verzoek).
+   */
+  overPaulPlek?: 'voor-pakketten';
+  /**
+   * Kleine noot onder de pakketten (gedempte kleur, kleiner dan de omschrijving). Alleen gerenderd als het veld gevuld
+   * is en de pagina `pakketten` heeft. De eerste voorkomende tekst "op aanvraag" wordt een gewone tekstlink naar
+   * #aanvragen (met `data-pakket={pakkettenNootPakket}` als dat gevuld is).
+   */
+  pakkettenNoot?: string;
+  /** Slug die de link "op aanvraag" in `pakkettenNoot` vooraf invult in het veld "pakket" van het formulier. */
+  pakkettenNootPakket?: string;
   impressie?: LandingImpressie;
+  /**
+   * Uitleg-blokken. Standaard na Vragen en vóór Reviews (de bindende volgorde). Met `uitlegPlek: 'na-impressie'` staan ze
+   * direct na Impressie (of na Pakketten, als die ook na Impressie staat). Op /trouwfotograaf-nijmegen staat OverPaul
+   * vóór Pakketten (`overPaulPlek`), op uitdrukkelijk verzoek.
+   */
+  uitleg?: LandingUitlegBlok[];
+  uitlegPlek?: 'na-impressie';
   overPaul?: LandingOverPaul;
+  locaties?: LandingLocaties;
   vragen?: LandingVragen;
   beeld?: LandingBeeld;
-  uitleg?: LandingUitleg;
   reviews?: LandingReview[];
   formulier?: LandingFormulier;
 }

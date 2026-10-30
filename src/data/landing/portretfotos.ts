@@ -56,7 +56,7 @@ function kostenTekst(): string {
   const lijst = pakketten.items
     .flatMap((pakket) => (pakket.prijs === undefined ? [] : [`${pakket.naam} ${euro(pakket.prijs)}`]))
     .join(', ');
-  return `Een portretsessie bij mij kost vanaf ${euro(laagste)}. De prijs hangt af van het soort portret en het aantal personen: ${lijst}. Wat erbij hoort lees je bij de pakketten.`;
+  return `Een portretsessie bij mij kost vanaf ${euro(laagste)}. De prijs hangt af van het soort portret en het aantal personen: ${lijst}. Vertel me in het aanvraagformulier wat je zoekt, dan laat ik je binnen 24 uur weten wat erbij hoort.`;
 }
 
 // Bewaking: een description boven de 160 tekens wordt in Google afgekapt.
@@ -87,9 +87,9 @@ export const portretfotos: LandingPagina = {
       'Ik fotografeer mensen in natuurlijk licht, zonder studio. Ik kom naar je toe: thuis, op je werk, buiten of op een plek die iets over jou zegt.',
       `Mijn werk is getoond in onder meer de Kunsthal in Rotterdam en op Photoville in New York. Ik maakte ook een portretserie bij een gaarkeuken in Rusland.${laagste === undefined ? '' : ` Een portretsessie kost vanaf ${euro(laagste)}.`}`,
     ],
-    // #aanvragen (Aanvraagformulier) en #pakketten (Pakketten) bestaan.
+    // #aanvragen (Aanvraagformulier) bestaat. De sectie Pakketten staat niet meer op deze pagina (op verzoek), dus er is geen
+    // tweede CTA en geen link naar #pakketten.
     ctaPrimair: { label: 'Portretfoto aanvragen', href: '#aanvragen' },
-    ctaSecundair: { label: 'Bekijk de pakketten', href: '#pakketten' },
     /**
      * Fotostrip (drie foto's, in volgorde; desktop alle drie, mobiel alleen de tweede, rand tot rand; zie MOBIEL_FOTOS in
      * LandingHero.astro). Alle bronnen staan in src/assets/portfolio/portretten/ (de galerij /portfolio/portretten). De
@@ -124,10 +124,11 @@ export const portretfotos: LandingPagina = {
     label: '(werkwijze)',
     tekst:
       'Ik werk met natuurlijk licht en zonder studio. Ik kom naar jou toe, of naar een plek die jij kiest: thuis, op je werk of buiten. We beginnen met een gesprek over wat je met de foto’s wilt. Daarna fotografeer ik rustig en zonder haast, zodat je portret lijkt op wie je bent.',
-    link: { label: 'bekijk de pakketten', href: '#pakketten' },
   },
 
-  pakketten,
+  // Geen `pakketten`: de sectie Pakketten is op verzoek van de pagina gehaald. De data blijft in portret-pakketten.ts: de
+  // opties van het veld "pakket" in het formulier komen daaruit (src/lib/formulieren/portret.ts). Zonder `pakketten` komen
+  // er geen Offers in de JSON-LD; een vanaf-prijs kan dan via `schema.vanPrijs`.
 
   /**
    * Impressie: drie staande foto's uit de serie Portretten op één rij (indeling "rij", zie LandingImpressie.astro), van
@@ -213,9 +214,7 @@ export const portretfotos: LandingPagina = {
         antwoord: [
           linkSegmenten(
             kostenTekst(),
-            laagste === undefined
-              ? [{ tekst: 'het aanvraagformulier', href: '#aanvragen' }]
-              : [{ tekst: 'de pakketten', href: '#pakketten' }],
+            [{ tekst: 'het aanvraagformulier', href: '#aanvragen' }],
           ),
         ],
       },

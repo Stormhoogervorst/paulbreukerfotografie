@@ -1,0 +1,189 @@
+---
+/**
+ * Gedeelde lightbox: markup en stijl van de grote weergave van een foto. Gedrag: src/scripts/lightbox.ts. Eén per pagina.
+ * Gebruikt door FotoCanvas (/portfolio, /portfolio/portretten, /portfolio/bruiloften; modus "canvas") en door de
+ * projectpagina's (src/pages/[project].astro; modus "serie", met teller en uitgeschakelde pijlen aan het begin en eind).
+ *
+ * De <dialog> is gesloten (display: none) tot de eerste klik; de afbeeldingen erin hebben geen src, dus er laadt niets
+ * vóór het openen.
+ */
+interface Props {
+  /** Toegankelijke naam van de dialoog. */
+  label: string;
+  modus?: 'canvas' | 'serie';
+}
+
+const { label, modus = 'canvas' } = Astro.props;
+---
+
+<dialog class="lightbox" role="dialog" aria-modal="true" aria-label={label} data-modus={modus}>
+  <figure class="lightbox__figure">
+    <!-- Twee lagen op dezelfde plek: de miniatuur (tijdelijk, al in de cache) en de grote versie (pas na het klikken geladen). -->
+    <div class="lightbox__stage">
+      <picture class="lightbox__laag lightbox__laag--klein">
+        <img class="lightbox__klein" alt="" aria-hidden="true" decoding="async" />
+      </picture>
+      <picture class="lightbox__laag lightbox__laag--groot">
+        <img class="lightbox__img" alt="" decoding="async" />
+      </picture>
+    </div>
+    <figcaption class="lightbox__caption" hidden></figcaption>
+  </figure>
+  <button type="button" class="lightbox__nav lightbox__nav--vorige" aria-label="Vorige foto"><span aria-hidden="true">←</span> vorige</button>
+  <button type="button" class="lightbox__nav lightbox__nav--volgende" aria-label="Volgende foto">volgende <span aria-hidden="true">→</span></button>
+  {modus === 'serie' && <p class="lightbox__teller" aria-live="polite" aria-atomic="true" hidden></p>}
+  <button type="button" class="lightbox__close">sluiten</button>
+  <!-- Verborgen: hier laden de vorige en volgende foto voor (alleen na het openen). -->
+  <div class="lightbox__voorladen" hidden></div>
+</dialog>
+
+<style>
+  /* ---------- Grote weergave ---------- */
+  .lightbox {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgb(230 230 230 / 0.97);
+    color: var(--ink);
+    overscroll-behavior: contain;
+  }
+
+  .lightbox[open] {
+    display: grid;
+    place-items: center;
+  }
+
+  .lightbox::backdrop {
+    background: transparent;
+  }
+
+  .lightbox__figure {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  /* De foto staat op dezelfde plek in twee lagen (miniatuur eronder, grote versie erboven). De grootte volgt uit de
+     verhouding en past in 90% van het scherm; de achtergrond is het gemiddelde kleurvlak van de foto (--kleur). */
+  .lightbox__stage {
+    --ratio: 1.5;
+    display: grid;
+    width: min(90vw, calc((90svh - 4rem) * var(--ratio)));
+    aspect-ratio: var(--ratio);
+    background-color: var(--kleur, transparent);
+  }
+
+  .lightbox__laag {
+    display: block;
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
+  .lightbox__laag--groot {
+    opacity: 0;
+    transition: opacity 150ms ease-out;
+  }
+
+  .lightbox__stage.is-ready .lightbox__laag--groot {
+    opacity: 1;
+  }
+
+  .lightbox__klein,
+  .lightbox__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+  }
+
+  .lightbox__caption {
+    font-size: var(--font-size-small);
+  }
+
+  .lightbox__caption :global(a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .lightbox__close {
+    position: fixed;
+    top: var(--space-2);
+    right: var(--space-2);
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--font-size-small);
+    cursor: pointer;
+  }
+
+  .lightbox__close:hover,
+  .lightbox__nav:hover {
+    text-decoration: underline;
+  }
+
+  .lightbox__nav {
+    position: fixed;
+    bottom: max(var(--space-2), env(safe-area-inset-bottom));
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--font-size-small);
+    cursor: pointer;
+  }
+
+  .lightbox__nav--vorige {
+    left: var(--space-2);
+  }
+
+  .lightbox__nav--volgende {
+    right: var(--space-2);
+  }
+
+  /* Projectpagina's: geen wrap-around; aan het begin en eind is de pijl uitgeschakeld. */
+  .lightbox__nav:disabled {
+    opacity: 0.3;
+    cursor: default;
+    text-decoration: none;
+  }
+
+  /* Teller "3 / 24" tussen de pijlen. */
+  .lightbox__teller {
+    position: fixed;
+    bottom: max(var(--space-2), env(safe-area-inset-bottom));
+    left: 50%;
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    max-width: none;
+    margin: 0;
+    transform: translateX(-50%);
+    font-size: var(--font-size-small);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .lightbox__teller[hidden] {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Canvas: geen overgang. Projectpagina's: alleen de korte opacity-fade (150 ms) van miniatuur naar grote versie. */
+    .lightbox[data-modus='canvas'] .lightbox__laag--groot {
+      transition: none;
+    }
+  }
+</style>

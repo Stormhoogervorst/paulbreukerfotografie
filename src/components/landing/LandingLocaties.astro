@@ -1,0 +1,95 @@
+---
+/**
+ * Locaties (landingspagina), "Waar ik fotografeer": titel in de gedeelde Marquee, daaronder een lijst plekken waar
+ * Paul echt heeft gefotografeerd, met naam en plaats. Staat direct na OverPaul en vóór Vragen (zie LandingLayout.astro).
+ *
+ * - Zonder items (veld ontbreekt of lijst is leeg) rendert deze component niets: geen kop, geen lege sectie.
+ * - Een locatie met `slug` is een link naar /trouwlocaties/[slug]; zonder slug is de naam gewone tekst.
+ * - Typografisch en rustig, in de stijl van Vragen: haarlijnen, geen kaarten, schaduw of afgeronde hoeken. Geen JavaScript
+ *   (behalve het bestaande script van Marquee.astro).
+ * - Geen eigen buitenmarges: de verticale ruimte rond de sectie komt van de .sectie-wrapper in LandingLayout.astro.
+ *
+ * Content: `pagina.locaties` (zie src/data/landing/types.ts).
+ */
+import Marquee from '../Marquee.astro';
+import type { LandingLocaties } from '../../data/landing/types';
+
+interface Props {
+  locaties?: LandingLocaties;
+}
+
+const { locaties } = Astro.props;
+const items = locaties?.items ?? [];
+
+/** Id van de <h2> (de eerste herhaling in de marquee); de sectie verwijst ernaar met aria-labelledby. */
+const KOP_ID = 'locaties-titel';
+---
+
+{
+  locaties && items.length > 0 && (
+    <section class="locaties" id="locaties" aria-labelledby={KOP_ID}>
+      <Marquee woord={locaties.titel} kopId={KOP_ID} />
+
+      <ul class="locaties__lijst" role="list">
+        {items.map((locatie) => (
+          <li class="locatie">
+            {locatie.slug ? (
+              <a class="locatie__naam" href={`/trouwlocaties/${locatie.slug}`}>
+                {locatie.naam}
+              </a>
+            ) : (
+              <span class="locatie__naam">{locatie.naam}</span>
+            )}
+            <span class="locatie__plaats">{locatie.plaats}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+<style>
+  .locaties {
+    scroll-margin-top: clamp(2rem, 5vw, 6rem);
+  }
+
+  .locaties__lijst {
+    margin: 0;
+    padding: 0 var(--gutter);
+    list-style: none;
+  }
+
+  /* Haarlijn boven elke locatie en onder de laatste, zoals in Vragen. */
+  .locatie {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.25em 1em;
+    padding-block: clamp(1.25rem, 2vw, 2.25rem);
+    border-top: 1px solid var(--ink);
+    font-size: clamp(1.25rem, 2.2vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .locatie:last-child {
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .locatie__naam {
+    min-width: 0;
+  }
+
+  a.locatie__naam {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .locatie__plaats {
+    font-weight: 500;
+  }
+</style>

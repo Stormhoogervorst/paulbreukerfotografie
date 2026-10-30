@@ -1,0 +1,187 @@
+---
+/**
+ * Uitleg (landingspagina): één blok lange tekst met een kop. Een pagina kan meerdere blokken hebben (`pagina.uitleg` is
+ * een lijst); elk blok is een eigen sectie met een eigen <h2> en staat in een eigen .sectie-wrapper in LandingLayout.astro.
+ * Subkoppen binnen een blok zijn <h3>.
+ *
+ * - Opmaak in de stijl van Vragen en Statement: haarlijn bovenaan, links een klein label (alleen visueel, aria-hidden),
+ *   rechts de tekst. Desktop (vanaf 900px): de tekst begint op `--kolom-tekst` (global.css), dezelfde positie als de
+ *   inleiding in de hero en de antwoorden in Vragen, en is minstens 24rem breed (valt de kolom smaller uit, dan schuift
+ *   het begin naar links). Mobiel: label en tekst onder elkaar.
+ * - Alinea's hebben de tekststijl van de antwoorden in Vragen (--font-size-body, --intro-lh) en zijn maximaal 27em breed
+ *   (ongeveer 60 tekens per regel). De <h2> heeft de letter van een vraag in Vragen. Geen nieuwe lettertypen of kleuren.
+ * - Links in de lopende tekst zijn onderstreept (standaardlinkstijl van de site) en hebben de globale focusstijl.
+ *   `extern: true` op een segment zet `rel="noopener"`.
+ * - Geen set:html: segmenten zijn tekst of een <a>. Geen JavaScript, geen animatie.
+ * - Geen eigen buitenmarges: de verticale ruimte rond de sectie komt van de .sectie-wrapper in LandingLayout.astro.
+ *
+ * Content: `pagina.uitleg` (zie src/data/landing/types.ts).
+ */
+import type { LandingUitlegBlok, Segment } from '../../data/landing/types';
+
+interface Props {
+  blok: LandingUitlegBlok;
+  /** Volgnummer van het blok op de pagina (vanaf 1); gebruikt voor het standaard-id. */
+  nummer: number;
+}
+
+const { blok, nummer } = Astro.props;
+const id = blok.id ?? `uitleg-${nummer}`;
+const kopId = `${id}-kop`;
+---
+
+<section class="uitleg" id={id} aria-labelledby={kopId}>
+  <div class="uitleg__inner">
+    {blok.label ? <p class="uitleg__label statement-label" aria-hidden="true">{blok.label}</p> : <span class="uitleg__label" />}
+
+    <div class="uitleg__tekst">
+      <h2 class="uitleg__kop" id={kopId}>{blok.kop}</h2>
+
+      {
+        blok.inhoud.map((onderdeel) => {
+          if (onderdeel.soort === 'kop') return <h3 class="uitleg__subkop">{onderdeel.tekst}</h3>;
+          if (onderdeel.soort === 'lijst') {
+            const Lijst = onderdeel.genummerd ? 'ol' : 'ul';
+            return (
+              <Lijst class:list={['uitleg__lijst', onderdeel.genummerd ? 'uitleg__lijst--genummerd' : 'uitleg__lijst--streep']} role="list">
+                {onderdeel.items.map((item) => (
+                  <li>
+                    {item.map((segment: Segment) =>
+                      typeof segment === 'string' ? (
+                        segment
+                      ) : (
+                        <a href={segment.href} rel={segment.extern ? 'noopener' : undefined}>
+                          {segment.tekst}
+                        </a>
+                      ),
+                    )}
+                  </li>
+                ))}
+              </Lijst>
+            );
+          }
+          return (
+            <p>
+              {onderdeel.tekst.map((segment: Segment) =>
+                typeof segment === 'string' ? (
+                  segment
+                ) : (
+                  <a href={segment.href} rel={segment.extern ? 'noopener' : undefined}>
+                    {segment.tekst}
+                  </a>
+                ),
+              )}
+            </p>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---------- Uitleg (mobiel eerst) ---------- */
+  .uitleg {
+    /* Geen eigen buitenmarges: de verticale ruimte komt van de .sectie-wrapper. */
+    padding: 0 var(--gutter);
+    /* De kop staat bij een sprong naar het anker niet strak tegen de bovenrand van het scherm. */
+    scroll-margin-top: clamp(2rem, 5vw, 6rem);
+  }
+
+  /* Dezelfde haarlijn en dezelfde ruimte eronder als Statement en LandingOverPaul. */
+  .uitleg__inner {
+    padding-top: var(--statement-boven);
+    border-top: var(--haarlijn);
+  }
+
+  .uitleg__label {
+    display: block;
+    margin: 0 0 var(--space-4);
+  }
+
+  /* Een blok zonder label heeft een lege plaatshouder: op mobiel geen ruimte. */
+  span.uitleg__label {
+    display: none;
+  }
+
+  /* H2: dezelfde letter als een vraag in Vragen (vet, krappe regelafstand). */
+  .uitleg__kop {
+    margin: 0 0 var(--space-4);
+    font-size: clamp(1.5rem, 2.4vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  /* H3: vet, op de grootte van de lopende tekst. */
+  .uitleg__subkop {
+    margin: var(--space-5) 0 var(--space-2);
+    font-size: var(--font-size-body);
+    font-weight: 700;
+    line-height: var(--intro-lh);
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .uitleg__tekst p,
+  .uitleg__lijst {
+    max-width: 27em; /* ongeveer 60 tekens per regel; zie de toelichting in LandingVragen.astro */
+    font-size: var(--font-size-body);
+    line-height: var(--intro-lh);
+  }
+
+  .uitleg__tekst p {
+    margin: 0 0 1em;
+  }
+
+  .uitleg__tekst > :last-child {
+    margin-bottom: 0;
+  }
+
+  .uitleg__lijst {
+    margin: 0 0 1em;
+    padding-left: 1.6em;
+  }
+
+  .uitleg__lijst--genummerd {
+    list-style: decimal;
+  }
+
+  .uitleg__lijst--streep {
+    list-style: '– ';
+  }
+
+  .uitleg__lijst li {
+    margin-bottom: 0.6em;
+    padding-left: 0.2em;
+  }
+
+  .uitleg__lijst li:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ---------- Uitleg (desktop) ---------- */
+  @media (min-width: 900px) {
+    .uitleg__inner {
+      display: grid;
+      /* De tekst begint op --kolom-tekst (gemeten vanaf de schermrand, dus min de gutter), minstens 24rem breed:
+         dezelfde berekening als de antwoorden in Vragen. */
+      grid-template-columns: min(calc(var(--kolom-tekst) - var(--gutter)), calc(100% - 24rem)) 1fr;
+    }
+
+    .uitleg__label {
+      margin: 0;
+      padding-top: 0.2em;
+    }
+
+    span.uitleg__label {
+      display: block;
+    }
+
+    .uitleg__subkop {
+      margin-top: var(--space-5);
+    }
+  }
+</style>

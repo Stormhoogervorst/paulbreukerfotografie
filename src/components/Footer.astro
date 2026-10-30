@@ -9,6 +9,7 @@
  */
 import {
   CONTACT,
+  FOOTER_LANDING,
   FOOTER_NAV,
   FOOTER_SOCIALS,
   FOOTER_TEKST,
@@ -34,9 +35,20 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
   </p>
 
   <nav class="site-footer__nav" aria-label="Footernavigatie">
-    <ul>
+    <ul class="site-footer__nav-hoofd">
       {
         FOOTER_NAV.map((item) => (
+          <li>
+            <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <ul class="site-footer__landing">
+      {
+        FOOTER_LANDING.map((item) => (
           <li>
             <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
               {item.label}
@@ -134,10 +146,13 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
   /* ---------- (b) Navigatie (mobiel: 2 kolommen, 3 rijen, kolomsgewijs gevuld) ---------- */
   .site-footer__nav {
     grid-area: nav;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     margin-top: 2rem; /* wordmark naar nav */
   }
 
-  .site-footer__nav ul {
+  .site-footer__nav-hoofd {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: repeat(3, auto);
@@ -161,6 +176,21 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
   .site-footer__nav a:focus-visible,
   .site-footer__nav a[aria-current='page'] {
     text-decoration-line: underline;
+  }
+
+  /* Landingspagina's: donkergrijs op zwart. #8a8a8a heeft contrast 7:1 (AA). */
+  .site-footer__landing {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 1.25rem;
+    color: #8a8a8a;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .site-footer__landing a {
+    color: inherit;
   }
 
   /* ---------- (c) Wordmark: één regel van marge tot marge ---------- */
@@ -240,8 +270,7 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
     .site-footer__tagline {
       max-width: 52vw;
       font-size: clamp(1.75rem, 3.2vw, 4.5rem);
-      align-self: end;
-      align-self: last baseline; /* basislijn gelijk aan die van de navigatie */
+      align-self: start;
       text-wrap: wrap;
     }
 
@@ -253,11 +282,11 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
     .site-footer__nav {
       justify-self: end;
       margin-top: 0;
-      align-self: end;
-      align-self: last baseline;
+      align-self: start;
+      align-items: flex-end;
     }
 
-    .site-footer__nav ul {
+    .site-footer__nav-hoofd {
       display: flex;
       gap: 1.6vw;
       font-size: clamp(1rem, 1.05vw, 1.375rem);
@@ -266,6 +295,15 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
     .site-footer__nav a {
       min-height: 0;
       white-space: nowrap;
+    }
+
+    .site-footer__landing {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 0 1.25rem;
+      margin-top: 0.75rem;
+      font-size: clamp(0.8125rem, 0.85vw, 0.9375rem);
     }
 
     .site-footer__wordmark {

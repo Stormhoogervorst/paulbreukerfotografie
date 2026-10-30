@@ -273,6 +273,12 @@ export interface OfferCatalogSchema {
   itemListElement: CatalogOfferSchema[];
 }
 
+/** Een plaats als `areaServed` (bijvoorbeeld { "@type": "City", name: "Nijmegen" }). */
+export interface CityRef {
+  '@type': 'City';
+  name: string;
+}
+
 export interface ServiceSchema extends JsonLdNode {
   '@type': 'Service';
   name: string;
@@ -280,7 +286,7 @@ export interface ServiceSchema extends JsonLdNode {
   url: string;
   provider: IdRef;
   serviceType?: string;
-  areaServed?: string[];
+  areaServed?: Array<string | CityRef>;
   /** Ontbreekt zonder vanaf-prijs: geen Offer verzinnen. */
   offers?: OfferSchema;
   /** Alleen pakketten met een echte prijs. */
@@ -307,7 +313,7 @@ export interface ServiceInput {
   /** Naam van de OfferCatalog (standaard "Pakketten"). */
   catalogName?: string;
   serviceType?: string;
-  areaServed?: string[];
+  areaServed?: Array<string | CityRef>;
   providerId?: string;
 }
 

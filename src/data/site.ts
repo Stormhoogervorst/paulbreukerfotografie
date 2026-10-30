@@ -62,6 +62,16 @@ export const FOOTER_NAV = [
   { label: 'Contact', href: '/contact' },
 ] as const;
 
+/**
+ * Commerciële landingspagina's in de voettekst (donkergrijs, naast de vier witte links).
+ * Alleen bestaande pagina's: /zakelijke-portretfoto, /linkedin-foto-laten-maken en /trouwfotograaf-arnhem volgen later.
+ */
+export const FOOTER_LANDING = [
+  { label: 'Fotograaf bruiloft', href: '/fotograaf-bruiloft' },
+  { label: 'Trouwfotograaf Nijmegen', href: '/trouwfotograaf-nijmegen' },
+  { label: 'Portretfoto laten maken', href: '/portretfotos' },
+] as const;
+
 /** Decoratief wordmark in de voettekst. */
 export const FOOTER_WORDMARK = 'Paul Breuker';
 

@@ -8,16 +8,22 @@
  * fotoraster (twee per rij), doorlinkrij, footer. Een onderdeel verschijnt alleen als de data ervoor bestaat.
  * Elk onderdeel zit in een eigen wrapper met alleen padding; geen margins die van buren afhangen.
  *
+ * Elke foto is een link naar de grote versie (2200 px, hetzelfde bestand als de lightbox op /portfolio) en opent met JavaScript
+ * in de gedeelde lightbox (src/components/Lightbox.astro, src/scripts/lightbox.ts, src/scripts/serie-lightbox.ts). Zonder
+ * JavaScript opent de link de grote foto.
+ *
  * Statische pagina's in src/pages (bijvoorbeeld /series, /portfolio, /fotograaf-bruiloft) gaan voor: een slug die al een
  * eigen bestand heeft, wordt hier niet gegenereerd. /panoramas en /portretten zijn geen projecten (niet in series.ts).
  */
 import { Picture, getImage } from 'astro:assets';
 import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Lightbox from '../components/Lightbox.astro';
 import { serieLijst, serieHref, type Serie } from '../data/series';
 import { fotosVan, rijenVan, titelKlasse } from '../lib/serie-fotos';
 import { breadcrumbList, imageGallery } from '../lib/schema';
 import { BREEDTES_FOTO, FALLBACK_FORMAAT, FORMATEN } from '../lib/beeld';
+import { getPortfolioImages } from '../lib/portfolio-images';
 
 /**
  * `width` en `height` van <Picture> bepalen ook de `src` van de <img> (een extra WebP op die maat, bovenop `widths`). Houd die
@@ -56,6 +62,21 @@ const { serie, volgend } = Astro.props;
 
 const alleFotos = fotosVan(serie);
 const rijen = rijenVan(alleFotos);
+
+// Grote versie per foto voor de lightbox: dezelfde parameters als op het canvas (src/lib/portfolio-images.ts: 2200 px, AVIF,
+// kwaliteit 75), dus hetzelfde bestand en niet dubbel in de build. De kleur is het gemiddelde kleurvlak van de foto.
+// Let op: lees `foto.image.src` hier niet uit: dat laat de build het bronbestand als origineel in /_astro zetten.
+const groteFotos = await Promise.all(
+  alleFotos.map(async (foto, index) => {
+    const { large, color } = await getPortfolioImages({
+      id: `serie-${serie.slug}-${index}`,
+      width: foto.width,
+      height: foto.height,
+      image: foto.image,
+    });
+    return { src: large[large.length - 1].src, color };
+  }),
+);
 
 const introductie = serie.introductie?.filter((alinea) => alinea.trim()) ?? [];
 const heeftIntro = introductie.length > 0;
@@ -144,20 +165,30 @@ const klasse = titelKlasse(serie.titel);
           <div class:list={['rij', { 'rij--enkel': rij.fotos.length === 1 }]}>
             {rij.fotos.map((foto, fotoIndex) => (
               <div class="foto" style={`--verhouding: ${foto.verhouding}`}>
-                <Picture
-                  src={foto.image}
-                  alt={foto.alt}
-                  width={Math.min(foto.width, MAX_FOTO_BREEDTE)}
-                  height={Math.round((foto.height * Math.min(foto.width, MAX_FOTO_BREEDTE)) / foto.width)}
-                  widths={BREEDTES_FOTO}
-                  sizes={foto.sizes}
-                  formats={FORMATEN}
-                  fallbackFormat={FALLBACK_FORMAAT}
-                  loading={rijIndex === 0 && fotoIndex === 0 ? 'eager' : 'lazy'}
-                  fetchpriority={rijIndex === 0 && fotoIndex === 0 ? 'high' : undefined}
-                  decoding="async"
-                  class="foto__beeld"
-                />
+                <a
+                  class="foto__link"
+                  href={groteFotos[rijIndex * 2 + fotoIndex].src}
+                  data-lightbox
+                  data-breedte={foto.width}
+                  data-hoogte={foto.height}
+                  data-kleur={groteFotos[rijIndex * 2 + fotoIndex].color}
+                  aria-haspopup="dialog"
+                >
+                  <Picture
+                    src={foto.image}
+                    alt={foto.alt}
+                    width={Math.min(foto.width, MAX_FOTO_BREEDTE)}
+                    height={Math.round((foto.height * Math.min(foto.width, MAX_FOTO_BREEDTE)) / foto.width)}
+                    widths={BREEDTES_FOTO}
+                    sizes={foto.sizes}
+                    formats={FORMATEN}
+                    fallbackFormat={FALLBACK_FORMAAT}
+                    loading={rijIndex === 0 && fotoIndex === 0 ? 'eager' : 'lazy'}
+                    fetchpriority={rijIndex === 0 && fotoIndex === 0 ? 'high' : undefined}
+                    decoding="async"
+                    class="foto__beeld"
+                  />
+                </a>
               </div>
             ))}
           </div>
@@ -191,6 +222,37 @@ const klasse = titelKlasse(serie.titel);
       }
     </ul>
   </nav>
+
+  <Lightbox label={`Foto's van ${serie.titel}`} modus="serie" />
+
+  <script>
+    // Doet niets tot de eerste klik: de lightbox-code (src/scripts/serie-lightbox.ts) wordt dan pas opgehaald. Een klik met
+    // Cmd, Ctrl, Shift of Alt (of de middelste muisknop, die geen `click` geeft) opent de link gewoon. Lukt het laden niet, dan
+    // opent de link de grote foto.
+    const SELECTOR = 'a[data-lightbox]';
+    const open = (link: HTMLAnchorElement) => {
+      import('../scripts/serie-lightbox')
+        .then((module) => module.openSerieLightbox(link))
+        .catch(() => window.location.assign(link.href));
+    };
+    const metToets = (event: MouseEvent | KeyboardEvent) => event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+
+    document.addEventListener('click', (event) => {
+      if (event.defaultPrevented || event.button !== 0 || metToets(event)) return;
+      const link = (event.target as Element).closest<HTMLAnchorElement>(SELECTOR);
+      if (!link) return;
+      event.preventDefault();
+      open(link);
+    });
+
+    // Een link opent met Enter (dat geeft een klik), maar niet met Spatie.
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== ' ' || metToets(event) || !(event.target instanceof HTMLAnchorElement)) return;
+      if (!event.target.matches(SELECTOR)) return;
+      event.preventDefault();
+      open(event.target);
+    });
+  </script>
 </BaseLayout>
 
 <style>
@@ -268,10 +330,22 @@ const klasse = titelKlasse(serie.titel);
     width: 100%;
   }
 
+  /* De link om de foto verandert niets aan de maat of plaats: alleen een blok met dezelfde breedte. */
+  .foto__link {
+    display: block;
+  }
+
   .foto :global(.foto__beeld) {
     display: block;
     width: 100%;
     height: auto;
+  }
+
+  /* Met een muis wijst de cursor op "groot maken"; op touch opent een tik de foto. */
+  @media (hover: hover) and (pointer: fine) {
+    .foto__link {
+      cursor: zoom-in;
+    }
   }
 
   /* ---------- Doorlinkrij (mobiel: onder elkaar) ---------- */

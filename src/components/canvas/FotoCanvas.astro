@@ -24,6 +24,7 @@
  *    beeld, dus niet opgehaald. De LCP-tegel (de enige met fetchpriority="high") maakt het script met JavaScript.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Lightbox from '../Lightbox.astro';
 import { getPortfolioImages, toSrcset, type ImagePhoto } from '../../lib/portfolio-images';
 import { generateLayout } from '../../lib/portfolio-layout';
 import type { AnySchema } from '../../lib/schema';
@@ -282,25 +283,7 @@ function maxWidth(foto: CanvasFoto, [cellW, cellH]: readonly [number, number]): 
       </ul>
     </div>
 
-    <dialog class="lightbox" aria-label="Foto in groot formaat">
-      <figure class="lightbox__figure">
-        <!-- Twee lagen op dezelfde plek: de miniatuur (tijdelijk, al in de cache) en de grote versie (pas na het klikken geladen). -->
-        <div class="lightbox__stage">
-          <picture class="lightbox__laag lightbox__laag--klein">
-            <img class="lightbox__klein" alt="" aria-hidden="true" decoding="async" />
-          </picture>
-          <picture class="lightbox__laag lightbox__laag--groot">
-            <img class="lightbox__img" alt="" decoding="async" />
-          </picture>
-        </div>
-        <figcaption class="lightbox__caption" hidden></figcaption>
-      </figure>
-      <button type="button" class="lightbox__nav lightbox__nav--vorige" aria-label="Vorige foto"><span aria-hidden="true">←</span> vorige</button>
-      <button type="button" class="lightbox__nav lightbox__nav--volgende" aria-label="Volgende foto">volgende <span aria-hidden="true">→</span></button>
-      <button type="button" class="lightbox__close">sluiten</button>
-      <!-- Verborgen: hier laden de vorige en volgende foto voor (alleen na het openen). -->
-      <div class="lightbox__voorladen" hidden></div>
-    </dialog>
+    <Lightbox label="Foto in groot formaat" />
   </div>
 
   <script is:inline type="application/json" id="portfolio-data" set:html={json} />
@@ -541,123 +524,8 @@ function maxWidth(foto: CanvasFoto, [cellW, cellH]: readonly [number, number]): 
     text-decoration: underline;
   }
 
-  /* ---------- Grote weergave ---------- */
-  .lightbox {
-    width: 100%;
-    max-width: none;
-    height: 100%;
-    max-height: none;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: rgb(230 230 230 / 0.97);
-    color: var(--ink);
-  }
-
-  .lightbox[open] {
-    display: grid;
-    place-items: center;
-  }
-
-  .lightbox::backdrop {
-    background: transparent;
-  }
-
-  .lightbox__figure {
-    display: grid;
-    justify-items: center;
-    gap: var(--space-2);
-    margin: 0;
-  }
-
-  /* De foto staat op dezelfde plek in twee lagen (miniatuur eronder, grote versie erboven). De grootte volgt uit de
-     verhouding en past in 90% van het scherm; de achtergrond is het gemiddelde kleurvlak van de foto (--kleur). */
-  .lightbox__stage {
-    --ratio: 1.5;
-    display: grid;
-    width: min(90vw, calc((90svh - 4rem) * var(--ratio)));
-    aspect-ratio: var(--ratio);
-    background-color: var(--kleur, transparent);
-  }
-
-  .lightbox__laag {
-    display: block;
-    grid-area: 1 / 1;
-    min-width: 0;
-  }
-
-  .lightbox__laag--groot {
-    opacity: 0;
-    transition: opacity 150ms ease-out;
-  }
-
-  .lightbox__stage.is-ready .lightbox__laag--groot {
-    opacity: 1;
-  }
-
-  .lightbox__klein,
-  .lightbox__img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    max-width: none;
-  }
-
-  .lightbox__caption {
-    font-size: var(--font-size-small);
-  }
-
-  .lightbox__caption :global(a) {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-  }
-
-  .lightbox__close {
-    position: fixed;
-    top: var(--space-2);
-    right: var(--space-2);
-    min-width: 44px;
-    min-height: 44px;
-    padding: 0 var(--space-3);
-    border: 0;
-    background: none;
-    color: inherit;
-    font: inherit;
-    font-size: var(--font-size-small);
-    cursor: pointer;
-  }
-
-  .lightbox__close:hover,
-  .lightbox__nav:hover {
-    text-decoration: underline;
-  }
-
-  .lightbox__nav {
-    position: fixed;
-    bottom: max(var(--space-2), env(safe-area-inset-bottom));
-    min-width: 44px;
-    min-height: 44px;
-    padding: 0 var(--space-3);
-    border: 0;
-    background: none;
-    color: inherit;
-    font: inherit;
-    font-size: var(--font-size-small);
-    cursor: pointer;
-  }
-
-  .lightbox__nav--vorige {
-    left: var(--space-2);
-  }
-
-  .lightbox__nav--volgende {
-    right: var(--space-2);
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .portfolio__hint,
-    .lightbox__laag--groot {
+    .portfolio__hint {
       transition: none;
     }
   }
