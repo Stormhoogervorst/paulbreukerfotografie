@@ -39,7 +39,9 @@ import heroFoto3 from '../../assets/portfolio/bruiloften portfolio/127.jpg';
 import impressie1 from '../../assets/portfolio/bruiloften portfolio/123.jpg';
 import impressie2 from '../../assets/portfolio/bruiloften portfolio/023t.jpg';
 import impressie3 from '../../assets/portfolio/bruiloften portfolio/7.jpg';
-import impressie4 from '../../assets/portfolio/bruiloften portfolio/55.jpg';
+import impressie4 from '../../assets/landing/nijmegen/DSC06207.jpg';
+import trouwenFoto from '../../assets/landing/nijmegen/DSC05996.jpg';
+import plekkenFoto from '../../assets/landing/nijmegen/DSC07297.jpg';
 
 /** Prijs van een pakket uit `pakketten` als "€3.950"; title, description, tekstblokken en vragen gebruiken dit, zodat de prijzen nooit kunnen afwijken. */
 function pakketPrijs(naam: string): string {
@@ -68,6 +70,11 @@ const GEMEENTE_TROUWEN_URL = 'https://www.nijmegen.nl/trouwen-scheiden/trouwen/'
 const blokTrouwen: LandingUitlegBlok = {
   id: 'trouwen-in-nijmegen',
   label: '(trouwen)',
+  // Kleine foto linksonder, uit `bruiloften recent` (niet een van de hero- of impressiefoto's).
+  foto: {
+    afbeelding: trouwenFoto,
+    alt: 'Een kind in een witte kanten jurk kijkt binnen in de camera. De vlechten zijn met een oranje elastiek bijeengebonden.',
+  },
   kop: 'Trouwen in Nijmegen: wat je moet weten',
   inhoud: [
     // De tekst is één alinea in de opdracht; hier op zinsgrenzen in drie korte alinea's gesplitst (maximaal 5 regels op desktop).
@@ -107,11 +114,16 @@ const blokTrouwen: LandingUitlegBlok = {
  * Het tramwachthuisje van de kiosk in het Hunnerpark en de resten van de stadsmuur zijn ook bevestigd op
  * nijmegen.nl/evenementen/evenementenlocaties/hunnerpark/. De Waalbrug-zin is Pauls eigen werk (Take me to the river, 2016).
  * TODO(paul): vervang de intro "Een paar die ik ken" zo nodig door Pauls eigen ervaring op deze plekken en voeg zijn eigen
- * tips en plekken toe; verzin ze niet. Voeg pas foto's toe als Paul op deze plekken een bruiloft heeft gefotografeerd.
+ * tips en plekken toe; verzin ze niet.
  */
 const blokPlekken: LandingUitlegBlok = {
   id: 'plekken-in-nijmegen',
   label: '(plekken)',
+  // Kleine foto linksonder, uit `bruiloften recent`, zelfde plek als bij "Trouwen in Nijmegen".
+  foto: {
+    afbeelding: plekkenFoto,
+    alt: 'Op de achterbank van een auto zitten een vrouw met een bril en een gele bloemenjurk en een man in een lichtblauw pak met een bloem op de revers. Ze lachen.',
+  },
   kop: 'Plekken in Nijmegen voor trouwfoto’s',
   inhoud: [
     {
@@ -222,12 +234,13 @@ export const trouwfotograafNijmegen: LandingPagina = {
   },
 
   /**
-   * Impressie: vier liggende foto's (3:2) uit de map `bruiloften portfolio`, in de diagonale indeling (twee rijen van
-   * twee, zie LandingImpressie.astro). Geen van de vier staat op /fotograaf-bruiloft. Volgorde:
-   *  1. 123.jpg  = ceremonie op een zandstrand aan de rivier
-   *  2. 023t.jpg = twee kinderen in een geopende zwarte oldtimer
-   *  3. 7.jpg    = een baby wordt in de gootsteen gewassen
-   *  4. 55.jpg   = gasten op een begraafplaats
+   * Impressie: vier liggende foto's (3:2) in de diagonale indeling (twee rijen van twee, zie LandingImpressie.astro).
+   * De eerste drie komen uit `bruiloften portfolio` en staan niet op /fotograaf-bruiloft. De vierde (rechtsonder) komt
+   * uit `bruiloften recent`. Volgorde:
+   *  1. 123.jpg    = ceremonie op een zandstrand aan de rivier
+   *  2. 023t.jpg   = twee kinderen in een geopende zwarte oldtimer
+   *  3. 7.jpg      = een baby wordt in de gootsteen gewassen
+   *  4. DSC06207.jpg = een bruid tilt haar sluier op, met gasten eromheen
    * TODO(paul): keuring van deze vier foto's en hun alt-teksten (beschreven naar wat te zien is, zonder namen of plaatsen).
    */
   impressie: {
@@ -247,7 +260,7 @@ export const trouwfotograafNijmegen: LandingPagina = {
       },
       {
         afbeelding: impressie4,
-        alt: 'Gasten in nette kleding staan tussen de graven op een begraafplaats; links omhelzen twee mannen elkaar en een vrouw in een oranje jurk met een boeket kijkt toe.',
+        alt: 'Op de voorgrond lacht een man in een donker pak in de camera. Achter hem tilt een bruid in een witte jurk haar sluier op; een vrouw met een oranje sjaal staat met de rug naar de camera en rechts kijkt een vrouw met gouden oorringen toe.',
       },
     ],
     // /portfolio/bruiloften bestaat: alle bruiloftfoto's op het canvas.

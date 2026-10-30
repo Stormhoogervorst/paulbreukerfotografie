@@ -8,6 +8,8 @@
  *   rechts de tekst. Desktop (vanaf 900px): de tekst begint op `--kolom-tekst` (global.css), dezelfde positie als de
  *   inleiding in de hero en de antwoorden in Vragen, en is minstens 24rem breed (valt de kolom smaller uit, dan schuift
  *   het begin naar links). Mobiel: label en tekst onder elkaar.
+ * - Optionele foto (`blok.foto`): klein, links onderin. Op desktop staat het label bovenaan de linkerkolom en de foto
+ *   onderaan, met de onderkant gelijk aan de onderkant van de tekst rechts. Op mobiel staat de foto onder de tekst.
  * - Alinea's hebben de tekststijl van de antwoorden in Vragen (--font-size-body, --intro-lh) en zijn maximaal 27em breed
  *   (ongeveer 60 tekens per regel). De <h2> heeft de letter van een vraag in Vragen. Geen nieuwe lettertypen of kleuren.
  * - Links in de lopende tekst zijn onderstreept (standaardlinkstijl van de site) en hebben de globale focusstijl.
@@ -17,6 +19,8 @@
  *
  * Content: `pagina.uitleg` (zie src/data/landing/types.ts).
  */
+import { Picture } from 'astro:assets';
+import { BREEDTES_PAUL, FALLBACK_FORMAAT, FORMATEN } from '../../lib/beeld';
 import type { LandingUitlegBlok, Segment } from '../../data/landing/types';
 
 interface Props {
@@ -32,7 +36,27 @@ const kopId = `${id}-kop`;
 
 <section class="uitleg" id={id} aria-labelledby={kopId}>
   <div class="uitleg__inner">
-    {blok.label ? <p class="uitleg__label statement-label" aria-hidden="true">{blok.label}</p> : <span class="uitleg__label" />}
+    <div class="uitleg__zijde">
+      {blok.label ? <p class="uitleg__label statement-label" aria-hidden="true">{blok.label}</p> : <span class="uitleg__label" />}
+      {
+        blok.foto && (
+          <div class="uitleg__foto">
+            <Picture
+              src={blok.foto.afbeelding}
+              alt={blok.foto.alt}
+              width={blok.foto.afbeelding.width}
+              height={blok.foto.afbeelding.height}
+              widths={BREEDTES_PAUL}
+              sizes="14rem"
+              formats={FORMATEN}
+              fallbackFormat={FALLBACK_FORMAAT}
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+        )
+      }
+    </div>
 
     <div class="uitleg__tekst">
       <h2 class="uitleg__kop" id={kopId}>{blok.kop}</h2>
@@ -94,6 +118,11 @@ const kopId = `${id}-kop`;
     border-top: var(--haarlijn);
   }
 
+  /* Label en foto zijn zelf grid-items; de wrapper verdwijnt uit de opmaak. */
+  .uitleg__zijde {
+    display: contents;
+  }
+
   .uitleg__label {
     display: block;
     margin: 0 0 var(--space-4);
@@ -102,6 +131,32 @@ const kopId = `${id}-kop`;
   /* Een blok zonder label heeft een lege plaatshouder: op mobiel geen ruimte. */
   span.uitleg__label {
     display: none;
+  }
+
+  /* Mobiel: de foto staat onder de tekst, klein en links. */
+  .uitleg__inner:has(.uitleg__foto) {
+    display: grid;
+  }
+
+  .uitleg__inner:has(.uitleg__foto) .uitleg__label {
+    grid-row: 1;
+  }
+
+  .uitleg__inner:has(.uitleg__foto) .uitleg__tekst {
+    grid-row: 2;
+  }
+
+  .uitleg__foto {
+    grid-row: 3;
+    width: min(14rem, 72%);
+    margin-top: var(--space-5);
+  }
+
+  .uitleg__foto :global(picture),
+  .uitleg__foto :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
   }
 
   /* H2: dezelfde letter als een vraag in Vragen (vet, krappe regelafstand). */
@@ -182,6 +237,30 @@ const kopId = `${id}-kop`;
 
     .uitleg__subkop {
       margin-top: var(--space-5);
+    }
+
+    /* Label bovenaan de linkerkolom, foto onderaan, tekst rechts over beide rijen. */
+    .uitleg__inner:has(.uitleg__foto) {
+      grid-template-rows: auto 1fr;
+    }
+
+    .uitleg__inner:has(.uitleg__foto) .uitleg__label {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: start;
+    }
+
+    .uitleg__inner:has(.uitleg__foto) .uitleg__foto {
+      grid-column: 1;
+      grid-row: 2;
+      align-self: end;
+      width: min(14rem, 100%);
+      margin-top: 0;
+    }
+
+    .uitleg__inner:has(.uitleg__foto) .uitleg__tekst {
+      grid-column: 2;
+      grid-row: 1 / span 2;
     }
   }
 </style>

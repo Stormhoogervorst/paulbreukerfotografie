@@ -95,6 +95,11 @@ export interface LandingUitlegBlok {
   id?: string;
   /** Klein label links (alleen visueel, voor schermlezers verborgen; de <h2> is de toegankelijke naam). Ontbreekt het, dan is de linkerkolom leeg. */
   label?: string;
+  /**
+   * Kleine foto linksonder, met de onderkant gelijk aan de onderkant van de tekst rechts. Alleen LandingUitleg.astro
+   * toont dit veld.
+   */
+  foto?: { afbeelding: ImageMetadata; alt: string };
   /** De <h2> van het blok. */
   kop: string;
   inhoud: UitlegOnderdeel[];
