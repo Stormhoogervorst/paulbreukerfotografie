@@ -1,10 +1,9 @@
 ---
 /**
- * Voettekst: een CSS Grid met precies vier directe kinderen, in DOM-volgorde:
- *   (a) tagline, (b) nav, (c) wordmark, (d) onderste blok.
- * Desktop (vanaf 900px): "tagline nav" / "wordmark wordmark" / "onder onder".
- * Mobiel: visueel "tagline" / "wordmark" / "nav" / "onder". Het wordmark is aria-hidden en niet
- * focusbaar, dus de tabvolgorde (tagline, nav, onder) klopt met wat je ziet.
+ * Voettekst: een CSS Grid met vijf directe kinderen, in DOM-volgorde:
+ *   (a) tagline, (b) hoofdnavigatie, (c) gerelateerde pagina's, (d) wordmark, (e) onderste blok.
+ * Desktop (vanaf 900px): "tagline nav" / "gerelateerd gerelateerd" / "wordmark wordmark" / "onder onder".
+ * Onder 900px stapelt alles in DOM-volgorde. Het wordmark is aria-hidden en niet focusbaar.
  * Alle gegevens komen uit src/data/site.ts (dezelfde bron als de Header). Geen JavaScript.
  */
 import {
@@ -46,6 +45,9 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
         ))
       }
     </ul>
+  </nav>
+
+  <nav class="site-footer__gerelateerd" aria-label="Gerelateerde pagina's">
     <ul class="site-footer__landing">
       {
         FOOTER_LANDING.map((item) => (
@@ -106,11 +108,13 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       'tagline'
-      'wordmark'
       'nav'
+      'gerelateerd'
+      'wordmark'
       'onder';
     align-items: start;
-    padding: 4rem var(--rand-ruim) calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    /* Zelfde zijmarge als header en pagina's (--gutter), links en rechts. */
+    padding: 4rem var(--gutter) calc(1.5rem + env(safe-area-inset-bottom, 0px));
     /* Zwarte voettekst met witte tekst: de inktkleuren gelden hier omgekeerd, dus ook de focusrand (gebruikt --ink). */
     --ink: #fff;
     --ink-zacht: #b3b3b3; /* secundaire tekst op zwart; contrast ca. 10:1 */
@@ -136,46 +140,65 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
   .site-footer__tagline {
     grid-area: tagline;
     max-width: none;
+    min-width: 0;
     margin: 0;
     font-size: clamp(1.75rem, 7vw, 2.5rem);
     font-weight: 400; /* alleen Satoshi 500 en 700 zijn zelf gehost: 400 valt terug op 500 */
     line-height: 1.08;
     text-wrap: balance; /* mobiel: natuurlijke afbreking zonder weesregel */
+    hyphens: none; /* nooit midden in een woord afbreken */
+    overflow-wrap: normal;
   }
 
-  /* ---------- (b) Navigatie (mobiel: 2 kolommen, 3 rijen, kolomsgewijs gevuld) ---------- */
+  /* ---------- (b) Hoofdnavigatie (mobiel: twee kolommen, in leesvolgorde) ---------- */
   .site-footer__nav {
     grid-area: nav;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    margin-top: 2rem; /* wordmark naar nav */
+    min-width: 0;
+    margin-top: 2rem; /* tagline naar hoofdnavigatie */
   }
 
   .site-footer__nav-hoofd {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: repeat(3, auto);
-    grid-auto-flow: column;
+    grid-template-columns: repeat(2, max-content);
+    justify-content: start;
+    column-gap: 1.5rem;
     font-size: 1.25rem;
     font-weight: 500;
   }
 
-  .site-footer__nav li {
+  .site-footer__nav li,
+  .site-footer__gerelateerd li {
     display: flex;
   }
 
-  .site-footer__nav a {
+  .site-footer__nav a,
+  .site-footer__gerelateerd a {
     display: inline-flex;
     align-items: center;
-    min-height: 44px;
+    min-height: 44px; /* klikgebied op mobiel en tablet */
     text-decoration-line: none; /* geen onderstreping in rust */
   }
 
   .site-footer__nav a:hover,
   .site-footer__nav a:focus-visible,
-  .site-footer__nav a[aria-current='page'] {
+  .site-footer__nav a[aria-current='page'],
+  .site-footer__gerelateerd a:hover,
+  .site-footer__gerelateerd a:focus-visible,
+  .site-footer__gerelateerd a[aria-current='page'] {
     text-decoration-line: underline;
+  }
+
+  /* ---------- (c) Gerelateerde pagina's: eigen rij, links uitgelijnd, mag wrappen ---------- */
+  .site-footer__gerelateerd {
+    grid-area: gerelateerd;
+    min-width: 0;
+    /* Zelfde haarlijn als de rest van de site (1px, 20% inkt). --ink is hier wit. */
+    margin-top: 0.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgb(255 255 255 / 0.2);
   }
 
   /* Landingspagina's: donkergrijs op zwart. #8a8a8a heeft contrast 7:1 (AA). */
@@ -183,7 +206,8 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    margin-top: 1.25rem;
+    width: 100%;
+    min-width: 0;
     color: #8a8a8a;
     font-size: 1rem;
     font-weight: 500;
@@ -198,9 +222,9 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
     grid-area: wordmark;
     /* "Paul Breuker" is 5,36em ink breed bij -0,04em letter-spacing (zelfde meting als de hero),
        dus 100cqw / 5,36 vult de breedte tussen de marges. */
-    font-size: calc((100vw - 2 * var(--rand-ruim)) / 5.36);
+    font-size: calc((100vw - 2 * var(--gutter)) / 5.36);
     font-size: calc(100cqw / 5.36);
-    margin: 7rem 0 0 -0.081em; /* tagline naar wordmark; linkerzijbeen van de P op de marge */
+    margin: 4rem 0 0 -0.081em; /* links naar wordmark; linkerzijbeen van de P op de gutter */
     font-weight: 700;
     line-height: 0.8;
     letter-spacing: -0.04em;
@@ -214,7 +238,7 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
     grid-area: onder;
     display: grid;
     gap: 1.5rem; /* tussen de lagen */
-    margin-top: 2.5rem; /* nav naar onderste blok */
+    margin-top: 2.5rem; /* wordmark naar onderste blok */
     font-size: 1rem;
   }
 
@@ -257,9 +281,11 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
   /* ---------- Desktop ---------- */
   @media (min-width: 900px) {
     .site-footer {
-      grid-template-columns: minmax(0, 1fr) auto;
+      /* Twee gelijke kolommen: de tagline krijgt de linkerhelft, de hoofdnavigatie de rechter. */
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       grid-template-areas:
         'tagline nav'
+        'gerelateerd gerelateerd'
         'wordmark wordmark'
         'onder onder';
       column-gap: 2rem;
@@ -268,7 +294,7 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
     }
 
     .site-footer__tagline {
-      max-width: 52vw;
+      max-width: none; /* de kolom is al ongeveer de helft van de rij */
       font-size: clamp(1.75rem, 3.2vw, 4.5rem);
       align-self: start;
       text-wrap: wrap;
@@ -282,28 +308,41 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
     .site-footer__nav {
       justify-self: end;
       margin-top: 0;
-      align-self: start;
+      align-self: end; /* naast de onderste regel van de tagline, op de rechterrand */
       align-items: flex-end;
+      max-width: 100%;
     }
 
     .site-footer__nav-hoofd {
       display: flex;
-      gap: 1.6vw;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 0.5rem 1.6vw;
       font-size: clamp(1rem, 1.05vw, 1.375rem);
     }
 
-    .site-footer__nav a {
+    .site-footer__nav a,
+    .site-footer__gerelateerd a {
       min-height: 0;
       white-space: nowrap;
+    }
+
+    .site-footer__gerelateerd {
+      margin-top: clamp(1.5rem, 2.5vw, 2.5rem);
+      padding-top: clamp(1.25rem, 2vw, 2rem);
     }
 
     .site-footer__landing {
       flex-direction: row;
       flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 0 1.25rem;
-      margin-top: 0.75rem;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 1.25rem; /* vaste kolom- en rijafstand, ook als de lijst naar een tweede regel loopt */
       font-size: clamp(0.8125rem, 0.85vw, 0.9375rem);
+    }
+
+    .site-footer__landing li {
+      flex: 0 0 auto;
     }
 
     .site-footer__wordmark {

@@ -444,9 +444,14 @@ export const ALT_TEKSTEN: Record<string, string> = {
 
 /** Alt-teksten uit src/data/series.ts, per projectslug en bestandsnaam. */
 const UIT_SERIES: Record<string, string> = Object.fromEntries(
-  serieLijst.flatMap((serie) =>
-    Object.entries(serie.altTeksten ?? {}).map(([bestand, alt]) => [`${serie.slug}/${bestand}`, alt] as const),
-  ),
+  serieLijst.flatMap((serie) => {
+    // De map kan een andere slug hebben dan het project (Olijfbomen → /elaia). Beide sleutels wijzen naar dezelfde tekst.
+    const sleutels = [serie.slug];
+    if (serie.map) sleutels.push(slugify(serie.map));
+    return [...new Set(sleutels)].flatMap((sleutel) =>
+      Object.entries(serie.altTeksten ?? {}).map(([bestand, alt]) => [`${sleutel}/${bestand}`, alt] as const),
+    );
+  }),
 );
 
 /** Alt-tekst van een foto: eerst dit bestand, dan de lijst van het project in series.ts; anders `undefined`. */

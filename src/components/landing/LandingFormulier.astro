@@ -17,6 +17,7 @@
  *
  * - Hergebruik op /contact (`type: 'contact'`): `ankerId="formulier"`, `toonContact={false}` (de contactregels staan daar
  *   direct onder het formulier) en `toonTitel={false}` (geen bewegende titel; de <h2> blijft als visueel verborgen kop).
+ *   Het slot `onder-tekst` komt onder de introtekst, in de linkerkolom. Leeg op de landingspagina's.
  *   Met de standaardwaarden (`ankerId="aanvragen"`, `toonContact`, `toonTitel`) is de output voor de landingspagina's
  *   ongewijzigd.
  *
@@ -78,6 +79,7 @@ const veldId = (naam: string) => `aanvraag-${naam}`;
           </>
         )
       }
+      <slot name="onder-tekst" />
     </div>
 
     <form class="formulier__form" method="post" action="/api/aanvraag" data-aanvraag>

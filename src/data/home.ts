@@ -19,6 +19,8 @@ export interface HomePhoto {
   name: string;
   /** Nederlandse, beschrijvende alt-tekst (wie/wat/waar). */
   alt: string;
+  /** Welk deel blijft staan als de bron anders van verhouding is dan de kaart. Standaard het midden. */
+  uitsnede?: 'top' | 'center';
 }
 
 export interface HomeHeroFoto {
@@ -54,7 +56,7 @@ export interface HomeProject {
   jaar?: string;
   /**
    * Kaartpositie in de rij van drie (component: src/components/Projecten.astro), van links naar rechts:
-   * "links" = staande foto (5 / 6) op de linkermarge, "midden" = liggende foto (6 / 5, de grootste), lager,
+   * "links" = staande foto (5 / 6) op de linkermarge, "midden" = de grootste kaart, lager, in de verhouding van het bestand,
    * "rechts" = hoge, smalle foto in natuurlijke verhouding op de rechtermarge.
    * De volgorde in de lijst is ook de volgorde op mobiel (onder elkaar).
    */
@@ -100,7 +102,7 @@ export const home = {
   hero: {
     /** Alleen de naam. De trefwoordcontext zit in title, description en de eerste zin van `lead`. */
     h1: 'Paul Breuker',
-    lead: 'Fotograaf in Nijmegen. Ik fotografeer bruiloften, portretten en kunstseries. Al 35 jaar maak ik beelden van mensen en plekken.',
+    lead: 'Fotograaf en kunstenaar uit Nijmegen. Ik fotografeer bruiloften, portretten en maak kunst.',
     /** Knop onder de lead. De commerciële pagina's staan in de sectie "Diensten". */
     knop: { label: 'Portfolio', href: '/portfolio' } satisfies HomeLink,
     /**
@@ -110,11 +112,11 @@ export const home = {
      *   De vorige hero-foto staat als src/assets/home/gaarkeuken-3.jpg.
      * rol "B": middel, liggend (5 / 4). Alleen vanaf 900 px zichtbaar (daaronder display: none, dus geen download).
      *   Bron: src/assets/home/hero-bruiloft-2.jpg (was public/bruiloft 2.jpg).
-     * rol "C": klein, staand (4 / 5). Alleen vanaf 900 px zichtbaar.
-     *   Bron: src/assets/home/hero-portret-1.jpg (was public/Portret 1.jpg).
+     * rol "C": klein, staand (4 / 5), rechtsonder, rechterrand op de rechtergutter. Alleen vanaf 900 px zichtbaar.
+     *   Bron: src/assets/portfolio/experimenteel/018.jpg.
      * De volgorde in de lijst is de volgorde in de HTML. Niet in Projecten of BeeldDuo gebruikt.
      * TODO(paul): controleer de alt-teksten (beschreven naar wat op de foto te zien is); vul naam, plaats en jaar in
-     * als je die wilt noemen. Bij B en C ontbreekt ook de serie (B hoort waarschijnlijk bij Love & Marriage, C bij Portretten).
+     * als je die wilt noemen. Bij B ontbreekt de serie (hoort waarschijnlijk bij Love & Marriage).
      */
     fotos: [
       {
@@ -128,8 +130,8 @@ export const home = {
         rol: 'B',
       },
       {
-        afbeelding: 'hero-portret-1',
-        alt: 'Portret van een oudere man met een kaal hoofd, blauwe ogen en een grote grijze snor, in een grijsblauw colbert met een zwart overhemd.',
+        afbeelding: '018',
+        alt: 'Kleurrijke schildering van een kraam of tafel met een gestreept dak, een gele bloem en een groene voet, omringd door blauwe, rode en oranje vlakken.',
         rol: 'C',
       },
     ] satisfies HomeHeroFoto[],
@@ -200,10 +202,12 @@ export const home = {
   /**
    * Sectie "Projecten" (component: src/components/Projecten.astro; zichtbare titel "Series"), direct onder "Exposities".
    * Foto's: src/assets/home/project-*.jpg (verplaatst uit public/).
-   * Eén rij van drie: links de staande foto (Asty Mwaka, 600 x 900), midden de liggende (Love & Marriage, 1200 x 796),
+   * Eén rij van drie: links de staande foto (Asty Mwaka, 600 x 900), midden De Gaarkeuken
+   * (src/assets/portfolio/de-gaarkeuken/Gaarkeuken 05-min.jpg, 600 x 900, natuurlijke verhouding, geen uitsnede),
    * rechts de hoge foto (Take me to the river, 600 x 900, natuurlijke verhouding; kopie van
    * src/assets/portfolio/take-me-to-the-river/Take me to the river 06-min.jpg, dat daar blijft staan voor /portfolio).
-   * `project-het-gezicht-van-nijmegen.jpg` staat nog in de map maar wordt hier niet meer gebruikt (de serie blijft bestaan in Exposities en /het-gezicht-van-nijmegen).
+   * `project-love-marriage.jpg` en `project-het-gezicht-van-nijmegen.jpg` staan nog in de map maar worden hier niet meer gebruikt
+   * (de series blijven bestaan; de omslag van /love-marriage is nog project-love-marriage.jpg).
    * De oude tekst en foto's van "Uitgelicht werk" (vier series) staan in design/archief/.
    * TODO(paul): bronfoto's zijn 600 px (Asty Mwaka) en 1200 px breed; lever grotere bestanden aan voor schermen boven 1500 px.
    * TODO(paul): controleer de alt-teksten (beschreven naar wat op de foto te zien is).
@@ -221,11 +225,11 @@ export const home = {
         positie: 'links',
       },
       {
-        title: 'Love & Marriage',
-        href: '/love-marriage',
+        title: 'De Gaarkeuken',
+        href: '/de-gaarkeuken',
         photo: {
-          name: 'project-love-marriage',
-          alt: 'Zwart-witfoto in een woonkamer: een vrouw in een witte trouwjurk strijkt de rok op een strijkplank, terwijl een man met ontbloot bovenlijf naast haar toekijkt.',
+          name: 'Gaarkeuken 05-min',
+          alt: 'Portret in kleur van een oudere vrouw met een oranje gebreide muts en een lichtblauwe jas, voor een lichte muur.',
         },
         positie: 'midden',
       },
@@ -338,9 +342,9 @@ export const home = {
     heading: 'Een bruiloft of portret aanvragen',
     buttons: [
       { label: 'Bruiloft aanvragen', href: '/fotograaf-bruiloft' },
-      { label: 'Portret aanvragen', href: '/zakelijke-portretfoto' },
+      { label: 'Portret aanvragen', href: '/portretfotos' },
     ] satisfies HomeLink[],
-    response: 'Ik reageer binnen 24 uur.',
+    response: 'Ik reageer binnen 3 werkdagen.',
     promo: {
       before: 'Op zoek naar een promotiefoto? Ga naar ',
       link: {

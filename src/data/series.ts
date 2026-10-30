@@ -5,18 +5,20 @@
  * sitemap en het JSON-LD lezen alleen uit deze lijst, niet uit de mappen. (Deze lijst heette eerder werk.ts, naar /werk.)
  *
  * Series (projecten): één bron voor het overzicht /series (src/pages/series.astro) en de detailpagina's
- * (src/pages/[project].astro, foto's en indeling in src/lib/serie-fotos.ts; de omslag wordt alleen op /series gebruikt). Pauls projecten zijn precies deze negen
+ * (src/pages/[project].astro, foto's en indeling in src/lib/serie-fotos.ts; de omslag wordt alleen op /series gebruikt). Pauls projecten zijn precies deze tien
  * (zie .cursor/rules/paulbreuker-regels.mdc). /panoramas en /portfolio/portretten zijn geen projecten.
  *
  * Detailpagina: de foto's komen uit de map src/assets/portfolio/<slug>/ (hoofdletter- en leestekenongevoelig, dus
- * "Groeten uit lent" hoort bij groeten-uit-lent), op bestandsnaam gesorteerd; alt-teksten staan in src/data/alt-teksten.ts. Een project zonder foto krijgt geen pagina (en staat dus niet in de sitemap).
+ * "Groeten uit lent" hoort bij groeten-uit-lent), of uit `map` als die afwijkt (Olijfbomen hoort bij /elaia), op bestandsnaam gesorteerd; alt-teksten staan in src/data/alt-teksten.ts.
+ * Bestanden in `weglaten` blijven in de map (omslag, /portfolio) maar staan niet op de detailpagina. Een project zonder foto krijgt geen pagina (en staat dus niet in de sitemap).
  *
  * - De volgorde van de lijst is de volgorde op de pagina (en in de JSON-LD). Wijzig alleen de volgorde hieronder.
  * - De href is "/" + slug (zie `serieHref`).
  * - `onderregel` is optioneel en wordt alleen op de kaart in /series getoond (niet op de detailpagina), en alleen als hij bestaat. Verzin geen tekst: jaartal en plaats of een
  *   korte omschrijving komen van Paul (TODO(paul) per project).
- * - Omslagfoto's: love-marriage, take-me-to-the-river en asty-mwaka gebruiken dezelfde bestanden als de homepage-sectie
- *   Projecten (src/assets/home/project-*.jpg); de overige de eerste foto (alfabetisch) uit src/assets/portfolio/<map>/.
+ * - Omslagfoto's: asty-mwaka en take-me-to-the-river gebruiken dezelfde bestanden als de homepage-sectie
+ *   Projecten (src/assets/home/project-*.jpg). love-marriage gebruikt nog project-love-marriage.jpg, dat niet meer
+ *   op de homepage staat. De overige de eerste foto (alfabetisch) uit src/assets/portfolio/<map>/.
  *   Een map met een bestand "omslag" of "cover" gaat voor (nu bestaat dat bij geen enkel project).
  * - Ontbreekt van een project elke foto, laat het dan uit de lijst: geen placeholder.
  */
@@ -29,6 +31,7 @@ import asfalt from '../assets/portfolio/Asfalt/L1039951.jpg';
 import groetenUitLent from '../assets/portfolio/groeten-uit-lent/breuker lent 05-min.jpg';
 import hetGezichtVanNijmegen from '../assets/portfolio/het-gezicht-van-nijmegen/008kl.jpg';
 import oudeHonden from '../assets/portfolio/oude honden/rechts7.jpg';
+import elaiaOmslag from '../assets/portfolio/Olijfbomen/DSC03071.jpg';
 
 export interface Serie {
   slug: string;
@@ -47,6 +50,16 @@ export interface Serie {
   commercieleLink?: { tekst: string; href: string };
   /** Alt-tekst per bestandsnaam (map van het project). Ontbreekt een bestand, dan geldt een algemene tekst. */
   altTeksten?: Record<string, string>;
+  /**
+   * Map onder src/assets/portfolio/ als die niet de slug is (hoofdletter- en leestekenongevoelig).
+   * Olijfbomen hoort bij /elaia. Ontbreekt het veld, dan is de map de slug.
+   */
+  map?: string;
+  /**
+   * Bestandsnamen die wel in de map blijven (omslag, /portfolio) maar niet op de detailpagina staan.
+   * De omslag wordt alleen op /series gebruikt.
+   */
+  weglaten?: string[];
 }
 
 export const serieHref = (slug: string): string => `/${slug}`;
@@ -291,5 +304,65 @@ export const serieLijst: Serie[] = [
     omslag: oudeHonden,
     // TODO(paul): alt-teksten controleren (de bestaande teksten staan in src/data/alt-teksten.ts); jaartal en plaats ontbreken.
     alt: 'Een grijze, krullende hond met een lichtbruine snuit zit op een klinkerpad tussen planten en een wit beeld van een gans.',
+    // Laatste foto in het raster (rechts7.jpg) staat niet op de detailpagina; de omslag op /series blijft deze foto.
+    weglaten: ['rechts7.jpg'],
+  },
+  {
+    slug: 'elaia',
+    titel: 'Elaia',
+    map: 'Olijfbomen',
+    onderregel: 'Het Oudgriekse woord voor olijfboom',
+    introductie: [
+      'Elaia (ἐλαία) is het Oudgriekse woord voor olijfboom of olijf.',
+      'In de klassieke oudheid was de olijfboom heilig en stond hij symbool voor vrede, wijsheid en vruchtbaarheid.',
+      'De boom was gewijd aan de godin Athena. Volgens de mythe schonk zij de olijfboom aan de stad Athene als symbool van leven en beschaving.',
+    ],
+    seo: {
+      description:
+        'Elaia is het Oudgriekse woord voor olijfboom. Fotoserie van Paul Breuker over de olijfboom als heilig symbool van vrede, wijsheid en vruchtbaarheid.',
+    },
+    // TODO(paul): jaartal en plaats ontbreken. commercieleLink (welke commerciële pagina past bij deze serie?).
+    omslag: elaiaOmslag,
+    // TODO(paul): alt-teksten controleren. De omslag is de eerste foto (DSC03071.jpg).
+    alt: 'Dikke, knobbelige stam van een oude olijfboom, met donkere holtes en bleke kale plekken in de bast, boven droog gras.',
+    altTeksten: {
+      'DSC03071.jpg':
+        'Dikke, knobbelige stam van een oude olijfboom, met donkere holtes en bleke kale plekken in de bast, boven droog gras.',
+      'DSC03191.jpg':
+        'Close-up van een olijfstam met diepe groeven en gedraaide wortels die in het gras verdwijnen.',
+      'DSC03201.jpg':
+        'Oude olijfstam in tegenlicht, met een lange kale tak en twee stenen aan de voet, en groen blad rechtsboven.',
+      'DSC03273.jpg':
+        'Close-up van olijfbast met verticale groeven en een roodbruine strook kaal hout, met een klein groen plantje ervoor.',
+      'DSC03295.jpg':
+        'Zwaar gegroefde olijfstam met groene aanslag en donkere holtes. Olijfbladeren hangen over de bovenrand.',
+      'DSC03305.jpg':
+        'Knobbelige voet van een olijfboom met ronde uitstulpingen en kleine gaten. Jonge scheuten groeien uit de bast.',
+      'DSC03312.jpg':
+        'Voet van een olijfboom met twee grote ronde knobbels naast elkaar, op een grond met steentjes en jonge scheuten.',
+      'DSC03342.jpg':
+        'Gedraaide, grijze olijfstam met diepe holtes. Op de achtergrond staan een licht gebouw en een grasveld.',
+      'DSC03354.jpg':
+        'Scheve olijfstam met een brede witte strook kaal hout en mos, voor een houten schutting en een stenen muur, op rode aarde.',
+      'DSC03479.jpg':
+        'Olijfstam met veel verticale groeven en donkere ovale holtes, met olijfbladeren linksboven.',
+      'DSC03492.jpg':
+        'Olijfstam vol langwerpige holtes, met jonge scheuten in de groeven en stenen aan de voet.',
+      'DSC03534.jpg':
+        'Olijfstam met mos en witte vlekken, een diepe spleet in het midden en droog gras aan de voet.',
+      'DSC03560.jpg':
+        'Scheve olijfboom op rode, stenige grond, met een dikke ronde wortelknobbel. Op de achtergrond staan andere olijfbomen.',
+      'DSC03575.jpg':
+        'Gespleten, verweerde olijfstam met losse stroken grijs hout en een donkere holte in het midden.',
+      'DSC03615.jpg':
+        'Holle, sterk gedraaide olijfstam met een grote opening onderaan, tussen hoog gras, met olijfbladeren erboven.',
+      'DSC03630.jpg': 'Close-up van een olijfstam met grillige richels en drie donkere holtes.',
+      'DSC03676.jpg':
+        'Olijfboom in een boomgaard: een korte, gespleten stam met mos, en takken met olijfbladeren erboven.',
+      'DSC03719.jpg':
+        'Olijfstam met een lichte, ronde knobbel en een donkere spleet eronder, tussen droog gras en dorre stengels.',
+      'DSC03732.jpg':
+        'Oude olijfboom tussen groen: een gespleten, gedraaide stam met witte plekken en een kruin van dunne takken met smalle bladeren.',
+    },
   },
 ];

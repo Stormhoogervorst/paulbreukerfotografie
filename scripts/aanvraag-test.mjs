@@ -126,7 +126,7 @@ await controle('portret API: geldige aanvraag geeft { ok: true } en logt mails m
     'Waar wil je dat ik kom?: Thuis in Lent',
     'Aantal personen: 3 tot 5',
     'Verstuurd via paulbreuker.nl/portretfotos',
-    'Onderwerp: Bedankt voor je aanvraag, ik reageer binnen 24 uur',
+    'Onderwerp: Bedankt voor je aanvraag, ik reageer binnen 3 werkdagen',
     'Hoi Test Persoon,',
   ]) {
     eis(log.includes(verwacht), `ontbreekt in het log: ${verwacht}`);
@@ -185,8 +185,8 @@ await controle('contact API: geldige aanvraag geeft { ok: true } en logt mails m
     'Waar gaat het over?: Een boek of magazine bestellen',
     'Vertel me waar ik je mee kan helpen: Ik wil graag een boek bestellen.\nKan dat ook als cadeau?',
     'Verstuurd via paulbreuker.nl/contact',
-    'Onderwerp: Bedankt voor je bericht, ik reageer binnen 24 uur',
-    'Hoi Jan de Boer,\n\nBedankt voor je bericht. Ik heb het ontvangen en reageer binnen 24 uur.\n\nDit heb ik genoteerd:',
+    'Onderwerp: Bedankt voor je bericht, ik reageer binnen 3 werkdagen',
+    'Hoi Jan de Boer,\n\nBedankt voor je bericht. Ik heb het ontvangen en reageer binnen 3 werkdagen.\n\nDit heb ik genoteerd:',
     'Groet,\nPaul Breuker\n+31 6 51 47 54 06 | info@paulbreuker.nl\nhttps://paulbreuker.nl',
   ]) {
     eis(log.includes(verwacht), `ontbreekt in het log: ${verwacht}`);
@@ -442,7 +442,7 @@ await controle('contact UI: geldige aanvraag leidt naar /bedankt?type=contact me
     eis(!(await pagina.locator('[data-stappen="portret"]').isVisible()), 'stappen van het portret zijn zichtbaar');
     eis(!(await pagina.locator('[data-stappen="bruiloft"]').isVisible()), 'stappen van de bruiloft zijn zichtbaar');
     const tekst = (await contact.textContent()) ?? '';
-    for (const stap of ['Ik lees je bericht.', 'Ik antwoord je binnen 24 uur per e-mail.', 'Wil je iets toevoegen? Beantwoord dan de bevestigingsmail.']) {
+    for (const stap of ['Ik lees je bericht.', 'Ik antwoord je binnen 3 werkdagen per e-mail.', 'Wil je iets toevoegen? Beantwoord dan de bevestigingsmail.']) {
       eis(tekst.includes(stap), `stap ontbreekt: ${stap}`);
     }
     eis((await pagina.locator('#main').getAttribute('data-aanvraag-type')) === 'contact', 'data-aanvraag-type ontbreekt');

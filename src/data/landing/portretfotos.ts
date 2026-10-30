@@ -1,7 +1,8 @@
 /**
  * Data voor /portretfotos (landingspagina voor particuliere portretten: één persoon, duo, gezin, kunstportret; primair
- * zoekwoord "portretfoto laten maken"). Zakelijke portretten, teams en LinkedIn-foto's staan op /zakelijke-portretfoto;
- * de galerij met alle portretten (/portfolio/portretten) en het project /de-gaarkeuken zijn aparte pagina's (contextuele links vanuit OverPaul).
+ * zoekwoord "portretfoto laten maken"). Zakelijke portretten, teams en LinkedIn-foto's vraag je aan via het formulier
+ * op deze pagina; er is geen aparte pagina voor zakelijke portretfoto's. De galerij met alle portretten
+ * (/portfolio/portretten) en het project /de-gaarkeuken zijn aparte pagina's (contextuele links vanuit OverPaul).
  *
  * Paul werkt niet in een studio: hij fotografeert in natuurlijk licht, op een plek die de klant kiest. Gebruik de
  * woorden studio, studiosessie en fotostudio nooit voor zijn eigen aanbod (alleen in de ontkenning "zonder studio").
@@ -51,12 +52,12 @@ export function portretDescription(laagstePrijs: number | undefined): string {
 /** Antwoord op "Wat kost een portretfoto laten maken?": uit de pakkettendata, dus de prijzen kunnen nooit afwijken. */
 function kostenTekst(): string {
   if (laagste === undefined) {
-    return 'De prijs hangt af van het soort portret en het aantal personen. Vertel me in het aanvraagformulier wat je zoekt, dan laat ik je binnen 24 uur weten wat het kost.';
+    return 'De prijs hangt af van het soort portret en het aantal personen. Vertel me in het aanvraagformulier wat je zoekt, dan laat ik je binnen 3 werkdagen weten wat het kost.';
   }
   const lijst = pakketten.items
     .flatMap((pakket) => (pakket.prijs === undefined ? [] : [`${pakket.naam} ${euro(pakket.prijs)}`]))
     .join(', ');
-  return `Een portretsessie bij mij kost vanaf ${euro(laagste)}. De prijs hangt af van het soort portret en het aantal personen: ${lijst}. Vertel me in het aanvraagformulier wat je zoekt, dan laat ik je binnen 24 uur weten wat erbij hoort.`;
+  return `Een portretsessie bij mij kost vanaf ${euro(laagste)}. De prijs hangt af van het soort portret en het aantal personen: ${lijst}. Vertel me in het aanvraagformulier wat je zoekt, dan laat ik je binnen 3 werkdagen weten wat erbij hoort.`;
 }
 
 // Bewaking: een description boven de 160 tekens wordt in Google afgekapt.
@@ -205,7 +206,6 @@ export const portretfotos: LandingPagina = {
    * `pakketten`. De platte tekst van de antwoorden is ook de bron voor de FAQPage in de JSON-LD (zie LandingLayout.astro).
    */
   // TODO(paul): antwoorden door Paul laten goedkeuren (alle vijf zijn concepten over zijn werkwijze).
-  // TODO(paul): /portfolio, /zakelijke-portretfoto en #aanvragen: /zakelijke-portretfoto bestaat nog niet (404); zie README, "Nog te bouwen".
   vragen: {
     titel: 'Veelgestelde vragen',
     items: [
@@ -253,9 +253,9 @@ export const portretfotos: LandingPagina = {
         vraag: 'Maak je ook zakelijke portretten en LinkedIn-foto’s?',
         antwoord: [
           linkSegmenten(
-            'Ja. Voor zakelijke portretten, teams en LinkedIn-foto’s heb ik een eigen pagina: zakelijke portretfoto. Zoek je een promotiefoto bij de Radboud Universiteit, kijk dan op fotograafpromotiesradboud.nl.',
+            'Ja. Zakelijke portretten, teams en LinkedIn-foto’s vraag je aan via het aanvraagformulier. Zoek je een promotiefoto bij de Radboud Universiteit, kijk dan op fotograafpromotiesradboud.nl.',
             [
-              { tekst: 'zakelijke portretfoto', href: '/zakelijke-portretfoto' },
+              { tekst: 'het aanvraagformulier', href: '#aanvragen' },
               { tekst: 'fotograafpromotiesradboud.nl', href: 'https://www.fotograafpromotiesradboud.nl/' },
             ],
           ),
@@ -272,7 +272,7 @@ export const portretfotos: LandingPagina = {
   formulier: {
     type: 'portret',
     titel: 'Portretfoto aanvragen',
-    intro: [['Vertel me kort wat je zoekt. Ik reageer binnen 24 uur.']],
+    intro: [['Vertel me kort wat je zoekt. Ik reageer binnen 3 werkdagen.']],
     verzendLabel: 'Aanvraag versturen',
     privacy: [
       'Ik gebruik je gegevens alleen om te reageren op je aanvraag. Lees de ',

@@ -5,17 +5,21 @@
  *
  * - Mobiel (onder 700px): 8vw boven, 6vw onder. Desktop: 4vw onder, tenzij een omringend element
  *   `--pagina-kop-onder` zet (zo geeft /contact 6vw tussen de H1 en de eerste haarlijn).
- * - De stijl is ongewijzigd overgenomen uit /series (voorheen `.series-kop`); /series moet pixel-identiek blijven.
+ * - De H1-stijl is ongewijzigd overgenomen uit /series (voorheen `.series-kop`).
+ * - Optioneel slot `intro`: /series zet daar een korte tekst in en bepaalt zelf de plaatsing. Zonder slot blijft de kop
+ *   alleen de H1, zoals op /contact en /privacy.
  */
 interface Props {
   titel: string;
 }
 
 const { titel } = Astro.props;
+const metIntro = Astro.slots.has('intro');
 ---
 
-<div class="pagina-kop">
+<div class:list={['pagina-kop', { 'pagina-kop--met-intro': metIntro }]}>
   <h1 class="pagina-kop__titel">{titel}</h1>
+  <slot name="intro" />
 </div>
 
 <style>

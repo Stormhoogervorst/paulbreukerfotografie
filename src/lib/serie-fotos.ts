@@ -2,10 +2,11 @@
  * Foto's en indeling van een projectpagina (src/pages/[project].astro).
  *
  * - Bron: src/assets/portfolio/<slug>/ (de mapnaam is hoofdletter- en leesteken-ongevoelig: "Asfalt" hoort bij /asfalt,
- *   "Groeten uit lent" bij /groeten-uit-lent). Op bestandsnaam gesorteerd, met cijfers als getal ("2" vóór "10"), dus
+ *   "Groeten uit lent" bij /groeten-uit-lent). Wijkt de map af, dan staat die in `serie.map` ("Olijfbomen" hoort bij /elaia).
+ *   Op bestandsnaam gesorteerd, met cijfers als getal ("2" vóór "10"), dus
  *   cijfervoorvoegsels als 01-, 02- bepalen de volgorde. Dezelfde foto in twee mappen van één project komt één keer voor
  *   (src/data/portfolio-dubbelen.json, gemaakt door scripts/foto-mapping.mjs). Bestanden die Paul.* of paul.* heten
- *   (zijn eigen portret) horen niet in een serie.
+ *   (zijn eigen portret) horen niet in een serie. Bestanden in `serie.weglaten` blijven in de map maar staan niet op de detailpagina.
  * - Maten komen uit de bronbestanden (astro:assets), niet uit de data.
  * - Alt-tekst: src/data/alt-teksten.ts (op pad, met de `altTeksten` per project uit src/data/series.ts), anders een
  *   algemene tekst (en een waarschuwing).
@@ -70,9 +71,9 @@ export function fotosVan(serie: Serie): SerieFoto[] {
     .flatMap(([pad, module]) => {
       const relatief = pad.slice(ROOT.length);
       const [map, ...rest] = relatief.split('/');
-      if (rest.length !== 1 || slugify(map) !== serie.slug) return [];
+      if (rest.length !== 1 || slugify(map) !== slugify(serie.map ?? serie.slug)) return [];
       const bestand = rest[0];
-      if (PAUL_BESTAND.test(bestand) || dubbel.has(relatief)) return [];
+      if (PAUL_BESTAND.test(bestand) || dubbel.has(relatief) || serie.weglaten?.includes(bestand)) return [];
       const image = module.default;
       const alt = altVoor(map, bestand);
       if (!alt) console.warn(`[serie] ${serie.slug}: geen alt-tekst voor "${relatief}" (algemene tekst gebruikt).`);

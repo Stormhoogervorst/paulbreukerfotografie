@@ -1,15 +1,24 @@
 ---
 /**
- * /series: overzicht van Pauls projecten. Vaste opbouw (verandert nooit): header, H1 "Series" (PaginaKop), raster met kaarten, footer.
- * Geen filters, geen introtekst, geen andere secties. Data en volgorde: src/data/series.ts.
+ * /series: overzicht van Pauls projecten. Vaste opbouw: header, H1 "Series" (PaginaKop) met een korte tekst ernaast
+ * (eronder op smalle schermen), raster met kaarten, footer.
+ * Geen filters, geen andere secties. Data en volgorde: src/data/series.ts.
  * Elk blok zit in een eigen wrapper met alleen padding; geen margins die van buren afhangen.
  */
 import { Picture } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PaginaKop from '../components/PaginaKop.astro';
+import Segmenten from '../components/Segmenten.astro';
 import { serieLijst, serieHref } from '../data/series';
 import { breadcrumbList, collectionPage } from '../lib/schema';
 import { BREEDTES_KAART, FALLBACK_FORMAAT, FORMATEN } from '../lib/beeld';
+import { linkSegmenten } from '../lib/segmenten';
+
+/** Letterlijk deze zin; alleen het woord "contact" is een link (linkSegmenten). */
+const inleiding = linkSegmenten(
+  'Onderstaande series zijn bijna allemaal uitgegeven in boekvorm. Boek bestellen? Neem dan contact met mij op.',
+  [{ tekst: 'contact', href: '/contact' }],
+);
 
 const title = 'Fotoseries en projecten | Paul Breuker';
 const description =
@@ -31,7 +40,11 @@ const jsonLd = [
 ---
 
 <BaseLayout title={title} description={description} canonical="/series" jsonLd={jsonLd}>
-  <PaginaKop titel="Series" />
+  <PaginaKop titel="Series">
+    <p slot="intro" class="series-inleiding">
+      <Segmenten segmenten={inleiding} />
+    </p>
+  </PaginaKop>
 
   <div class="series-raster">
     <ul class="series-raster__lijst" role="list">
@@ -39,20 +52,22 @@ const jsonLd = [
         serieLijst.map((project, index) => (
           <li class="kaart">
             <a class="kaart__link" href={serieHref(project.slug)}>
-              <Picture
-                src={project.omslag}
-                alt={project.alt}
-                width={project.omslag.width}
-                height={project.omslag.height}
-                widths={BREEDTES_KAART}
-                sizes="(min-width: 700px) 46vw, 89vw"
-                formats={FORMATEN}
-                fallbackFormat={FALLBACK_FORMAAT}
-                loading={index === 0 ? 'eager' : 'lazy'}
-                fetchpriority={index === 0 ? 'high' : undefined}
-                decoding="async"
-                class="kaart__foto"
-              />
+              <span class="kaart__beeld">
+                <Picture
+                  src={project.omslag}
+                  alt={project.alt}
+                  width={project.omslag.width}
+                  height={project.omslag.height}
+                  widths={BREEDTES_KAART}
+                  sizes="(min-width: 700px) 46vw, 89vw"
+                  formats={FORMATEN}
+                  fallbackFormat={FALLBACK_FORMAAT}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  fetchpriority={index === 0 ? 'high' : undefined}
+                  decoding="async"
+                  class="kaart__foto"
+                />
+              </span>
               <h2 class="kaart__titel">{project.titel}</h2>
               {project.onderregel && <p class="kaart__onderregel">{project.onderregel}</p>}
             </a>
@@ -64,7 +79,36 @@ const jsonLd = [
 </BaseLayout>
 
 <style>
-  /* De kop (H1) staat in PaginaKop.astro, gedeeld met /contact. */
+  /* De H1 staat in PaginaKop.astro, gedeeld met /contact. De inleiding staat in het slot: onder 768px onder de H1
+     (ook als de kaarten vanaf 700px al twee kolommen zijn), daarboven rechts op de linkerrand van de rechterkolom. */
+
+  .series-inleiding {
+    max-width: none;
+    margin: clamp(0.75rem, 2vw, 1.25rem) 0 0;
+    font-size: var(--font-size-body);
+    font-weight: 500;
+    line-height: var(--intro-lh);
+    letter-spacing: 0;
+    color: var(--ink);
+    overflow-wrap: break-word;
+  }
+
+  /* Zelfde tekstlink als elders in lopende tekst: streep, dikker bij hover, focus zoals de kaarten op deze pagina. */
+  .series-inleiding :global(a) {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .series-inleiding :global(a:hover) {
+    text-decoration-thickness: 2px;
+  }
+
+  .series-inleiding :global(a:focus-visible) {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 0;
+  }
 
   /* ---------- Raster (mobiel: één kolom) ---------- */
   .series-raster {
@@ -96,8 +140,14 @@ const jsonLd = [
     text-decoration: none;
   }
 
-  /* Eigen beeldverhouding uit width/height van het bronbestand: niet croppen, geen vaste hoogte. */
-  .kaart__link :global(.kaart__foto) {
+  /* Eigen beeldverhouding uit width/height van het bronbestand: niet croppen, geen vaste hoogte.
+     De wrapper volgt die maat en clipt alleen de hover-zoom; titel en onderregel staan erbuiten. */
+  .kaart__beeld {
+    display: block;
+    overflow: hidden;
+  }
+
+  .kaart__beeld :global(.kaart__foto) {
     display: block;
     width: 100%;
     height: auto;
@@ -132,6 +182,29 @@ const jsonLd = [
     border-radius: 0;
   }
 
+  /* Zoom alleen bij een echte muis. will-change pas tijdens hover/focus, niet op alle kaarten tegelijk. */
+  @media (hover: hover) and (pointer: fine) {
+    .kaart__beeld :global(.kaart__foto) {
+      transition: transform 0.6s cubic-bezier(0.2, 0.6, 0.2, 1);
+    }
+
+    .kaart__link:hover .kaart__beeld :global(.kaart__foto),
+    .kaart__link:focus-visible .kaart__beeld :global(.kaart__foto) {
+      transform: scale(1.04);
+      will-change: transform;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kaart__beeld :global(.kaart__foto),
+    .kaart__link:hover .kaart__beeld :global(.kaart__foto),
+    .kaart__link:focus-visible .kaart__beeld :global(.kaart__foto) {
+      transition: none;
+      transform: none;
+      will-change: auto;
+    }
+  }
+
   /* ---------- Desktop ---------- */
   @media (min-width: 700px) {
     /* Twee kolommen waarin de kaarten direct op elkaar aansluiten (met 4vw witruimte ertussen), ongeacht de hoogte van
@@ -148,6 +221,25 @@ const jsonLd = [
 
     .kaart:first-child {
       margin-top: 0;
+    }
+  }
+
+  /* Desktop: naast de H1, uitgelijnd op de rechterkolom. Onder 768px blijft de tekst onder de H1. */
+  @media (min-width: 768px) {
+    /* Zelfde kolommen als het raster (1fr / 1fr, gap 1.7vw), binnen dezelfde gutter. De tekst sluit met de basislijn
+       van de laatste regel aan op de basislijn van de H1 en wordt niet breder dan de rechterkolom. */
+    :global(.pagina-kop--met-intro) {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      column-gap: 1.7vw;
+      align-items: last baseline;
+    }
+
+    .series-inleiding {
+      min-width: 0;
+      max-width: min(34rem, 100%);
+      margin: 0;
+      justify-self: start;
     }
   }
 </style>

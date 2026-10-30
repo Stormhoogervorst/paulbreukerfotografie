@@ -19,6 +19,7 @@ const KNOWN_SERIES: Record<string, { title: string; href: string }> = {
   'de-gaarkeuken': { title: 'De Gaarkeuken', href: '/de-gaarkeuken' },
   asfalt: { title: 'Asfalt', href: '/asfalt' },
   'oude-honden': { title: 'Oude honden', href: '/oude-honden' },
+  olijfbomen: { title: 'Elaia', href: '/elaia' },
   panoramas: { title: "Panorama's", href: '/panoramas' },
   portretten: { title: 'Portretten', href: '/portfolio/portretten' },
   'bruiloften-portfolio': { title: 'Bruiloften', href: '/portfolio/bruiloften' },

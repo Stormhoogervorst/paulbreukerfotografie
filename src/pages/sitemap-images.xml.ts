@@ -5,6 +5,10 @@ import { portretten } from '../data/portretten';
 import { getPortfolioImages } from '../lib/portfolio-images';
 import { fotograafBruiloft } from '../data/landing/fotograaf-bruiloft';
 import { trouwfotograafNijmegen } from '../data/landing/trouwfotograaf-nijmegen';
+import { trouwfotograafArnhem } from '../data/landing/trouwfotograaf-arnhem';
+import { trouwfotograafUtrecht } from '../data/landing/trouwfotograaf-utrecht';
+import { trouwfotograafAmsterdam } from '../data/landing/trouwfotograaf-amsterdam';
+import { trouwfotograafRotterdam } from '../data/landing/trouwfotograaf-rotterdam';
 import { impressieAfbeeldingen } from '../lib/landing-impressie';
 import { absoluteUrl } from '../lib/schema';
 
@@ -38,7 +42,14 @@ function chunks(photos: PortfolioPhoto[]): PortfolioPhoto[][] {
 }
 
 /** Landingspagina's met een Impressie: hun foto's staan bij de eigen pagina-URL. Voeg nieuwe landingspagina's hier toe. */
-const LANDINGSPAGINAS = [fotograafBruiloft, trouwfotograafNijmegen];
+const LANDINGSPAGINAS = [
+  fotograafBruiloft,
+  trouwfotograafNijmegen,
+  trouwfotograafArnhem,
+  trouwfotograafUtrecht,
+  trouwfotograafAmsterdam,
+  trouwfotograafRotterdam,
+];
 
 /** /portfolio/portretten: alle portretten, grote versie (zelfde varianten als op de pagina). */
 async function portrettenUrl(): Promise<string> {

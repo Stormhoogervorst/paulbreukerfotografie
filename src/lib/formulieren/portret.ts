@@ -151,7 +151,7 @@ export function onderwerp(data: Aanvraag): string {
   return eenRegel(`Nieuwe portretaanvraag: ${data.naam}, ${optieLabel(PAKKETTEN, data.pakket)}`);
 }
 
-// TODO(paul): mailteksten laten goedkeuren (ik-vorm, toon, termijn van 24 uur).
+// TODO(paul): mailteksten laten goedkeuren (ik-vorm, toon, termijn van 3 werkdagen).
 export function tekst(data: Aanvraag): string {
   const alles = waarden(data).map(([naam, waarde]): [string, string] => [naam, waarde ?? 'niet ingevuld']);
   return `${regels(alles)}\n\n${verstuurdVia('/portretfotos')}\n`;
@@ -160,10 +160,10 @@ export function tekst(data: Aanvraag): string {
 export function bevestiging(data: Aanvraag): { onderwerp: string; tekst: string } {
   const ingevuld = waarden(data).filter((paar): paar is [string, string] => paar[1] !== undefined);
   return {
-    onderwerp: 'Bedankt voor je aanvraag, ik reageer binnen 24 uur',
+    onderwerp: 'Bedankt voor je aanvraag, ik reageer binnen 3 werkdagen',
     tekst: bevestigingsMail({
       aanhef: `Hoi ${data.naam},`,
-      opening: 'Bedankt voor je aanvraag. Ik heb hem ontvangen en reageer binnen 24 uur.',
+      opening: 'Bedankt voor je aanvraag. Ik heb hem ontvangen en reageer binnen 3 werkdagen.',
       ingevuld: regels(ingevuld),
     }),
   };

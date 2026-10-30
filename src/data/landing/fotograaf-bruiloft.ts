@@ -18,7 +18,7 @@ import impressie07 from '../../assets/landing/impressie/07-bruiloft-07.jpg';
 import impressie08 from '../../assets/landing/impressie/08-bruiloft-11.jpg';
 import impressie09 from '../../assets/landing/impressie/09-bruiloft-14.jpg';
 
-/** Statement direct onder de hero. Ook op /trouwfotograaf-nijmegen (zelfde tekst en link naar #pakketten). */
+/** Statement direct onder de hero van /fotograaf-bruiloft. De lokale bruiloftspagina's hebben een eigen werkwijzetekst. */
 export const bruiloftWerkwijze = {
   label: '(werkwijze)',
   tekst:
@@ -79,7 +79,7 @@ export const fotograafBruiloft: LandingPagina = {
     ],
   },
 
-  // TODO(paul): tekst laten goedkeuren. Dezelfde sectie staat ook op /trouwfotograaf-nijmegen (`bruiloftWerkwijze`).
+  // TODO(paul): tekst laten goedkeuren. De lokale bruiloftspagina's gebruiken deze tekst niet.
   werkwijze: bruiloftWerkwijze,
 
   /**
@@ -160,7 +160,7 @@ export const fotograafBruiloft: LandingPagina = {
         vraag: 'Hoeveel kost een trouwfotograaf?',
         antwoord: [
           [
-            `Dat verschilt per fotograaf en per pakket. Bij mij kost een bruiloft ${pakketPrijs('Digitaal')}: ik ben dan van ’s ochtends vroeg tot ’s avonds laat aanwezig en maak er een ingebonden fotoboek bij. Fotografeer ik de bruiloft volledig analoog, dan kost het ${pakketPrijs('Volledig analoog')}. Een combinatie van digitaal en analoog is op aanvraag mogelijk. Wat er per pakket bij zit, zie je bij `,
+            `Dat verschilt per fotograaf en per pakket. Bij mij kost een bruiloft ${pakketPrijs('Digitaal')}: ik ben dan van ’s ochtends vroeg tot ’s avonds laat aanwezig en maak er een ingebonden fotoboek bij. Fotografeer ik de bruiloft volledig analoog, dan kost het ${pakketPrijs('Volledig analoog')}, ook met een ingebonden fotoboek. Een combinatie van digitaal en analoog is op aanvraag mogelijk. Wat er per pakket bij zit, zie je bij `,
             { tekst: 'de pakketten', href: '#pakketten' },
             '.',
           ],
@@ -197,11 +197,11 @@ export const fotograafBruiloft: LandingPagina = {
         ],
       },
       {
-        // TODO(paul): digitale levering (online galerij of bestanden?), levertijd van het fotoboek en of afdrukken mogelijk zijn; ook wat Volledig analoog oplevert.
+        // TODO(paul): digitale levering (online galerij of bestanden?), levertijd van het fotoboek en of afdrukken mogelijk zijn; bij Volledig analoog ook afdrukken en bewerking.
         vraag: 'Wat krijgen we na de bruiloft?',
         antwoord: [
           [
-            'Bij Digitaal maak ik van jullie bruiloft een ingebonden fotoboek. Wat jullie verder krijgen en wanneer, bijvoorbeeld bij de analoge optie, kun je in het ',
+            'Bij Digitaal en bij Volledig analoog maak ik van jullie bruiloft een ingebonden fotoboek. Wat jullie verder krijgen en wanneer, kun je in het ',
             { tekst: 'aanvraagformulier', href: '#aanvragen' },
             ' aan me vragen.',
           ],
@@ -233,7 +233,7 @@ export const fotograafBruiloft: LandingPagina = {
   formulier: {
     type: 'bruiloft',
     titel: 'Bruiloft aanvragen',
-    intro: [['Vertel me kort over jullie dag. Ik reageer binnen 24 uur en dan plannen we een kennismaking.']],
+    intro: [['Vertel me kort over jullie dag. Ik reageer binnen 3 werkdagen en dan plannen we een kennismaking.']],
     verzendLabel: 'Aanvraag versturen',
     privacy: [
       'Ik gebruik je gegevens alleen om te reageren op je aanvraag. Lees de ',

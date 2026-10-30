@@ -13,7 +13,7 @@
  *
  * De cta's verwijzen naar #aanvragen; `cta.pakket` is de slug en de waarde van het veld "pakket" in het formulier.
  *
- * TODO(paul): wat is er bij de analoge optie inbegrepen (afdrukken, fotoboek, bewerking) en wat is de levertijd?
+ * TODO(paul): wat is er bij de analoge optie verder inbegrepen (afdrukken, bewerking) en wat is de levertijd? Het ingebonden fotoboek hoort erbij.
  * TODO(paul): inclusief of exclusief btw? (Zet dan `voetnoot` hieronder.)
  * TODO(paul): is een tweede fotograaf nog mogelijk? Zo ja, noem hem opnieuw (hij staat nergens meer in de tekst).
  * TODO(paul): wordt bij Digitaal ook een online galerij of worden digitale bestanden meegeleverd, en wat is de levertijd?
@@ -34,11 +34,16 @@ export const pakketten: LandingPakketten = {
       cta: { label: 'Aanvragen', href: '#aanvragen', pakket: 'digitaal' },
     },
     {
-      // TODO(paul): wat is er bij de analoge optie inbegrepen (afdrukken, fotoboek, bewerking) en de levertijd. Verzin dit niet.
+      // TODO(paul): wat is er bij de analoge optie verder inbegrepen (afdrukken, bewerking) en de levertijd. Verzin dit niet.
       naam: 'Volledig analoog',
       prijs: 6950,
-      omschrijving: 'Ik fotografeer jullie bruiloft volledig analoog, van ’s ochtends vroeg tot ’s avonds laat.',
-      kenmerken: ['Volledig analoog gefotografeerd', 'Aanwezig van ’s ochtends vroeg tot ’s avonds laat'],
+      omschrijving:
+        'Ik fotografeer jullie bruiloft volledig analoog, van ’s ochtends vroeg tot ’s avonds laat. Jullie krijgen er een ingebonden fotoboek bij.',
+      kenmerken: [
+        'Volledig analoog gefotografeerd',
+        'Aanwezig van ’s ochtends vroeg tot ’s avonds laat',
+        'Ingebonden fotoboek erbij',
+      ],
       cta: { label: 'Aanvragen', href: '#aanvragen', pakket: 'analoog' },
     },
   ],

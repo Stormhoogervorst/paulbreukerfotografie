@@ -64,11 +64,15 @@ export const FOOTER_NAV = [
 
 /**
  * Commerciële landingspagina's in de voettekst (donkergrijs, naast de vier witte links).
- * Alleen bestaande pagina's: /zakelijke-portretfoto, /linkedin-foto-laten-maken en /trouwfotograaf-arnhem volgen later.
+ * Alleen bestaande pagina's. Er is geen pagina /zakelijke-portretfoto.
  */
 export const FOOTER_LANDING = [
   { label: 'Fotograaf bruiloft', href: '/fotograaf-bruiloft' },
   { label: 'Trouwfotograaf Nijmegen', href: '/trouwfotograaf-nijmegen' },
+  { label: 'Trouwfotograaf Arnhem', href: '/trouwfotograaf-arnhem' },
+  { label: 'Trouwfotograaf Utrecht', href: '/trouwfotograaf-utrecht' },
+  { label: 'Trouwfotograaf Amsterdam', href: '/trouwfotograaf-amsterdam' },
+  { label: 'Trouwfotograaf Rotterdam', href: '/trouwfotograaf-rotterdam' },
   { label: 'Portretfoto laten maken', href: '/portretfotos' },
 ] as const;
 

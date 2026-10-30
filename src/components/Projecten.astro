@@ -13,18 +13,25 @@ const { titel, allLink } = home.projecten;
 // Als HomeProject[] getypeerd (in home.ts staat de lijst met `satisfies`, dat alleen de aanwezige velden onthoudt): zo bestaat het optionele `jaar` ook voor een kaart die het nu niet gebruikt.
 const items: HomeProject[] = home.projecten.items;
 
-// Hoge foto (rechts): natuurlijke verhouding uit het bestand, geen uitsnede. Ontbreekt het bestand, dan valt de placeholder terug op 2 / 3.
-const rechtsFoto = items.find((project) => project.positie === 'rechts')?.photo.name;
-const rechtsBron = rechtsFoto ? getHomeImage(rechtsFoto) : undefined;
+// Hoge foto (rechts) en de middelste kaart: natuurlijke verhouding uit het bestand, geen uitsnede.
+// Ontbreekt het bestand, dan valt de placeholder terug op 2 / 3.
+const bronVan = (positie: HomeProject['positie']) => {
+  const naam = items.find((project) => project.positie === positie)?.photo.name;
+  return naam ? getHomeImage(naam) : undefined;
+};
+const rechtsBron = bronVan('rechts');
 const rechtsBreedte = rechtsBron?.width ?? 600;
 const rechtsHoogte = rechtsBron?.height ?? 900;
+const middenBron = bronVan('midden');
+const middenBreedte = middenBron?.width ?? 600;
+const middenHoogte = middenBron?.height ?? 900;
 
 // Maten per positie. Breedte en hoogte bepalen de verhouding en voorkomen layoutverschuiving.
-// `sizes` op desktop = de kolombreedte uit de CSS (24vw, 36vw, max 18vw); mobiel = de huidige breedte van de kaart.
+// `sizes` op desktop = de kolombreedte uit de CSS (24vw, 30vw, max 18vw); mobiel = de huidige breedte van de kaart.
 const kaart = {
   links: { width: 1200, height: 1440, widths: [480, 800, 1200, 1600], sizes: '(min-width: 900px) 24vw, 85vw' }, // 5 / 6
-  midden: { width: 1200, height: 1000, widths: [480, 800, 1200, 1600], sizes: '(min-width: 900px) 36vw, 70vw' }, // 6 / 5
-  rechts: { width: rechtsBreedte, height: rechtsHoogte, widths: [300, rechtsBreedte], sizes: '(min-width: 900px) 18vw, 56vw' }, // natuurlijk
+  midden: { width: middenBreedte, height: middenHoogte, widths: [300, 480, middenBreedte], sizes: '(min-width: 900px) 30vw, 58vw' },
+  rechts: { width: rechtsBreedte, height: rechtsHoogte, widths: [300, rechtsBreedte], sizes: '(min-width: 900px) 18vw, 56vw' },
 } as const;
 ---
 
@@ -46,6 +53,7 @@ const kaart = {
                 widths={[...kaart[project.positie].widths]}
                 sizes={kaart[project.positie].sizes}
                 loading="lazy"
+                position={project.photo.uitsnede}
               />
               <span class="kaart__titel">{project.title}</span>
               {project.jaar && <span class="kaart__jaar">{project.jaar}</span>}
@@ -104,7 +112,7 @@ const kaart = {
 
   /* Mobiel: kleiner en rechts uitgelijnd, zodat er links meer witruimte staat. */
   .kaart--midden {
-    width: 70%;
+    width: 58%;
     margin-top: 2rem;
     margin-left: auto;
   }
@@ -176,13 +184,12 @@ const kaart = {
 
   /* ---------- Projecten (desktop) ---------- */
   @media (min-width: 900px) {
-    /* Eén rij van gutter tot gutter (89vw). De drie kolommen zijn samen 78vw breed; space-between verdeelt de rest (11vw)
-       gelijkmatig over twee gaten (5,5vw, nooit minder dan 5vw zolang de scrollbalk smaller is dan 1vw).
-       Kolom 3: 40vw hoog volgens de verhouding van de foto, maar nooit breder dan 18vw. */
+    /* Eén rij van gutter tot gutter (89vw). De drie kolommen zijn samen 72vw breed; space-between verdeelt de rest (17vw)
+       gelijkmatig over twee gaten. Kolom 3: 40vw hoog volgens de verhouding van de foto, maar nooit breder dan 18vw. */
     .projecten__inhoud {
       --kolom-3: min(18vw, calc(40vw * var(--rechts-verhouding)));
       display: grid;
-      grid-template-columns: 24vw 36vw var(--kolom-3);
+      grid-template-columns: 24vw 30vw var(--kolom-3);
       /* Rij 1 is zo hoog als kaart 3 (met bijschrift); de rest van de rij gaat naar rij 2. Zo staat de link onder het bijschrift van kaart 3. */
       grid-template-rows: auto 1fr;
       justify-content: space-between;

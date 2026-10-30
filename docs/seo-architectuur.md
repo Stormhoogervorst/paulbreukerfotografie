@@ -18,7 +18,7 @@ Opgesteld op 28 oktober 2026 op basis van de briefing en een check van de huidig
   - /het-gezicht-van-nijmegen
   - /promoties
 
-  Van deze tien zijn negen projecten (de nieuwe site voegt /tradities en /oude-honden toe); /panoramas is geen project, /portretten is een oude URL met een 301 naar /portretfotos (de galerij met alle portretten staat op /portfolio/portretten) en /promoties is een redirect. Zie de tabel in sectie 2 (laag 2).
+  Van deze tien paden op de oude site zijn zeven projecten. De nieuwe site heeft tien projecten en voegt /tradities, /oude-honden en /elaia toe. /panoramas is geen project, /portretten is een oude URL met een 301 naar /portretfotos (de galerij met alle portretten staat op /portfolio/portretten) en /promoties is een redirect. Zie de tabel in sectie 2 (laag 2).
 - Het cv staat op een Joomla-URL met querystring (`/?view=article&id=141:curriculum-vitae&catid=8`). Die moet een 301 krijgen naar /over-paul.
 - Het e-mailadres zit achter JavaScript-bescherming en is voor crawlers onzichtbaar. In de nieuwe site staat het gewoon als tekst met `mailto:`.
 - De homepage heeft voor zover te zien geen commerciële zoekintentie: geen prijzen, geen "trouwfotograaf", geen "zakelijke portretfoto". Dat is de grootste SEO-winst.
@@ -35,26 +35,25 @@ Principe: één primair zoekwoord per URL. Commerciële pagina's en kunstseries 
 | `/` | Merk + wie is Paul + drie ingangen (bruiloft, portret, kunst) | Doorverwijzen + contact |
 | `/fotograaf-bruiloft` | fotograaf bruiloft (algemene bruiloftpagina). Twee opties: Digitaal vanaf €3.950 en Volledig analoog €6.950, combinatie op aanvraag (bedragen uit `bruiloft-pakketten.ts`; nergens een aantal foto's), werkwijze, reviews, FAQ | Bruiloftformulier |
 | `/trouwfotograaf-nijmegen` | trouwfotograaf nijmegen. Gereserveerd voor een latere lokale pagina met eigen inhoud | Bruiloftformulier |
-| `/trouwfotograaf-arnhem` | trouwfotograaf arnhem. Alleen live als er genoeg eigen Arnhem-inhoud is | Bruiloftformulier |
+| `/trouwfotograaf-arnhem` | trouwfotograaf arnhem. Lokale bruiloftspagina, dezelfde indeling als /trouwfotograaf-nijmegen | Bruiloftformulier |
 | `/trouwlocaties/[locatie]` | trouwen op/in [locatie] + fotograaf. Alleen locaties waar Paul echt heeft gefotografeerd | Bruiloftformulier |
-| `/portretfotos` | portretfoto laten maken (particuliere portretten: één persoon, duo, gezin, kunstportret; op locatie, natuurlijk licht). Verwijst voor zakelijk en LinkedIn naar /zakelijke-portretfoto | Portretformulier |
-| `/zakelijke-portretfoto` | zakelijke portretfoto (nijmegen). Hub voor headshots, teams, wetenschappers | Portretformulier |
+| `/portretfotos` | portretfoto laten maken (particulier, zakelijk en LinkedIn; op locatie, natuurlijk licht). Geen aparte pagina /zakelijke-portretfoto | Portretformulier |
 | `/linkedin-foto-laten-maken` | linkedin foto laten maken. Eigen pagina, want andere intentie dan teams | Portretformulier |
 | `/teamfoto-laten-maken` | teamfoto / personeelsfoto. Pas in fase 3 | Portretformulier |
 
-/trouwfotograaf-nijmegen en /trouwfotograaf-arnhem zijn gereserveerd voor latere lokale pagina's met eigen inhoud; /fotograaf-bruiloft is de algemene bruiloftpagina. Geen sjabloonpagina's waarbij alleen de plaatsnaam wisselt.
+/trouwfotograaf-nijmegen en /trouwfotograaf-arnhem zijn lokale bruiloftspagina's met eigen inhoud; /fotograaf-bruiloft is de algemene bruiloftpagina. Geen sjabloonpagina's waarbij alleen de plaatsnaam wisselt.
 
-/trouwfotograaf-nijmegen bestaat: de lokale bruiloftspagina (primair zoekwoord "trouwfotograaf nijmegen"; data in `src/data/landing/trouwfotograaf-nijmegen.ts`); /fotograaf-bruiloft blijft de algemene pagina. /trouwfotograaf-arnhem volgt later volgens hetzelfde patroon, met eigen inhoud.
+/trouwfotograaf-nijmegen bestaat: de lokale bruiloftspagina (primair zoekwoord "trouwfotograaf nijmegen"; data in `src/data/landing/trouwfotograaf-nijmegen.ts`); /fotograaf-bruiloft blijft de algemene pagina. /trouwfotograaf-arnhem bestaat: de lokale bruiloftspagina (primair zoekwoord "trouwfotograaf arnhem"; data in `src/data/landing/trouwfotograaf-arnhem.ts`), met dezelfde indeling als /trouwfotograaf-nijmegen.
 
 ### Laag 2: autoriteit en kunst
 
 | URL | Inhoud |
 |---|---|
-| `/series` | Overzicht van de negen projecten (kaarten met foto en titel). Blijft het zoekmachinevriendelijke serie-overzicht. Hernoemd van `/werk`, dat een 301 naar `/series` heeft |
+| `/series` | Overzicht van de tien projecten (kaarten met foto en titel). Blijft het zoekmachinevriendelijke serie-overzicht. Hernoemd van `/werk`, dat een 301 naar `/series` heeft |
 | `/portfolio` | Beleving: alle foto's op één oneindig, sleepbaar canvas. Indexeerbaar, in de sitemap en in de afbeeldingensitemap (`/sitemap-images.xml`), maar lage SEO-prioriteit: geen eigen zoekwoorddoel naast /series en de seriepagina's. Zonder header en footer (home-knop en link naar contact) De foto's komen uit alle mappen onder `src/assets/portfolio/` (ook nieuwe mappen, ontdubbeld); een nieuwe map levert alleen foto's voor /portfolio en wordt nooit automatisch een project, pagina of kaart: een project bestaat pas in `src/data/series.ts`. |
 | `/portfolio/bruiloften` | Galerij-pagina: alle bruiloftfoto's van Paul (map `bruiloften portfolio`) op hetzelfde canvas als /portfolio (gedeeld component `FotoCanvas`; alle foto's als gewone `<img>` met alt in de HTML). Gelinkt vanaf /fotograaf-bruiloft ("meer werk in het portfolio") en vanaf /portfolio. Indexeerbaar, in de sitemap en de afbeeldingensitemap, lage SEO-prioriteit: geen eigen zoekwoorddoel naast /fotograaf-bruiloft en /love-marriage. JSON-LD: `CollectionPage` met `ImageGallery` |
 | `/portfolio/portretten` | Galerij-pagina: alle portretten van Paul op hetzelfde canvas als /portfolio (gedeeld component `FotoCanvas`; alle foto's als gewone `<img>` met alt in de HTML). Gelinkt vanaf /portfolio en vanaf /portretfotos ("bekijk meer portretten →"). Indexeerbaar, in de sitemap en de afbeeldingensitemap, lage SEO-prioriteit: geen eigen zoekwoorddoel naast /portretfotos. JSON-LD: `CollectionPage` met `ImageGallery` |
-| Negen projecten: `/asfalt`, `/asty-mwaka`, `/de-gaarkeuken`, `/groeten-uit-lent`, `/het-gezicht-van-nijmegen`, `/love-marriage`, `/oude-honden`, `/take-me-to-the-river`, `/tradities` | Bestaande slugs behouden (platte structuur), nieuwe teksten en schema. `/tradities` en `/oude-honden` zijn nieuw: geen oude URL, dus geen redirect nodig. `/panoramas` is geen project en staat niet op /series; per URL beslissen we later (zie README, open punten). `/portretten` is geen eigen pagina meer: oude URL met een 301 (`permanent: true` in `vercel.json`) naar /portretfotos |
+| Tien projecten: `/asfalt`, `/asty-mwaka`, `/de-gaarkeuken`, `/elaia`, `/groeten-uit-lent`, `/het-gezicht-van-nijmegen`, `/love-marriage`, `/oude-honden`, `/take-me-to-the-river`, `/tradities` | Bestaande slugs behouden (platte structuur), nieuwe teksten en schema. `/tradities`, `/oude-honden` en `/elaia` zijn nieuw: geen oude URL, dus geen redirect nodig. De foto's van `/elaia` staan in de map Olijfbomen. `/panoramas` is geen project en staat niet op /series; per URL beslissen we later (zie README, open punten). `/portretten` is geen eigen pagina meer: oude URL met een 301 (`permanent: true` in `vercel.json`) naar /portretfotos |
 | `/exposities` | Kunsthal, Valkhof, Photoville New York, nieuwe exposities als Event |
 | `/pers` | Volkskrant, Telegraaf, EenVandaag met link naar het bronartikel |
 | `/over-paul` | 35 jaar werk, cv, palmares. Vervangt de Joomla-cv-URL |
@@ -78,7 +77,7 @@ De Radboud-site voor promotiefotografie blijft apart. De bestaande `/promoties` 
 - Haal `/promoties` ook uit de navigatie, de sitemap en de interne links van de nieuwe site.
 - Controleer in Search Console of `/promoties` backlinks of rankings heeft. Via de 301 gaat die waarde naar de Radboud-site.
 - Links in de andere richting (Radboud-site naar paulbreuker.nl) zijn waardevol: plaats ze contextueel (bijvoorbeeld bij "portretten voor wetenschappers"), niet alleen in een voettekst.
-- Op `/zakelijke-portretfoto` komt een tekstlink naar de Radboud-site voor wie een promotiefoto zoekt, zodat bezoekers met die intentie het juiste aanbod vinden.
+- Op `/portretfotos` staat een tekstlink naar de Radboud-site voor wie een promotiefoto zoekt, zodat bezoekers met die intentie het juiste aanbod vinden.
 
 ## 3. Technische setup (Astro op Vercel)
 
@@ -112,8 +111,8 @@ Let op: geen `AggregateRating` of `Review`-markup op Pauls eigen pagina's voor z
 
 ## 5. Interne linking
 
-- Home linkt naar de drie ingangen: /fotograaf-bruiloft, /zakelijke-portretfoto, /series.
-- Elke serie-pagina linkt naar de relevante commerciële pagina. Voorbeeld: /love-marriage naar /fotograaf-bruiloft met een beschrijvende ankertekst ("fotograaf voor je bruiloft"), en /portfolio/portretten naar /portretfotos en /zakelijke-portretfoto.
+- Home linkt naar de drie ingangen: /fotograaf-bruiloft, /portretfotos, /series.
+- Elke serie-pagina linkt naar de relevante commerciële pagina. Voorbeeld: /love-marriage naar /fotograaf-bruiloft met een beschrijvende ankertekst ("fotograaf voor je bruiloft"), en /portfolio/portretten naar /portretfotos.
 - Elke commerciële pagina linkt terug naar 2 tot 3 relevante series als bewijs.
 - Blog en locatiepagina's linken omhoog naar hun doelpagina en sideways naar verwante locaties.
 - Header en footer: e-mail en telefoon zichtbaar op elke pagina; navigatie met maximaal 6 items.
@@ -130,14 +129,14 @@ De toon is rustig en visueel, maar Google en AI-systemen hebben tekst nodig om e
 
 Volgorde commerciële landingspagina (bindend): De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze, Pakketten, Impressie, OverPaul, Vragen, Uitleg, Reviews, Aanvraagformulier, Beeld (foto van rand tot rand, geen kop). Daarna volgt de gedeelde footer. Een sectie wordt alleen getoond als de data ervoor bestaat; de volgorde verandert nooit. (De oude volgorde met Impressie vóór Pakketten en Uitleg vóór Pakketten vervalt.) Elke sectie zit in een eigen wrapper met --sectie-ruimte; geen margins die van buren afhangen. Werkwijze is een korte statement-sectie (geen kop); Pakketten heeft als titel (marquee) de eerste H2 en Impressie de tweede; de overige H2's van de pagina staan in Uitleg.
 
-Paul werkt voor klantsessies niet in een studio. Gebruik de woorden studio, fotostudio en studiosessie niet voor het aanbod aan klanten. In teksten over bestaande projecten (zoals Asty Mwaka en Take me to the river) mag het woord voorkomen als het zo in Pauls eigen tekst staat. Controleer het woord "studio" alleen op de pagina's met aanbod (/portretfotos, /fotograaf-bruiloft, /zakelijke-portretfoto). Hij fotografeert in natuurlijk licht, bij de klant thuis, op het werk, buiten of op een plek die de klant kiest. Hij maakte een portretserie bij een gaarkeuken in Rusland (project De Gaarkeuken, /de-gaarkeuken).
+Paul werkt voor klantsessies niet in een studio. Gebruik de woorden studio, fotostudio en studiosessie niet voor het aanbod aan klanten. In teksten over bestaande projecten (zoals Asty Mwaka en Take me to the river) mag het woord voorkomen als het zo in Pauls eigen tekst staat. Controleer het woord "studio" alleen op de pagina's met aanbod (/portretfotos, /fotograaf-bruiloft). Hij fotografeert in natuurlijk licht, bij de klant thuis, op het werk, buiten of op een plek die de klant kiest. Hij maakte een portretserie bij een gaarkeuken in Rusland (project De Gaarkeuken, /de-gaarkeuken).
 
-Elke commerciële portretpagina (/portretfotos, /zakelijke-portretfoto, /linkedin-foto-laten-maken) verwijst terug naar /portfolio/portretten en /de-gaarkeuken als bewijs.
+Elke commerciële portretpagina (/portretfotos) verwijst terug naar /portfolio/portretten en /de-gaarkeuken als bewijs.
 
 ## 7. Conversie
 
 - Elke bruiloft- en portretpagina eindigt in een kort formulier. Bruiloftformulier: datum en locatie bovenaan.
-- Verzenden leidt naar /bedankt (`noindex`) met uitleg wat er nu gebeurt, plus een automatische bevestigingsmail. Paul reageert binnen 24 uur.
+- Verzenden leidt naar /bedankt (`noindex`) met uitleg wat er nu gebeurt, plus een automatische bevestigingsmail. Paul reageert binnen 3 werkdagen.
 - Meet formulierverzendingen als conversie (GA4-event `generate_lead`, met type bruiloft/portret/editie). Meet ook klikken op telefoon, e-mail en WhatsApp.
 - Spamwering: honeypot of Cloudflare Turnstile, geen zware CAPTCHA.
 - Vertrouwen bij het formulier: 2 tot 3 echte reviews en het aantal bruidsparen. Controleer de "rond 200 in 2014"-claim (Kunsthal) en zet er het jaartal bij.
@@ -152,9 +151,9 @@ Elke commerciële portretpagina (/portretfotos, /zakelijke-portretfoto, /linkedi
 
 ## 9. Fasering
 
-- Fase 1 (lancering): home, /fotograaf-bruiloft, /zakelijke-portretfoto, /linkedin-foto-laten-maken, 8 projecten, /series, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, redirects, schema, sitemap, meting.
+- Fase 1 (lancering): home, /fotograaf-bruiloft, /portretfotos, 8 projecten, /series, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, redirects, schema, sitemap, meting.
 - Fase 2 (maand 1 tot 3): 5 tot 10 trouwlocatiepagina's, eerste 5 blogartikelen, Google-reviews opbouwen.
-- Fase 3 (daarna): /trouwfotograaf-arnhem, teamfoto's, uitbreiding blog en locaties op basis van wat Search Console laat zien.
+- Fase 3 (daarna): teamfoto's, uitbreiding blog en locaties op basis van wat Search Console laat zien. /trouwfotograaf-arnhem bestaat (lokale bruiloftspagina, primair "trouwfotograaf arnhem", dezelfde indeling als /trouwfotograaf-nijmegen).
 
 ## 10. Risico's en open punten
 

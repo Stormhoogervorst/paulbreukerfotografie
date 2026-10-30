@@ -17,6 +17,7 @@ const ALLE = [
   'take-me-to-the-river',
   'tradities',
   'oude-honden',
+  'elaia',
 ];
 const PROJECTEN = process.env.PROJECTEN ? process.env.PROJECTEN.split(',') : ALLE;
 const alleApparaten = [

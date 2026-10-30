@@ -5,11 +5,10 @@
  * afgeronde hoeken, badges of animatie.
  *
  * - Elk pakket is een <li> in een <ul role="list"> met een <article>. Onderdelen van boven naar beneden:
- *   1. nummer en naam (<h3>), 2. prijs, 3. omschrijving, 4. kenmerkenlijst (alleen als er kenmerken zijn), 5. cta.
+ *   1. nummer en naam (<h3>), 2. prijs, 3. omschrijving, 4. cta. De kenmerken uit de data worden niet getoond.
  * - Desktop (vanaf 900px): drie kolommen met geneste subgrids. De rijen zijn gedeeld over alle kolommen: nummer en naam,
- *   prijs, omschrijving, N rijen voor de kenmerken (N = het grootste aantal kenmerken van alle pakketten) en de cta.
- *   Daardoor liggen alle haarlijnen en tekstregels over de drie kolommen op dezelfde hoogte. Zonder subgrid-ondersteuning
- *   is er een flex-fallback waarbij alleen de cta onderaan de kolom staat.
+ *   prijs, omschrijving en de cta. Daardoor liggen prijs, tekst en knop over de kolommen op dezelfde hoogte. Zonder
+ *   subgrid-ondersteuning is er een flex-fallback waarbij de cta onderaan de kolom staat.
  * - Prijs: één <p> met het optionele label (`prijsLabel`, bijvoorbeeld "vanaf") en het bedrag, zodat een schermlezer
  *   bijvoorbeeld "vanaf €3.950" voorleest. Zonder label staat er alleen het bedrag; zonder prijs (`prijs` ontbreekt) is er
  *   geen prijsregel en blijft de rij leeg.
@@ -48,12 +47,7 @@ const nootDelen =
 const KOP_ID = 'pakketten-titel';
 
 const bedrag = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 0 });
-/**
- * Gedeelde rijen (desktop): 1 nummer en naam, 2 prijs, 3 omschrijving, 4 t/m 3+N kenmerken, 4+N cta.
- * N is het grootste aantal kenmerken van alle pakketten; een pakket met minder kenmerken laat de rest leeg (zonder lijn).
- */
-const kenmerkRijen = Math.max(0, ...pakketten.items.map((pakket) => pakket.kenmerken.length));
-const actieRij = 4 + kenmerkRijen;
+/** Gedeelde rijen (desktop): 1 nummer en naam, 2 prijs, 3 omschrijving, 4 cta. */
 const nummer = (index: number) => String(index + 1).padStart(2, '0');
 ---
 
@@ -61,11 +55,7 @@ const nummer = (index: number) => String(index + 1).padStart(2, '0');
   <Marquee woord={pakketten.titel} kopId={KOP_ID} />
 
   <div class="pakketten__inhoud">
-    <ul
-      class="pakketten__lijst"
-      role="list"
-      style={`--kenmerk-rijen: ${kenmerkRijen}; --actie-rij: ${actieRij}`}
-    >
+    <ul class="pakketten__lijst" role="list">
       {
         pakketten.items.map((pakket, index) => (
           <li class="pakket">
@@ -88,16 +78,6 @@ const nummer = (index: number) => String(index + 1).padStart(2, '0');
               }
 
               <p class="pakket__omschrijving">{pakket.omschrijving}</p>
-
-              {
-                pakket.kenmerken.length > 0 && (
-                  <ul class="pakket__kenmerken" role="list">
-                    {pakket.kenmerken.map((kenmerk) => (
-                      <li>{kenmerk}</li>
-                    ))}
-                  </ul>
-                )
-              }
 
               <p class="pakket__actie">
                 <a class="pakket__cta" href={pakket.cta.href} data-pakket={pakket.cta.pakket}>
@@ -181,12 +161,8 @@ const nummer = (index: number) => String(index + 1).padStart(2, '0');
     grid-row: 3;
   }
 
-  .pakket__kenmerken {
-    grid-row: 4 / span var(--kenmerk-rijen);
-  }
-
   .pakket__actie {
-    grid-row: var(--actie-rij);
+    grid-row: 4;
   }
 
   /* Nummer: dezelfde stijl als de nummering in Diensten, klein en links. */
@@ -233,39 +209,21 @@ const nummer = (index: number) => String(index + 1).padStart(2, '0');
     font-variant-numeric: tabular-nums;
   }
 
-  /* Omschrijving en kenmerken: tekststijl en regelafstand van de inleiding in de hero. */
-  .pakket__omschrijving,
-  .pakket__kenmerken {
+  /* Omschrijving: tekststijl en regelafstand van de inleiding in de hero. */
+  .pakket__omschrijving {
+    max-width: 38ch;
+    margin: 0;
+    padding-top: calc(var(--stap) * 0.6);
     font-size: var(--font-size-body);
     line-height: 1.1;
   }
 
-  .pakket__omschrijving {
-    max-width: 38ch;
-    margin: 0;
-    padding-block: calc(var(--stap) * 0.6) var(--stap); /* de ruimte onder de omschrijving hoort bij haar rij, zodat de lijnen eronder gelijk liggen */
-  }
-
-  .pakket__kenmerken {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  /* Eén lijnsysteem: elk kenmerk heeft alleen een haarlijn erboven; de sluitende lijn is de border-top van de cta.
-     Geen vinkjes of iconen. */
-  .pakket__kenmerken li {
-    padding-block: 0.9em;
-    border-top: 1px solid var(--ink);
-  }
-
-  /* Tekstlink met streep eronder en pijltje, zoals de CTA-links in de hero. */
+  /* Tekstlink met streep eronder en pijltje, zoals de CTA-links in de hero. Geen lijn boven de knop. */
   .pakket__actie {
     max-width: none;
     margin: 0;
-    padding-top: calc(var(--stap) * 0.6);
+    padding-top: calc(var(--stap) * 0.8);
     margin-top: auto; /* flex-fallback: de cta staat onderaan de kolom */
-    border-top: 1px solid var(--ink); /* sluitende lijn onder de kenmerken */
   }
 
   .pakket__cta {
@@ -343,32 +301,19 @@ const nummer = (index: number) => String(index + 1).padStart(2, '0');
       margin-top: 3vw;
     }
 
-    /* Elk kenmerk is minstens twee tekstregels hoog (plus padding en lijn), ook zonder subgrid. De tekst staat bovenaan
-       de cel. */
-    .pakket__kenmerken li {
-      min-height: calc(2 * 1.1em + 1.8em + 1px);
-    }
-
-    /* Subgrid in drie lagen (ul > li > article, en daarbinnen de kenmerken-ul): alle kolommen delen dezelfde rijen,
-       dus elke rij is overal even hoog als de hoogste cel erin. Daardoor liggen lijnen en tekstregels over de kolommen
-       gelijk, ook als een kenmerk in de ene kolom op één regel past en in de andere op twee. Rijen: 1 nummer en naam,
-       2 prijs, 3 omschrijving, 4 t/m 3+N kenmerken, 4+N cta (N = --kenmerk-rijen). */
+    /* Subgrid: alle kolommen delen dezelfde rijen, dus elke rij is overal even hoog als de hoogste cel erin.
+       Rijen: 1 nummer en naam, 2 prijs, 3 omschrijving, 4 cta. */
     @supports (grid-template-rows: subgrid) {
       .pakket {
         display: grid;
         grid-template-rows: subgrid;
-        grid-row: span var(--actie-rij); /* = alle rijen: 4 + N */
+        grid-row: span 4;
       }
 
       .pakket__artikel {
         display: grid;
         grid-template-rows: subgrid;
         grid-row: 1 / -1;
-      }
-
-      .pakket__kenmerken {
-        display: grid;
-        grid-template-rows: subgrid;
       }
 
       .pakket__actie {

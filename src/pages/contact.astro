@@ -7,10 +7,12 @@
  * en zonder het blok "Liever bellen of mailen?".
  *
  * Elk blok zit in een eigen wrapper met alleen padding (--sectie-ruimte); geen margins die van buren afhangen.
- * Het formulier staat direct onder de H1 (de 6vw onder de kop is de ruimte ertussen). Tussen het formulier en de
+ * Het formulier staat direct onder de H1 (de 6vw onder de kop is de ruimte ertussen). Onder de introtekst, links,
+ * staat een kleine foto van Paul (zelfde bestand als op de landingspagina's). Tussen het formulier en de
  * contactregels ligt --sectie-ruimte (twee halve waarden), net als tussen de contactregels en het panorama. Het
  * panorama (dezelfde foto en component als op de homepage, `home.panorama`) sluit onderaan direct aan op de footer.
  */
+import { Picture } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PaginaKop from '../components/PaginaKop.astro';
 import LandingFormulier from '../components/landing/LandingFormulier.astro';
@@ -19,6 +21,8 @@ import { regels, formulier, seo, breadcrumb } from '../data/contact';
 import { home } from '../data/home';
 import { CONTACT, SAME_AS } from '../data/site';
 import { breadcrumbList, contactPage, localBusiness } from '../lib/schema';
+import { BREEDTES_PAUL, FALLBACK_FORMAAT, FORMATEN } from '../lib/beeld';
+import paulFoto from '../assets/landing/paul.webp';
 
 const PAD = '/contact';
 
@@ -55,7 +59,22 @@ const hoofdletter = (tekst: string) => tekst.charAt(0).toUpperCase() + tekst.sli
   </div>
 
   <div class="contact-formulier">
-    <LandingFormulier formulier={formulier} toonContact={false} toonTitel={false} ankerId="formulier" />
+    <LandingFormulier formulier={formulier} toonContact={false} toonTitel={false} ankerId="formulier">
+      <div slot="onder-tekst" class="contact-foto">
+        <Picture
+          src={paulFoto}
+          alt="Portret van Paul Breuker"
+          width={paulFoto.width}
+          height={paulFoto.height}
+          widths={BREEDTES_PAUL}
+          sizes="(min-width: 900px) 11rem, 36vw"
+          formats={FORMATEN}
+          fallbackFormat={FALLBACK_FORMAAT}
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    </LandingFormulier>
   </div>
 
   <div class="contact-regels">
@@ -204,6 +223,18 @@ const hoofdletter = (tekst: string) => tekst.charAt(0).toUpperCase() + tekst.sli
     padding-block: 0 calc(var(--sectie-ruimte) / 2);
   }
 
+  /* Foto onder de introtekst, links. Nooit breder dan 11rem en nooit bijgesneden. */
+  .contact-foto {
+    width: min(36vw, 11rem);
+    margin-top: clamp(2.5rem, 10vw, 4rem);
+  }
+
+  .contact-foto :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
   /* ---------- Contactregels (desktop) ---------- */
   @media (min-width: 700px) {
     /* Label links op de gutter, de waarde op de tekstkolom van Werkwijze (--kolom-statement, vanaf de schermrand; de
@@ -230,6 +261,13 @@ const hoofdletter = (tekst: string) => tekst.charAt(0).toUpperCase() + tekst.sli
     .regel__pijl {
       width: max(1.75rem, 4vw);
       justify-self: end;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .contact-foto {
+      width: min(11vw, 11rem);
+      margin-top: clamp(6rem, 12vw, 14rem);
     }
   }
 </style>

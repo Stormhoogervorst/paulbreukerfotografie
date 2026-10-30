@@ -137,7 +137,7 @@ export function onderwerp(data: Aanvraag): string {
   return eenRegel(`Nieuw bericht via contactformulier: ${data.naam}, ${optieLabel(ONDERWERPEN, data.onderwerp)}`);
 }
 
-// TODO(paul): mailteksten laten goedkeuren (ik-vorm, toon, termijn van 24 uur).
+// TODO(paul): mailteksten laten goedkeuren (ik-vorm, toon, termijn van 3 werkdagen).
 export function tekst(data: Aanvraag): string {
   const alles = waarden(data).map(([naam, waarde]): [string, string] => [naam, waarde ?? 'niet ingevuld']);
   return `${regels(alles)}\n\n${verstuurdVia('/contact')}\n`;
@@ -146,10 +146,10 @@ export function tekst(data: Aanvraag): string {
 export function bevestiging(data: Aanvraag): { onderwerp: string; tekst: string } {
   const ingevuld = waarden(data).filter((paar): paar is [string, string] => paar[1] !== undefined);
   return {
-    onderwerp: 'Bedankt voor je bericht, ik reageer binnen 24 uur',
+    onderwerp: 'Bedankt voor je bericht, ik reageer binnen 3 werkdagen',
     tekst: bevestigingsMail({
       aanhef: `Hoi ${data.naam},`,
-      opening: 'Bedankt voor je bericht. Ik heb het ontvangen en reageer binnen 24 uur.',
+      opening: 'Bedankt voor je bericht. Ik heb het ontvangen en reageer binnen 3 werkdagen.',
       ingevuld: regels(ingevuld),
     }),
   };
@@ -159,6 +159,6 @@ export function bevestiging(data: Aanvraag): { onderwerp: string; tekst: string 
 // TODO(paul): bevestig dat dit proces klopt (drie stappen).
 export const stappen = [
   'Ik lees je bericht.',
-  'Ik antwoord je binnen 24 uur per e-mail.',
+  'Ik antwoord je binnen 3 werkdagen per e-mail.',
   'Wil je iets toevoegen? Beantwoord dan de bevestigingsmail.',
 ];

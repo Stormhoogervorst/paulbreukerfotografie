@@ -189,7 +189,7 @@ export function onderwerp(data: Aanvraag): string {
   return eenRegel(`Nieuwe bruiloftaanvraag: ${data.namen}, ${datum}`);
 }
 
-// TODO(paul): mailteksten laten goedkeuren (ik-vorm, toon, termijn van 24 uur).
+// TODO(paul): mailteksten laten goedkeuren (ik-vorm, toon, termijn van 3 werkdagen).
 export function tekst(data: Aanvraag): string {
   const alles = waarden(data).map(([naam, waarde]): [string, string] => [naam, waarde ?? 'niet ingevuld']);
   return `${regels(alles)}\n\n${verstuurdVia('/fotograaf-bruiloft')}\n`;
@@ -198,10 +198,10 @@ export function tekst(data: Aanvraag): string {
 export function bevestiging(data: Aanvraag): { onderwerp: string; tekst: string } {
   const ingevuld = waarden(data).filter((paar): paar is [string, string] => paar[1] !== undefined);
   return {
-    onderwerp: 'Bedankt voor je aanvraag, ik reageer binnen 24 uur',
+    onderwerp: 'Bedankt voor je aanvraag, ik reageer binnen 3 werkdagen',
     tekst: bevestigingsMail({
       aanhef: `Hoi ${data.namen},`,
-      opening: 'Bedankt voor jullie aanvraag. Ik heb hem ontvangen en reageer binnen 24 uur.',
+      opening: 'Bedankt voor jullie aanvraag. Ik heb hem ontvangen en reageer binnen 3 werkdagen.',
       ingevuld: regels(ingevuld),
     }),
   };

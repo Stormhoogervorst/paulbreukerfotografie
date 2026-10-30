@@ -14,13 +14,13 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { formulieren } from '../lib/formulieren';
 
-// TODO(paul): bevestig de reactietijd (hier en in de mails: binnen 24 uur) en de stappen per type (zie de formulierbestanden).
+// TODO(paul): bevestig de reactietijd (hier en in de mails: binnen 3 werkdagen) en de stappen per type (zie de formulierbestanden).
 const typen = Object.entries(formulieren).map(([type, formulier]) => ({ type, stappen: formulier.stappen }));
 ---
 
 <BaseLayout
   title="Bedankt voor je aanvraag | Paul Breuker Fotografie"
-  description="Bedankt voor je aanvraag. Ik reageer binnen 24 uur en je krijgt ook een bevestiging per e-mail."
+  description="Bedankt voor je aanvraag. Ik reageer binnen 3 werkdagen en je krijgt ook een bevestiging per e-mail."
   canonical="/bedankt"
   noindex
 >
@@ -28,7 +28,7 @@ const typen = Object.entries(formulieren).map(([type, formulier]) => ({ type, st
     <h1 class="bedankt__titel">Bedankt voor je aanvraag</h1>
 
     <p class="bedankt__tekst">
-      Ik heb je aanvraag ontvangen en reageer binnen 24 uur. Je krijgt ook een bevestiging per e-mail. Zie je die niet,
+      Ik heb je aanvraag ontvangen en reageer binnen 3 werkdagen. Je krijgt ook een bevestiging per e-mail. Zie je die niet,
       kijk dan even in je spam.
     </p>
 

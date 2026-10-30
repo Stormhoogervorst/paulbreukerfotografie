@@ -1,5 +1,5 @@
 /**
- * Datamodel voor commerciële landingspagina's (/fotograaf-bruiloft, later /zakelijke-portretfoto enz.).
+ * Datamodel voor commerciële landingspagina's (/fotograaf-bruiloft, /portretfotos enz.).
  *
  * Een nieuwe landingspagina is een databestand in `src/data/landing/` plus een paginabestand van een paar
  * regels in `src/pages/` (zie README, "Nieuwe landingspagina toevoegen").
@@ -125,7 +125,7 @@ export interface LandingPakket {
   /** Klein label boven het bedrag, bijvoorbeeld "vanaf". Ontbreekt het, dan staat er alleen het bedrag. */
   prijsLabel?: string;
   omschrijving: string;
-  /** Een lijst zonder items wordt niet getoond. */
+  /** Niet getoond. De tekst onder de prijs is `omschrijving`. */
   kenmerken: string[];
   cta: LandingPakketCta;
 }

@@ -1,8 +1,7 @@
 ---
 /**
- * Detailpagina van een project (serie): /love-marriage, /take-me-to-the-river, /de-gaarkeuken, /tradities, /asfalt,
- * /asty-mwaka, /groeten-uit-lent en /het-gezicht-van-nijmegen. Eén sjabloon, data-gedreven (src/data/series.ts), foto's
- * uit src/assets/portfolio/<slug>/ (src/lib/serie-fotos.ts).
+ * Detailpagina van een project (serie). Eén sjabloon, data-gedreven (src/data/series.ts), foto's
+ * uit src/assets/portfolio/<slug>/ of uit `serie.map` (src/lib/serie-fotos.ts).
  *
  * Vaste opbouw (verandert nooit): header, titelblok (alleen de H1), Introductie,
  * fotoraster (twee per rij), doorlinkrij, footer. Een onderdeel verschijnt alleen als de data ervoor bestaat.
@@ -47,7 +46,7 @@ export const getStaticPaths = (() => {
       return false;
     }
     if (fotosVan(serie).length === 0) {
-      console.warn(`[project] /${serie.slug}: geen foto's in src/assets/portfolio/${serie.slug}/, dus geen pagina.`);
+      console.warn(`[project] /${serie.slug}: geen foto's in src/assets/portfolio/${serie.map ?? serie.slug}/, dus geen pagina.`);
       return false;
     }
     return true;
@@ -330,9 +329,11 @@ const klasse = titelKlasse(serie.titel);
     width: 100%;
   }
 
-  /* De link om de foto verandert niets aan de maat of plaats: alleen een blok met dezelfde breedte. */
+  /* De link om de foto verandert niets aan de maat of plaats: alleen een blok met dezelfde breedte.
+     overflow clipt de hover-zoom; de link blijft de klik die de lightbox opent. */
   .foto__link {
     display: block;
+    overflow: hidden;
   }
 
   .foto :global(.foto__beeld) {
@@ -341,10 +342,31 @@ const klasse = titelKlasse(serie.titel);
     height: auto;
   }
 
-  /* Met een muis wijst de cursor op "groot maken"; op touch opent een tik de foto. */
+  /* Met een muis wijst de cursor op "groot maken"; op touch opent een tik de foto.
+     Zoom alleen bij een echte muis. will-change pas tijdens hover/focus. */
   @media (hover: hover) and (pointer: fine) {
     .foto__link {
       cursor: zoom-in;
+    }
+
+    .foto :global(.foto__beeld) {
+      transition: transform 0.6s cubic-bezier(0.2, 0.6, 0.2, 1);
+    }
+
+    .foto__link:hover :global(.foto__beeld),
+    .foto__link:focus-visible :global(.foto__beeld) {
+      transform: scale(1.04);
+      will-change: transform;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .foto :global(.foto__beeld),
+    .foto__link:hover :global(.foto__beeld),
+    .foto__link:focus-visible :global(.foto__beeld) {
+      transition: none;
+      transform: none;
+      will-change: auto;
     }
   }
 
