@@ -31,15 +31,6 @@
       "source": "/portretten/",
       "destination": "/portretfotos",
       "permanent": true
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "view", "value": { "eq": "article" } },
-        { "type": "query", "key": "id", "value": { "re": "^141(:|%3A)curriculum-vitae$" } }
-      ],
-      "destination": "/over-paul",
-      "permanent": true
     }
   ]
 }

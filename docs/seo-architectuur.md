@@ -19,7 +19,7 @@ Opgesteld op 28 oktober 2026 op basis van de briefing en een check van de huidig
   - /promoties
 
   Van deze tien paden op de oude site zijn zeven projecten. De nieuwe site heeft tien projecten en voegt /tradities, /oude-honden en /elaia toe. /panoramas is geen project, /portretten is een oude URL met een 301 naar /portretfotos (de galerij met alle portretten staat op /portfolio/portretten) en /promoties is een redirect. Zie de tabel in sectie 2 (laag 2).
-- Het cv staat op een Joomla-URL met querystring (`/?view=article&id=141:curriculum-vitae&catid=8`). Die moet een 301 krijgen naar /over-paul.
+- Het cv staat op een Joomla-URL met querystring (`/?view=article&id=141:curriculum-vitae&catid=8`). Er is geen /over-paul-pagina; de URL toont de homepage en heeft geen eigen redirect.
 - Het e-mailadres zit achter JavaScript-bescherming en is voor crawlers onzichtbaar. In de nieuwe site staat het gewoon als tekst met `mailto:`.
 - De homepage heeft voor zover te zien geen commerciële zoekintentie: geen prijzen, geen "trouwfotograaf", geen "zakelijke portretfoto". Dat is de grootste SEO-winst.
 - Host: www.paulbreuker.nl stuurt nu door naar paulbreuker.nl (zonder www). Kies bewust één canonieke host. Advies: houd paulbreuker.nl aan, want alle bestaande interne links wijzen daarheen. Redirect www naar apex in Vercel.
@@ -56,7 +56,6 @@ Principe: één primair zoekwoord per URL. Commerciële pagina's en kunstseries 
 | Tien projecten: `/asfalt`, `/asty-mwaka`, `/de-gaarkeuken`, `/elaia`, `/groeten-uit-lent`, `/het-gezicht-van-nijmegen`, `/love-marriage`, `/oude-honden`, `/take-me-to-the-river`, `/tradities` | Bestaande slugs behouden (platte structuur), nieuwe teksten en schema. `/tradities`, `/oude-honden` en `/elaia` zijn nieuw: geen oude URL, dus geen redirect nodig. De foto's van `/elaia` staan in de map Olijfbomen. `/panoramas` is geen project en staat niet op /series; per URL beslissen we later (zie README, open punten). `/portretten` is geen eigen pagina meer: oude URL met een 301 (`permanent: true` in `vercel.json`) naar /portretfotos |
 | `/exposities` | Kunsthal, Valkhof, Photoville New York, nieuwe exposities als Event |
 | `/pers` | Volkskrant, Telegraaf, EenVandaag met link naar het bronartikel |
-| `/over-paul` | 35 jaar werk, cv, palmares. Vervangt de Joomla-cv-URL |
 | `/boek` | Boek, voorintekening of e-maillijst (naam + e-mail) |
 | `/contact` | E-mail, telefoon, WhatsApp (optioneel), formulier |
 | `/bedankt` | Bedankpagina, `noindex` |
@@ -100,7 +99,6 @@ De Radboud-site voor promotiefotografie blijft apart. De bestaande `/promoties` 
 |---|---|
 | Overal | `WebSite`, `BreadcrumbList` |
 | Home / contact | `LocalBusiness` (of `ProfessionalService`) met adres, telefoon, e-mail, werkgebied, `sameAs` (Instagram, LinkedIn, Facebook, Singulart) |
-| /over-paul | `Person` met `knowsAbout`, `sameAs`, verwijzing naar het bedrijf via `@id` |
 | Bruiloft- en portretpagina's | `Service` met `Offer` en `priceSpecification` (vanaf-prijs), `areaServed` |
 | Serie-pagina's | `ImageGallery` / `ImageObject` met `creator`, `copyrightNotice`, `creditText`; optioneel `license` en `acquireLicensePage` |
 | /exposities | `Event` alleen voor aankomende exposities met echte data; verleden als gewone tekst |
@@ -144,14 +142,14 @@ Elke commerciële portretpagina (/portretfotos) verwijst terug naar /portfolio/p
 ## 8. Migratie en lancering
 
 1. Voor livegang: exporteer uit Search Console de top-pagina's en -zoekopdrachten, inclusief afbeeldingsverkeer. Inventariseer backlinks.
-2. Bouw een redirectmap (in `vercel.json`, met `permanent: true`) voor elke oude URL die niet 1:1 terugkomt. Behoud de serie-slugs waar mogelijk. Vaste regels: `/promoties` naar https://www.fotograafpromotiesradboud.nl/, `/werk` naar `/series`, `/portretten` naar `/portretfotos` (ook met trailing slash, in één stap) en de Joomla-cv-URL naar `/over-paul`.
+2. Bouw een redirectmap (in `vercel.json`, met `permanent: true`) voor elke oude URL die niet 1:1 terugkomt. Behoud de serie-slugs waar mogelijk. Vaste regels: `/promoties` naar https://www.fotograafpromotiesradboud.nl/, `/werk` naar `/series`, `/portretten` naar `/portretfotos` (ook met trailing slash, in één stap). De Joomla-cv-URL krijgt geen redirect (er is geen cv-pagina; de URL toont de homepage).
 3. Test redirects op een preview voordat het domein wordt omgezet. Geen redirectketens.
 4. Na livegang: sitemap indienen, URL's laten inspecteren, 4 weken lang wekelijks dekking en rankings bekijken.
 5. Controleer of oude afbeeldings-URL's (`/images/...`) significant verkeer hadden. Zo ja, redirect de belangrijkste.
 
 ## 9. Fasering
 
-- Fase 1 (lancering): home, /fotograaf-bruiloft, /portretfotos, 8 projecten, /series, /over-paul, /exposities, /pers, /boek, /contact, /bedankt, redirects, schema, sitemap, meting.
+- Fase 1 (lancering): home, /fotograaf-bruiloft, /portretfotos, 8 projecten, /series, /exposities, /pers, /boek, /contact, /bedankt, redirects, schema, sitemap, meting.
 - Fase 2 (maand 1 tot 3): 5 tot 10 trouwlocatiepagina's, eerste 5 blogartikelen, Google-reviews opbouwen.
 - Fase 3 (daarna): teamfoto's, uitbreiding blog en locaties op basis van wat Search Console laat zien. /trouwfotograaf-arnhem bestaat (lokale bruiloftspagina, primair "trouwfotograaf arnhem", dezelfde indeling als /trouwfotograaf-nijmegen).
 

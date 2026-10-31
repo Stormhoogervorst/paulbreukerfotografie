@@ -142,11 +142,10 @@ export const home = {
   overPaul: {
     /** Visueel klein label; dit is de H2 van de sectie. */
     label: '(over paul)',
-    // Tekst van Paul zelf (30 oktober 2026). Twee alinea's: Statement toont elke string als een <p>.
+    // Tekst van Paul zelf (31 oktober 2026). Twee alinea's: Statement toont elke string als een <p>.
     tekst: [
-      'Ik ben fotograaf in Nijmegen en woon in Lent. Mijn hele fotografieleven werk ik aan series over thema’s die mij raken: leven, dood en geboorte, sociale reportages en rituelen. Sinds 1992 fotografeer ik bruiloften, en dat doe ik nog steeds. Daarnaast maak ik experimenten, tekeningen en schilderijen waarin droedels en organische vormen de basis zijn.',
-      // TODO(paul): kiezen tussen 1984/1992/1995 en een jaartal in plaats van "35 jaar".
-      'Ook portretteer ik graag: staand, half en close-up, alleen, als duo, in een groepje of als groepsportret. Zo werk ik al 35 jaar: bruiloften, kunstseries en portretten.',
+      'Ik ben fotograaf in Nijmegen en woon in Lent. Al 35 jaar werk ik aan series over leven, dood en geboorte, sociale reportages en rituelen. Mijn bruiloftsserie werd getoond op Photoville in New York en hing in de kunsthallen in Rotterdam. Sinds 1992 fotografeer ik bruiloften, en dat doe ik nog steeds.',
+      'Daarnaast maak ik experimenten, tekeningen en schilderijen vanuit droedels en organische vormen. Ook portretteer ik graag: alleen, als duo of als groep, van close-up tot staand portret.',
     ],
   },
 

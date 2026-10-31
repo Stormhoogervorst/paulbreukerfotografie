@@ -7,7 +7,7 @@ export const SITE_URL = 'https://paulbreuker.nl';
 export const SITE_NAME = 'Paul Breuker Fotografie';
 
 export const BUSINESS_ID = `${SITE_URL}/#business`;
-export const PERSON_ID = `${SITE_URL}/over-paul#paul-breuker`;
+export const PERSON_ID = `${SITE_URL}/#paul-breuker`;
 export const WEBSITE_ID = `${SITE_URL}/#website`;
 
 export const CONTACT = {

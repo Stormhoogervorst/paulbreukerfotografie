@@ -119,7 +119,7 @@ export const fotograafBruiloft: LandingPagina = {
 
   /**
    * OverPaul: selectie uit de volledige bio in src/data/paul.ts (kunstenaar, specialisatie, exposities, lidmaatschap).
-   * ‘promoties’ en ‘radboud’ staan er bewust niet in (ze gaan over promotiefotografie; ze blijven voor /over-paul).
+   * ‘promoties’ en ‘radboud’ staan er bewust niet in (ze gaan over promotiefotografie; ze blijven in paul.ts).
    * Geen link naar promoties of de Radboud-site. Het label ("Over Paul") is alleen voor schermlezers (visueel verborgen h2).
    */
   // TODO(paul): tekst laten goedkeuren (jaartallen 1984/1995, spelling van de musea en kranten, zie paul.ts), de alt-tekst van de foto controleren en de foto in hogere resolutie aanleveren (minimaal 1200 px breed; nu 400 × 400 px).
