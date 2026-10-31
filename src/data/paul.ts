@@ -1,8 +1,9 @@
 /**
  * Volledige bio van Paul; hergebruik op /over-paul. De bruiloftpagina gebruikt een selectie.
  *
- * TODO(paul): jaartallen 1984/1995 laten bevestigen en gelijktrekken met ‘al 35 jaar’ op de homepage; spelling van
- * Museum het Valkhof, Museum de Bastei en de kranten laten controleren.
+ * TODO(paul): kiezen tussen 1984/1992/1995 en een jaartal in plaats van "35 jaar". "vanaf 1995" blijft staan
+ * (deze alinea staat op /fotograaf-bruiloft en /portretfotos). Spelling van Museum het Valkhof, Museum de Bastei
+ * en de kranten laten controleren.
  */
 
 export const kunstenaar =

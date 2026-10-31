@@ -5,7 +5,7 @@
  *  - de portretten (src/data/portretten.ts) staan hier onder `portretten/…`;
  *  - de alt-teksten per project uit src/data/series.ts (`altTeksten`, op bestandsnaam) gelden ook voor /portfolio;
  *  - de projectmappen die na de vervanging van de foto's nieuwe bestanden hebben, en de mappen zonder project
- *    (experimenteel, oostblok reportage, oude honden, promoties), staan hieronder.
+ *    (experimenteel, oostblok reportage, oude honden, promoties, bruiloften recent), staan hieronder.
  *
  * Regels: beschrijf wat je ziet (wie, wat, waar), verzin geen namen, geen keyword stuffing, geen twee gelijke teksten,
  * nooit een lege tekst. Foto's zonder tekst krijgen de neutrale terugvaltekst van `altVoor` ("Foto uit de serie {titel}")
@@ -417,6 +417,98 @@ const BRUILOFTEN_PORTFOLIO: Record<string, string> = {
   'c18.jpg': 'Zwart-witfoto van een bruid en bruidegom die door een smalle straat met grachten en huizen lopen.',
 };
 
+/**
+ * Bruiloften recent: map zonder projectpagina, alleen voor /portfolio.
+ * Alleen beschreven wat te zien is; geen namen of plaatsen verzonnen.
+ * TODO(paul): locaties en namen niet bekend; vul aan waar je dat wilt.
+ */
+const BRUILOFTEN_RECENT: Record<string, string> = {
+  'DSC01434.jpg':
+    'In daglicht zit een bruid in witte jurk aan een houten tafel tegenover een lachende vrouw bij een turquoise deur.',
+  'DSC01468.jpg':
+    'Keuken met vlaggetjes: twee mensen kijken op een telefoon, een man houdt een statief vast, twee vrouwen kijken toe.',
+  'DSC01555.jpg':
+    'Gasten lopen in fel zonlicht over een zandstrand vol bladeren, langs een grote treurwilg met een gedekte tafel eronder.',
+  'DSC01556.jpg':
+    'Bij het raam maakt een vrouw in een gestreept shirt de grote strik vast op een witte bruidsjurk.',
+  'DSC01569.jpg':
+    'Gasten met glazen staan in wilgenschaduw op het zand, vooraan een vrouw in een blauwe kanten jurk.',
+  'DSC01574.jpg':
+    'Bruid in witte satijnen jurk met tiara zit op een smalle trap met touwleuning en kijkt met open mond omhoog.',
+  'DSC01669.jpg':
+    'Op klinkers lacht een bruid met een bont boeket, twee meisjes in het wit kijken toe en gasten groeten elkaar.',
+  'DSC01740.jpg':
+    'Bruidspaar zit op een zwarte bank, omringd door meisjes in witte jurken, met een kind vooraan op het parket.',
+  'DSC01751.jpg':
+    'Onder een bladerdak danst een bruid in kant met een bruidegom in wit pak op het zand, bij twee kaarsen.',
+  'DSC01754.jpg':
+    'In een zaal met houten wanden loopt een bruid met een paars boeket voorbij een man in een rolstoel.',
+  'DSC01915.jpg':
+    'Man in blauw-geel shirt en zonnebril houdt een wit fototoestel omhoog en roept, naast een kachel.',
+  'DSC01964.jpg':
+    'In hard zonlicht loopt een bruid onder een bakstenen poort, naast een bruidegom in lichtblauw en kinderen in het wit.',
+  'DSC02029.jpg':
+    'Onder een treurwilg poseert het gezelschap op het gras, bruidspaar in het midden en meisjes in witte jurken vooraan.',
+  'DSC02048.jpg':
+    'Man in felroze shirt staat met gekruiste armen in de tuin; achter hem zit een jongen in een beige pak.',
+  'DSC02070.jpg':
+    'Voor een groene haag staan bruidegom in lichtblauw en bruid in een wijde witte jurk met een bont boeket.',
+  'DSC02115.jpg':
+    'Op de klinkers staat het bruidspaar bij een lila oldtimer met open motorkap, een man in een blauw vest erachter.',
+  'DSC02177.jpg':
+    'Bruid met een zilveren tiara leunt over een lachende bruidegom in een lichtblauw pak, die in een tuinstoel zit.',
+  'DSC02209.jpg':
+    'Op een houten bank omhelst een bruid met tiara een vrouw in het wit, in zacht groen tegenlicht.',
+  'DSC02240.jpg':
+    'Avondgroepsfoto in flitslicht: bruid en bruidegom in het wit zitten vooraan, het gezelschap staat onder een boom.',
+  'DSC02335.jpg':
+    'Lachend portret van een vrouw met zilvergrijs krullend haar in een top met zwart kant, tegen onscherp groen.',
+  'DSC05938.jpg':
+    'Door een ringlamp brengt iemand in een oranje hoodie make-up aan, terwijl links haar wordt gedaan.',
+  'DSC05985.jpg':
+    'Meisje met vlechtjes in een luipaardshirt kijkt opzij, kin op de hand, met een blauwe vlek op haar hand.',
+  'DSC05996.jpg':
+    'Meisje met een vlecht opzij kijkt recht in de camera, in een witte kanten jurk met een ronde kraag.',
+  'DSC06120.jpg':
+    'Man in kobaltblauw houdt een wit jasje met zwarte revers open voor een man in een wit vest met vlinderdas.',
+  'DSC06167.jpg':
+    'Achter een winkelruit staat een bruid in een kanten jurk met sluier; in het glas weerspiegelt een gevlekte bontjas.',
+  'DSC06207.jpg':
+    'In de deuropening tilt een bruid haar sluier op; vooraan lacht een man in pak, met een oranje sjaal ertussen.',
+  'DSC06231.jpg':
+    'Bruid in een kanten jurk zit op beige traptreden, een wit-roze boeket naast zich en de sluier in haar hand.',
+  'DSC06308.jpg':
+    'Op een loper met bloemblaadjes knielt het bruidspaar: zij met een lange kanten sleep, hij in een wit jasje.',
+  'DSC06365.jpg':
+    'Allebei met een hand voor het gezicht houden bruid en bruidegom een doos met bladmotief vast.',
+  'DSC06390.jpg':
+    'Lachend loopt het bruidspaar een zaal door, hij in een wit jasje, terwijl een man in een paars pak klapt.',
+  'DSC07105.jpg':
+    'Op een witte trap staat een bruid in roze-gele jumpsuit; een man in een blauw vest houdt een boeket omhoog.',
+  'DSC07244.jpg':
+    'Met bloemen in het haar gebaart een vrouw in een roze-gele jumpsuit, tussen een oudere man en een zittende gast.',
+  'DSC07286.jpg':
+    'In een bakstenen deuropening staan bruid in roze-gele jumpsuit en bruidegom met strohoed in een lichtblauw pak.',
+  'DSC07297.jpg':
+    'Lachend op de achterbank: bruid met bril en gouden ketting naast een bruidegom in lichtblauw met een corsage.',
+  'DSC07545.jpg':
+    'Onder een hanglamp staan bruidegom met strohoed en bruid in een roze-gele jumpsuit, voor ramen met glas in lood.',
+  'DSC07621-2.jpg':
+    'Op het gras voor een bakstenen ruïne poseren vijf mensen, de middelste man met een rode vlinderdas.',
+  'DSC07670-2.jpg':
+    'Een man draagt een lachende vrouw in paars fluweel op zijn rug, voor een bakstenen muur met een rond raam.',
+  'DSC07720.jpg':
+    'Voor dicht blad: bruid in roze-gele jumpsuit met boeket, bruidegom in lichtblauw en een man met strohoed.',
+  'DSC08649-2.jpg':
+    'Buiten onder bladeren lachen een bruid met een roze boeket en een bruidegom met strohoed en gekruiste armen, tussen gasten.',
+  'L1034542-2.jpg':
+    'Aan een houten tafeltje proosten vrouw in paars fluweel en man met rode vlinderdas, voor een rij rode lampjes.',
+  'L1034589-2.jpg':
+    'Lachend lopen man met rode vlinderdas en vrouw in paars fluweel voor een muurschildering van een wit paard.',
+  'L1034621-2.jpg':
+    'Onder een grijze paraplu, voor een reclame met de tekst Scandal: man met rode vlinderdas en vrouw in paars fluweel.',
+};
+
 const slugify = (value: string): string =>
   value
     .normalize('NFKD')
@@ -440,6 +532,7 @@ export const ALT_TEKSTEN: Record<string, string> = {
   ...metMap('promoties', PROMOTIES),
   ...metMap('experimenteel', EXPERIMENTEEL),
   ...metMap('bruiloften portfolio', BRUILOFTEN_PORTFOLIO),
+  ...metMap('bruiloften recent', BRUILOFTEN_RECENT),
 };
 
 /** Alt-teksten uit src/data/series.ts, per projectslug en bestandsnaam. */

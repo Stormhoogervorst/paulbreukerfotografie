@@ -10,7 +10,6 @@
  * TODO(paul): inhoud van Volledig analoog (wat erbij hoort; op de pagina alleen "bespreken we in de kennismaking").
  * TODO(paul): zijn reiskosten in heel Nederland inbegrepen? Noem ze nergens op de pagina.
  * TODO(paul): startjaar. Deze pagina zegt bruiloften sinds 1992; /fotograaf-bruiloft zegt fotograaf vanaf 1995 (paul.ts).
- * TODO(paul): "Kunsthal" op deze pagina tegenover "Kunsthallen" op /fotograaf-bruiloft.
  * TODO(paul): alle teksten op deze pagina zijn concepten; laat ze door Paul goedkeuren.
  * TODO(paul): keuring van de foto's en alt-teksten.
  */

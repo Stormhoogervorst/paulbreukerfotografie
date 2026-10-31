@@ -96,5 +96,9 @@ export const PRIVACY = { label: 'Privacyverklaring', href: '/privacy' } as const
 /** Voor `sameAs` in JSON-LD. TODO(paul): Singulart-URL aanleveren. */
 export const SAME_AS: string[] = SOCIALS.map((social) => social.href);
 
-/** TODO(paul): standaard deelafbeelding (1200x630, eigen foto) aanleveren. */
+/**
+ * TODO(paul): standaard deelafbeelding (1200x630, eigen foto) aanleveren.
+ * Zolang dit leeg is, vallen pagina's zonder eigen og:image terug op het beeld van /portfolio/bruiloften
+ * (src/lib/og-beeld.ts, dezelfde variant van 1200 px breed).
+ */
 export const DEFAULT_OG_IMAGE: string | undefined = undefined;

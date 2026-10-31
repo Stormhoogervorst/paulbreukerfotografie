@@ -5,6 +5,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { webSite, type AnySchema } from '../lib/schema';
 import { DEFAULT_OG_IMAGE } from '../data/site';
+import { bruiloftenDeelafbeelding } from '../lib/og-beeld';
 import fontMedium from '../assets/fonts/satoshi-medium.woff2?url';
 import fontBold from '../assets/fonts/satoshi-bold.woff2?url';
 
@@ -39,6 +40,8 @@ const {
 } = Astro.props;
 
 const schemas: AnySchema[] = [webSite(), ...jsonLd];
+// Zonder eigen og:image: eerst DEFAULT_OG_IMAGE (nu leeg), anders het beeld van /portfolio/bruiloften.
+const deelafbeelding = ogImage ?? DEFAULT_OG_IMAGE ?? (await bruiloftenDeelafbeelding());
 ---
 
 <!doctype html>
@@ -55,7 +58,7 @@ const schemas: AnySchema[] = [webSite(), ...jsonLd];
       title={title}
       description={description}
       canonical={canonical}
-      ogImage={ogImage}
+      ogImage={deelafbeelding}
       noindex={noindex}
       jsonLd={schemas}
     />

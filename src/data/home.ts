@@ -95,6 +95,7 @@ export interface HomeExhibition {
 export const home = {
   seo: {
     title: 'Paul Breuker | Bruiloft, portret en kunst in Nijmegen',
+    // TODO(paul): kiezen tussen 1984/1992/1995 en een jaartal in plaats van "35 jaar".
     description:
       `Paul Breuker fotografeert bruiloften, portretten en kunstseries. Al 35 jaar werk, getoond in onder meer de Kunsthal en het Valkhof. Bruiloften vanaf ${euro(bruiloftVanPrijs)}.`,
   },
@@ -144,6 +145,7 @@ export const home = {
     // Tekst van Paul zelf (30 oktober 2026). Twee alinea's: Statement toont elke string als een <p>.
     tekst: [
       'Ik ben fotograaf in Nijmegen en woon in Lent. Mijn hele fotografieleven werk ik aan series over thema’s die mij raken: leven, dood en geboorte, sociale reportages en rituelen. Sinds 1992 fotografeer ik bruiloften, en dat doe ik nog steeds. Daarnaast maak ik experimenten, tekeningen en schilderijen waarin droedels en organische vormen de basis zijn.',
+      // TODO(paul): kiezen tussen 1984/1992/1995 en een jaartal in plaats van "35 jaar".
       'Ook portretteer ik graag: staand, half en close-up, alleen, als duo, in een groepje of als groepsportret. Zo werk ik al 35 jaar: bruiloften, kunstseries en portretten.',
     ],
   },

@@ -264,7 +264,7 @@ export const serieLijst: Serie[] = [
     titel: 'Groeten uit Lent',
     onderregel: 'Zestien jaar Lent, Nijmegen',
     introductie: [
-      'Zestien jaar lang fotografeerde ik Lent en de inwoners van het dorp. Ik zag Lent veranderen van een tuindersdorp in een hip stadsdeel van Nijmegen.',
+      'Sinds 2006 fotografeer ik Lent en de inwoners van het dorp. Ik zag Lent veranderen van een tuindersdorp in een hip stadsdeel van Nijmegen.',
       "De serie bestaat uit verdwenen plekken, huiskamers en portretten van Lentenaren. Het fotomagazine Groeten uit Lent telt 148 pagina's met foto's en interviews.",
     ],
     seo: { description: 'Groeten uit Lent: zestien jaar fotograferen in Lent, van tuindersdorp tot stadsdeel van Nijmegen. Fotoserie en magazine van Paul Breuker.' },

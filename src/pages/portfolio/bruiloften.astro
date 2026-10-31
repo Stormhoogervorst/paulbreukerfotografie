@@ -4,8 +4,8 @@
  * gelinkt vanaf /fotograaf-bruiloft). Data: src/data/bruiloften.ts. Canvas: src/components/canvas/FotoCanvas.astro.
  * Geen eigen zoekwoorddoel naast /fotograaf-bruiloft en /love-marriage: lage SEO-prioriteit, beleving.
  */
-import { getImage } from 'astro:assets';
 import FotoCanvas from '../../components/canvas/FotoCanvas.astro';
+import { bruiloftenDeelafbeelding } from '../../lib/og-beeld';
 import { bruiloften } from '../../data/bruiloften';
 import { getPortfolioImages } from '../../lib/portfolio-images';
 import { breadcrumbList, fotoCollectie } from '../../lib/schema';
@@ -21,20 +21,8 @@ const aantal = bruiloften.length;
 const title = 'Bruiloften | Bruiloftfotografie door Paul Breuker';
 const description = `${aantal} foto's van bruiloften door Paul Breuker, van de ochtend tot het feest. Sleep door de beelden, klik voor groot formaat of vraag je bruiloft aan.`;
 
-// Deelafbeelding (1200 × 630): de eerste liggende foto.
-const ogPhoto = bruiloften.find((foto) => foto.width > foto.height) ?? bruiloften[0];
-const ogImage = ogPhoto
-  ? (
-      await getImage({
-        src: ogPhoto.image,
-        width: 1200,
-        height: 630,
-        fit: 'cover',
-        format: 'jpg',
-        quality: 80,
-      })
-    ).src
-  : undefined;
+// Deelafbeelding (1200 × 630): dezelfde variant als de terugval voor pagina's zonder eigen og:image.
+const ogImage = await bruiloftenDeelafbeelding();
 
 const schemaFotos = await Promise.all(
   bruiloften.slice(0, SCHEMA_MAX).map(async (foto) => {

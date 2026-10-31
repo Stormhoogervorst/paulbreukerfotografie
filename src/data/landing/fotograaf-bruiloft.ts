@@ -49,7 +49,7 @@ export const fotograafBruiloft: LandingPagina = {
   hero: {
     h1: 'Fotograaf bruiloft',
     intro: [
-      `Ik fotografeer je bruiloft zoals die is: de mensen, de plek en het moment. Mijn werk is onder meer getoond in de Kunsthallen en Photoville New York (VS). Pakketten voor een bruiloft starten vanaf ${vanaf}.`,
+      `Ik fotografeer je bruiloft zoals die is: de mensen, de plek en het moment. Mijn werk is onder meer getoond in de Kunsthal en Photoville New York (VS). Pakketten voor een bruiloft starten vanaf ${vanaf}.`,
     ],
     // #pakketten (sectie Pakketten) en #aanvragen (Aanvraagformulier) bestaan.
     ctaPrimair: { label: 'Bruiloft aanvragen', href: '#aanvragen' },
@@ -160,7 +160,7 @@ export const fotograafBruiloft: LandingPagina = {
         vraag: 'Hoeveel kost een trouwfotograaf?',
         antwoord: [
           [
-            `Dat verschilt per fotograaf en per pakket. Bij mij kost een bruiloft ${pakketPrijs('Digitaal')}: ik ben dan van ’s ochtends vroeg tot ’s avonds laat aanwezig en maak er een ingebonden fotoboek bij. Fotografeer ik de bruiloft volledig analoog, dan kost het ${pakketPrijs('Volledig analoog')}, ook met een ingebonden fotoboek. Een combinatie van digitaal en analoog is op aanvraag mogelijk. Wat er per pakket bij zit, zie je bij `,
+            `Dat verschilt per fotograaf en per pakket. Een bruiloft kost bij mij ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog), en ik ben dan de hele dag aanwezig. Een combinatie van digitaal en analoog is op aanvraag mogelijk. Wat er per pakket bij zit, zie je bij `,
             { tekst: 'de pakketten', href: '#pakketten' },
             '.',
           ],
