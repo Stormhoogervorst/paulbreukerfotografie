@@ -50,8 +50,10 @@ const deelafbeelding = ogImage ?? DEFAULT_OG_IMAGE ?? (await bruiloftenDeelafbee
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" sizes="any" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="mask-icon" href="/favicon.svg" color="#151515" />
     <link rel="preload" href={fontBold} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={fontMedium} as="font" type="font/woff2" crossorigin />
     <SEOHead
