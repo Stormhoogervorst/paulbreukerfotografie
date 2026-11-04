@@ -158,13 +158,11 @@ export function tekst(data: Aanvraag): string {
 }
 
 export function bevestiging(data: Aanvraag): { onderwerp: string; tekst: string } {
-  const ingevuld = waarden(data).filter((paar): paar is [string, string] => paar[1] !== undefined);
   return {
     onderwerp: 'Bedankt voor je aanvraag, ik reageer binnen 3 werkdagen',
     tekst: bevestigingsMail({
       aanhef: `Hoi ${data.naam},`,
       opening: 'Bedankt voor je aanvraag. Ik heb hem ontvangen en reageer binnen 3 werkdagen.',
-      ingevuld: regels(ingevuld),
     }),
   };
 }

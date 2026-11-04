@@ -145,17 +145,14 @@ export function regels(paren: Array<[string, string | undefined]>): string {
 }
 
 /**
- * Bevestigingsmail naar de aanvrager: aanhef, een eigen openingszin, de ingevulde velden en de vaste afsluiting
+ * Bevestigingsmail naar de aanvrager: aanhef, een eigen openingszin en de vaste afsluiting
  * (naam, telefoon, e-mail en website van Paul).
  */
-export function bevestigingsMail(opties: { aanhef: string; opening: string; ingevuld: string }): string {
+export function bevestigingsMail(opties: { aanhef: string; opening: string }): string {
   return [
     opties.aanhef,
     '',
     opties.opening,
-    '',
-    'Dit heb ik genoteerd:',
-    opties.ingevuld,
     '',
     'Heb je in de tussentijd iets toe te voegen? Beantwoord dan gewoon deze mail.',
     '',
