@@ -100,8 +100,8 @@ export const trouwfotograafUtrecht: LandingPagina = {
   slug: 'trouwfotograaf-utrecht',
 
   seo: {
-    title: `Trouwfotograaf Utrecht | Paul Breuker, vanaf ${euro(laagste)}`,
-    description: `Trouwfotograaf Utrecht: Paul Breuker fotografeert jullie bruiloft van ochtend tot avond, met een ingebonden fotoboek. Digitaal ${pakketPrijs('Digitaal')}, analoog ${pakketPrijs('Volledig analoog')}.`,
+    title: 'Trouwfotograaf Utrecht | Paul Breuker',
+    description: "Trouwen in Utrecht? Paul Breuker fotografeert van ochtend tot avond. Trouwfoto's geëxposeerd van Photoville in New York tot de kunsthallen in Rotterdam.",
   },
 
   breadcrumb: 'Trouwfotograaf Utrecht',

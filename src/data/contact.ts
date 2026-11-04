@@ -14,7 +14,7 @@ import type { LandingFormulier } from './landing/types';
 export const seo = {
   title: 'Contact | Paul Breuker, fotograaf in Nijmegen',
   description:
-    'Neem contact op met fotograaf Paul Breuker in Nijmegen voor een bruiloft, portret of boek. Bel, mail of stuur een bericht; ik reageer binnen 3 werkdagen.',
+    'Neem contact op met fotograaf Paul Breuker in Nijmegen voor een bruiloft, portret of boek. Bel, mail of stuur een bericht: reactie binnen 3 werkdagen.',
 };
 
 /** Laatste kruimel (Home > Contact) in de BreadcrumbList. */

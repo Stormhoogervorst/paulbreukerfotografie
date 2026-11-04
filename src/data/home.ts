@@ -8,8 +8,6 @@
  * - Optionele velden (jaar, serie, pull quote) die leeg zijn worden niet getoond.
  */
 
-import { bruiloftVanPrijs } from './landing/bruiloft-pakketten';
-import { euro } from '../lib/prijs';
 
 /** Alt-tekst zolang Paul de foto's niet heeft beschreven. Staat in de README-lijst. */
 const TODO_ALT = 'TODO(paul): beschrijf foto';
@@ -94,10 +92,10 @@ export interface HomeExhibition {
 
 export const home = {
   seo: {
-    title: 'Paul Breuker | Bruiloft, portret en kunst in Nijmegen',
+    title: 'Paul Breuker | Fotograaf Nijmegen | Bruiloft, portret, kunst',
     // TODO(paul): kiezen tussen 1984/1992/1995 en een jaartal in plaats van "35 jaar".
     description:
-      `Paul Breuker fotografeert bruiloften, portretten en kunstseries. Al 35 jaar werk, getoond in onder meer de Kunsthal en het Valkhof. Bruiloften vanaf ${euro(bruiloftVanPrijs)}.`,
+      'Paul Breuker fotografeert bruiloften, portretten en kunstseries. 35 jaar werk, geëxposeerd van Photoville in New York tot de kunsthallen in Rotterdam.',
   },
 
   hero: {

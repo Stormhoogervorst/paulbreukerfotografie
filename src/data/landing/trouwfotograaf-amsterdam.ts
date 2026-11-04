@@ -102,8 +102,8 @@ export const trouwfotograafAmsterdam: LandingPagina = {
   slug: 'trouwfotograaf-amsterdam',
 
   seo: {
-    title: `Trouwfotograaf Amsterdam | Paul Breuker, vanaf ${euro(laagste)}`,
-    description: `Trouwen in Amsterdam? Paul Breuker is de hele dag aanwezig en maakt een ingebonden fotoboek. Digitaal ${pakketPrijs('Digitaal')}, volledig analoog ${pakketPrijs('Volledig analoog')}.`,
+    title: 'Trouwfotograaf Amsterdam | Paul Breuker',
+    description: 'Trouwfotograaf Amsterdam: Paul Breuker, geëxposeerd van Photoville in New York tot de kunsthallen in Rotterdam. De hele dag aanwezig, digitaal of analoog.',
   },
 
   breadcrumb: 'Trouwfotograaf Amsterdam',

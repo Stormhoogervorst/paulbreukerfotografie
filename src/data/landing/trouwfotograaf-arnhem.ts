@@ -118,11 +118,8 @@ export const trouwfotograafArnhem: LandingPagina = {
   slug: 'trouwfotograaf-arnhem',
 
   seo: {
-    // Zelfde patroon als Nijmegen: "Trouwfotograaf [plaats] | Paul Breuker, vanaf €…".
-    title: `Trouwfotograaf Arnhem | Paul Breuker, vanaf ${euro(laagste)}`,
-    // Nijmegen zegt "Trouwfotograaf in [plaats]. … de hele dag … Digitaal €…, volledig analoog €…".
-    // Dat patroon wijkt af van "voor Arnhem en omgeving / van ochtend tot avond / analoog", dus volgt Arnhem Nijmegen.
-    description: `Trouwfotograaf in Arnhem. Paul Breuker is de hele dag aanwezig en maakt een ingebonden fotoboek. Digitaal ${pakketPrijs('Digitaal')}, volledig analoog ${pakketPrijs('Volledig analoog')}.`,
+    title: 'Trouwfotograaf Arnhem | Paul Breuker',
+    description: "Bruiloft in Arnhem? Paul Breuker fotografeert de hele dag, met fotoboek. Trouwfoto's geëxposeerd van Photoville New York tot kunsthallen Rotterdam.",
   },
 
   breadcrumb: 'Trouwfotograaf Arnhem',

@@ -39,9 +39,9 @@ export const fotograafBruiloft: LandingPagina = {
   slug: 'fotograaf-bruiloft',
 
   seo: {
-    title: `Fotograaf bruiloft | Paul Breuker, vanaf ${vanaf}`,
+    title: 'Fotograaf bruiloft | Paul Breuker',
     // TODO(paul): werkgebied bevestigen (Nijmegen, Arnhem en "daarbuiten").
-    description: `Ik ben Paul Breuker, bruiloftfotograaf. Ik fotografeer bruiloften in Nijmegen, Arnhem en daarbuiten, de hele dag, met een ingebonden fotoboek. Vanaf ${vanaf}.`,
+    description: "Paul Breuker is er de hele dag, met ingebonden fotoboek. Trouwfoto's geëxposeerd van Photoville New York tot kunsthallen Rotterdam. Analoog of digitaal.",
   },
 
   breadcrumb: 'Fotograaf bruiloft',

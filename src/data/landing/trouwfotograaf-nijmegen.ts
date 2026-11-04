@@ -128,9 +128,9 @@ export const trouwfotograafNijmegen: LandingPagina = {
   slug: 'trouwfotograaf-nijmegen',
 
   seo: {
-    title: `Trouwfotograaf Nijmegen | Paul Breuker, vanaf ${euro(laagste)}`,
+    title: 'Trouwfotograaf Nijmegen | Paul Breuker',
     // TODO(paul): bevestig "Nijmegen" als vestigingsplaats en werkgebied.
-    description: `Trouwfotograaf in Nijmegen. Paul Breuker is de hele dag aanwezig en maakt een ingebonden fotoboek. Digitaal ${pakketPrijs('Digitaal')}, volledig analoog ${pakketPrijs('Volledig analoog')}.`,
+    description: 'Trouwfotograaf Nijmegen? Paul Breuker, geëxposeerd van Photoville in New York tot de kunsthallen in Rotterdam. Analoog of digitaal.',
   },
 
   breadcrumb: 'Trouwfotograaf Nijmegen',

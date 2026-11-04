@@ -101,8 +101,8 @@ export const trouwfotograafRotterdam: LandingPagina = {
   slug: 'trouwfotograaf-rotterdam',
 
   seo: {
-    title: `Trouwfotograaf Rotterdam | Paul Breuker, vanaf ${euro(laagste)}`,
-    description: `Trouwfotograaf Rotterdam: Paul Breuker, wiens bruiloftsfoto’s in de Kunsthal hingen. De hele dag aanwezig, ingebonden fotoboek, digitaal ${pakketPrijs('Digitaal')}.`,
+    title: 'Trouwfotograaf Rotterdam | Paul Breuker',
+    description: 'Trouwfotograaf Rotterdam: Paul Breuker, trouwfoto\'s geëxposeerd in de Rotterdamse kunsthallen en op Photoville in New York. De hele dag, met fotoboek.',
   },
 
   breadcrumb: 'Trouwfotograaf Rotterdam',

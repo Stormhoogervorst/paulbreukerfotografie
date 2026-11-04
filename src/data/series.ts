@@ -254,7 +254,7 @@ export const serieLijst: Serie[] = [
       'Asty verscheen voor het eerst als popster: in een lichtblauw spijkerpak, met een grote bos krullen en een blauwe zonnebril.',
       "Drie jaar lang kwam Asty elke twee weken naar mijn fotostudio. Zo ontstond een serie portretten van één persoon met 64 verschillende gezichten. De serie verscheen als glossy magazine van 64 pagina's.",
     ],
-    seo: { description: 'Asty Mwaka: drie jaar lang portretten van één persoon in 64 gezichten. Fotoserie en magazine van Paul Breuker.' },
+    seo: { description: 'Asty Mwaka: drie jaar lang portretten van één persoon in 64 gezichten. Bekijk de fotoserie en het bijbehorende magazine van Paul Breuker.' },
     // TODO(paul): commercieleLink (welke commerciële pagina past bij deze serie?).
     omslag: astyMwaka,
     alt: 'Portret van een jonge vrouw met een volle afrokrullen, zilverkleurige oogschaduw en paarse lippenstift, in een glanzend lichtblauw shirt. Ze kijkt ernstig recht in de camera.',

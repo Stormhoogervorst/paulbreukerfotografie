@@ -34,20 +34,11 @@ const prijzen = pakketten.items.flatMap((pakket) => (pakket.prijs === undefined 
 /** Laagste pakketprijs in euro's, of `undefined` zolang geen enkel pakket een prijs heeft. */
 const laagste: number | undefined = prijzen.length > 0 ? Math.min(...prijzen) : undefined;
 
-/** Title: zonder prijzen "… op locatie", met minstens één prijs "… vanaf €{laagste prijs}". */
-export function portretTitle(laagstePrijs: number | undefined): string {
-  return laagstePrijs === undefined
-    ? 'Portretfoto laten maken op locatie | Paul Breuker'
-    : `Portretfoto laten maken | Paul Breuker, vanaf ${euro(laagstePrijs)}`;
-}
-
-/** Description (onder 160 tekens): met een prijs komt "vanaf €X" erbij en is het einde ingekort. */
-// TODO(paul): bevestig "Nijmegen en omgeving" als werkgebied.
-export function portretDescription(laagstePrijs: number | undefined): string {
-  return laagstePrijs === undefined
-    ? 'Portretfoto laten maken in natuurlijk licht, bij jou thuis of op een plek naar keuze. Paul Breuker fotografeert zonder studio, in Nijmegen en omgeving.'
-    : `Portretfoto laten maken in natuurlijk licht, bij jou thuis of op een plek naar keuze. Paul Breuker, zonder studio, in Nijmegen en omgeving. Vanaf ${euro(laagstePrijs)}.`;
-}
+/** Title en description: bewust zonder prijzen (de prijzen staan op de pagina zelf). */
+export const portretTitle = 'Portretfoto laten maken | Paul Breuker';
+// TODO(paul): bevestig "35 jaar ervaring".
+export const portretDescription =
+  'Portretfoto laten maken in natuurlijk licht, bij jou thuis of op een plek naar keuze. Paul Breuker fotografeert zonder studio, met 35 jaar ervaring.';
 
 /** Antwoord op "Wat kost een portretfoto laten maken?": uit de pakkettendata, dus de prijzen kunnen nooit afwijken. */
 function kostenTekst(): string {
@@ -61,7 +52,7 @@ function kostenTekst(): string {
 }
 
 // Bewaking: een description boven de 160 tekens wordt in Google afgekapt.
-const description = portretDescription(laagste);
+const description = portretDescription;
 if (description.length > 160) {
   console.warn(`[portretfotos] description is ${description.length} tekens (maximaal 160). Kort hem in.`);
 }
@@ -75,7 +66,7 @@ export const portretfotos: LandingPagina = {
   slug: 'portretfotos',
 
   seo: {
-    title: portretTitle(laagste),
+    title: portretTitle,
     description,
   },
 
