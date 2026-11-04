@@ -212,7 +212,7 @@ Het bruiloftformulier (sectie Aanvraagformulier, `#aanvragen`) post naar `src/pa
 | :-- | :-- |
 | `RESEND_API_KEY` | De API-key uit stap 3. |
 | `FORM_TO_EMAIL` | Ontvanger van de aanvragen (Paul). Leeg of afwezig: `CONTACT.email` uit `src/data/site.ts`. |
-| `FORM_FROM_EMAIL` | Afzender van beide mails, bijvoorbeeld `Paul Breuker <aanvraag@paulbreuker.nl>`. Het domein moet geverifieerd zijn. Zonder deze variabele geeft de route ook een 503. |
+| `FORM_FROM_EMAIL` | Afzender van beide mails, bijvoorbeeld `Paul Breuker <aanvraag@mail.paulbreuker.nl>`. Het domein moet geverifieerd zijn. Zonder deze variabele geeft de route ook een 503. |
 
 De variabelen staan in het Astro env-schema (`astro.config.mjs`, `astro:env/server`, allemaal optioneel en geheim) en worden bij elk verzoek gelezen. Na het aanpassen van variabelen in Vercel is een nieuwe deployment nodig.
 
