@@ -6,7 +6,7 @@ import mdx from '@astrojs/mdx';
 import vercel from '@astrojs/vercel';
 
 // Niet-indexeerbare paden: houd deze lijst gelijk aan de pagina's met `noindex`.
-const NOT_INDEXABLE = ['/bedankt', '/404'];
+const NOT_INDEXABLE = ['/bedankt', '/404', '/portfolio', '/portfolio/portretten', '/portfolio/bruiloften', '/privacy'];
 
 // https://astro.build/config
 export default defineConfig({

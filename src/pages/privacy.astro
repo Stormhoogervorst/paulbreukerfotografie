@@ -30,7 +30,7 @@ const jsonLd = [
 const isLijst = (blok: Blok): blok is Segment[][] => Array.isArray(blok[0]);
 ---
 
-<BaseLayout title={seo.title} description={seo.description} canonical={PAD} jsonLd={jsonLd}>
+<BaseLayout title={seo.title} description={seo.description} canonical={PAD} jsonLd={jsonLd} noindex>
   <PaginaKop titel={h1} />
 
   <div class="privacy-intro">
