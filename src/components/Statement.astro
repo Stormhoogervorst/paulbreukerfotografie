@@ -29,9 +29,13 @@ interface Props {
   id?: string;
   /** Kleine foto onder het label (bronbestand met vaste width/height; nooit breder dan het bronbestand). */
   foto?: { afbeelding: ImageMetadata; alt: string };
+  /** Mobiel (onder 900 px): alinea's uitgevuld, zonder inspringing en met afbreken. Desktop blijft ongewijzigd. */
+  uitgevuldOpMobiel?: boolean;
+  /** Desktop (vanaf 900 px): iets kleinere tekst dan de standaard van Statement. Mobiel blijft ongewijzigd. */
+  kleinerOpDesktop?: boolean;
 }
 
-const { label, tekst, link, ariaLabel, labelAlsKop = false, id, foto } = Astro.props;
+const { label, tekst, link, ariaLabel, labelAlsKop = false, id, foto, uitgevuldOpMobiel = false, kleinerOpDesktop = false } = Astro.props;
 const alineas = Array.isArray(tekst) ? tekst : [tekst];
 const Label = labelAlsKop ? 'h2' : 'p';
 
@@ -40,7 +44,7 @@ if (!labelAlsKop && !ariaLabel) throw new Error('Statement: `ariaLabel` is verpl
 ---
 
 <section
-  class="statement"
+  class:list={['statement', { 'statement--uitgevuld': uitgevuldOpMobiel, 'statement--kleiner': kleinerOpDesktop }]}
   aria-labelledby={labelAlsKop ? id : undefined}
   aria-label={labelAlsKop ? undefined : ariaLabel}
 >
@@ -164,8 +168,40 @@ if (!labelAlsKop && !ariaLabel) throw new Error('Statement: `ariaLabel` is verpl
     }
   }
 
+  /* Alleen met `uitgevuldOpMobiel` en alleen onder het desktop-breakpoint (900 px): nette, uitgevulde alinea's van
+     rand tot rand. lang="nl" staat op <html> (BaseLayout), dus hyphens: auto breekt Nederlandse woorden goed af.
+     text-wrap: wrap zet de "pretty"-regelbreking uit, zodat de regels vanzelf doorlopen (geen losse laatste woorden). */
+  @media (max-width: 899px) {
+    .statement--uitgevuld .statement__tekst {
+      font-size: 1.125rem;
+      line-height: 1.5;
+      text-align: justify;
+      text-indent: 0;
+      -webkit-hyphens: auto;
+      hyphens: auto;
+      text-wrap: wrap;
+    }
+
+    .statement--uitgevuld .statement__tekst + .statement__tekst {
+      margin-top: 0;
+    }
+
+    .statement--uitgevuld .statement__tekst {
+      margin-bottom: 1em;
+    }
+
+    .statement--uitgevuld .statement__tekst:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+
   /* ---------- Statement (desktop) ---------- */
   @media (min-width: 900px) {
+    /* Kleinere tekst (standaard: clamp(1.75rem, 2.8vw, 4rem)). Label- en fotopositie rekenen mee via --tekst-size. */
+    .statement--kleiner {
+      --statement-tekst-size: clamp(1.5rem, 2.3vw, 3.25rem);
+    }
+
     .statement__inner {
       display: grid;
       grid-template-columns: var(--statement-kolommen);
