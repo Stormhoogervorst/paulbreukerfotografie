@@ -18,12 +18,6 @@ export const BLOG_TITEL = 'Blog | Paul Breuker, fotograaf en kunstenaar uit Nijm
 export const BLOG_BESCHRIJVING =
   'Verhalen, tips en achtergronden van fotograaf en kunstenaar Paul Breuker uit Nijmegen: over bruiloften, portretten en zijn vrije werk.';
 
-/** Twee zinnen onder de H1 van /blog. */
-export const BLOG_INTRO = [
-  'Ik schrijf hier over bruiloften en portretten, over mijn series en exposities, en over fotografie zelf.',
-  'Korte stukken, in mijn eigen woorden, vanuit Nijmegen.',
-] as const;
-
 /** Een categoriepagina bestaat pas vanaf dit aantal gepubliceerde posts. */
 export const CATEGORIE_DREMPEL = 3;
 

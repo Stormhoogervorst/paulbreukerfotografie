@@ -9,7 +9,6 @@ import BlogLayout from '../../layouts/BlogLayout.astro';
 import { BLOG_CATEGORIES } from '../../data/blog-categories';
 import {
   BLOG_BESCHRIJVING,
-  BLOG_INTRO,
   BLOG_TITEL,
   aantalPerCategorie,
   categorieHref,
@@ -54,11 +53,7 @@ const jsonLd = [
   jsonLd={jsonLd}
   robots={leeg ? 'noindex' : undefined}
 >
-  <PaginaKop titel="Blog">
-    <div slot="intro" class="blog-intro">
-      {BLOG_INTRO.map((zin) => <p>{zin}</p>)}
-    </div>
-  </PaginaKop>
+  <PaginaKop titel="Blog" />
 
   {
     losseAnkers.map((categorie) => (
@@ -121,19 +116,6 @@ const jsonLd = [
 </BlogLayout>
 
 <style>
-  .blog-intro p {
-    max-width: 34rem;
-    margin: 0;
-    font-size: var(--font-size-body);
-    font-weight: 500;
-    line-height: var(--intro-lh);
-    letter-spacing: 0;
-  }
-
-  .blog-intro p + p {
-    margin-top: 0.6em;
-  }
-
   /* Rastercontainer: gecentreerd op --blog-raster (zie global.css); PaginaKop schuift mee via --pagina-kop-rand. */
   :global(.pagina-kop) {
     --pagina-kop-rand: var(--blog-rand);
@@ -210,24 +192,6 @@ const jsonLd = [
     .raster__lijst {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 4vw 1.7vw;
-    }
-  }
-
-  @media (min-width: 768px) {
-    :global(.pagina-kop--met-intro) {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      column-gap: 1.7vw;
-      align-items: last baseline;
-    }
-
-    .blog-intro {
-      min-width: 0;
-      max-width: min(34rem, 100%);
-    }
-
-    .blog-intro p {
-      margin: 0;
     }
   }
 </style>
