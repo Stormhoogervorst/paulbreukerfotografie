@@ -26,7 +26,7 @@ export interface HomeHeroFoto {
   afbeelding: string;
   /** Nederlandse, beschrijvende alt-tekst (wie/wat/waar). */
   alt: string;
-  /** "A": groot (LCP), "B": middel (liggend), "C": klein (staand). */
+  /** "A": groot (LCP), "B": middel (liggend), "C": klein (liggend). */
   rol: 'A' | 'B' | 'C';
 }
 
@@ -106,13 +106,13 @@ export const home = {
     knop: { label: 'Portfolio', href: '/portfolio' } satisfies HomeLink,
     /**
      * Drie foto's in de hero (component: hero in src/pages/index.astro), links tegen de schermrand.
-     * rol "A": groot, LCP-beeld (eager, fetchpriority high). Mobiel staand (2:3, ongecropt), desktop 4 / 5.
+     * rol "A": groot, LCP-beeld (eager, fetchpriority high). Staand (2:3, ongecropt) op mobiel en desktop.
      *   Bron: src/assets/home/hero-take-me-to-the-river-1.jpg (was public/Take me to the river 1.jpg).
      *   De vorige hero-foto staat als src/assets/home/gaarkeuken-3.jpg.
      * rol "B": middel, liggend (5 / 4). Alleen vanaf 900 px zichtbaar (daaronder display: none, dus geen download).
      *   Bron: src/assets/home/hero-bruiloft-2.jpg (was public/bruiloft 2.jpg).
-     * rol "C": klein, staand (4 / 5), rechtsonder, rechterrand op de rechtergutter. Alleen vanaf 900 px zichtbaar.
-     *   Bron: src/assets/portfolio/experimenteel/018.jpg.
+     * rol "C": klein, liggend (5 / 4), rechtsonder, rechterrand op de rechtergutter. Alleen vanaf 900 px zichtbaar.
+     *   Bron: src/assets/home/project-het-gezicht-van-nijmegen.jpg (Het gezicht van Nijmegen, 1200 x 800).
      * De volgorde in de lijst is de volgorde in de HTML. Niet in Projecten of BeeldDuo gebruikt.
      * TODO(paul): controleer de alt-teksten (beschreven naar wat op de foto te zien is); vul naam, plaats en jaar in
      * als je die wilt noemen. Bij B ontbreekt de serie (hoort waarschijnlijk bij Love & Marriage).
@@ -129,8 +129,8 @@ export const home = {
         rol: 'B',
       },
       {
-        afbeelding: '018',
-        alt: 'Kleurrijke schildering van een kraam of tafel met een gestreept dak, een gele bloem en een groene voet, omringd door blauwe, rode en oranje vlakken.',
+        afbeelding: 'project-het-gezicht-van-nijmegen',
+        alt: 'Een enorm bronzen Romeins gezicht met een diadeem staat in een industriële hal, terwijl arbeiders op de vloer ernaast aan het werk zijn.',
         rol: 'C',
       },
     ] satisfies HomeHeroFoto[],
