@@ -1,7 +1,8 @@
 ---
 /**
  * Layout voor commerciële landingspagina's. Neemt een `LandingPagina` (src/data/landing/) en rendert de secties in
- * de vaste volgorde, elk alleen als de data ervoor bestaat. Zie "Volgorde commerciële landingspagina (bindend)" in
+ * de vaste volgorde, elk alleen als de data ervoor bestaat. Uit de blog staat direct vóór Beeld en alleen met posts.
+ * Zie "Volgorde commerciële landingspagina (bindend)" in
  * .cursor/rules/paulbreuker-regels.mdc. Wijzig de volgorde nooit; nieuwe secties komen op hun vaste plek.
  */
 import { getImage } from 'astro:assets';
@@ -16,6 +17,8 @@ import LandingPakketten from '../components/landing/LandingPakketten.astro';
 import LandingUitleg from '../components/landing/LandingUitleg.astro';
 import LandingVragen from '../components/landing/LandingVragen.astro';
 import Statement from '../components/Statement.astro';
+import LatestPosts from '../components/blog/LatestPosts.astro';
+import { postsOnderaan } from '../lib/blog';
 import { impressieAfbeeldingen, impressieSchemaAfbeeldingen } from '../lib/landing-impressie';
 import { segmentenTekst } from '../lib/segmenten';
 import { breadcrumbList, faqPage, imageGallery, service } from '../lib/schema';
@@ -26,6 +29,7 @@ interface Props {
 }
 
 const { pagina } = Astro.props;
+const blogPosts = await postsOnderaan(pagina.slug);
 const pad = `/${pagina.slug}`;
 /** Uitleg-blokken direct na Impressie in plaats van na Vragen (zie de volgorde in de opmerking hieronder). */
 const uitlegNaImpressie = pagina.uitlegPlek === 'na-impressie';
@@ -124,7 +128,8 @@ const jsonLd = [
     7. Uitleg
     8. Reviews
     9. Aanvraagformulier
-    10. Beeld (foto van rand tot rand, geen kop)
+    10. Uit de blog (alleen als er gepubliceerde posts voor deze pagina zijn)
+    11. Beeld (foto van rand tot rand, geen kop)
     UITZONDERING op uitdrukkelijk verzoek (nu alleen /trouwfotograaf-nijmegen): met `pakkettenPlek === 'na-impressie'`
     staan Pakketten na Impressie, met `overPaulPlek === 'voor-pakketten'` staat OverPaul direct vóór Pakketten, en met
     `uitlegPlek === 'na-impressie'` staan de Uitleg-blokken direct na Pakketten. Volgorde daar: Hero, Werkwijze,
@@ -238,7 +243,7 @@ const jsonLd = [
 
   <!-- Nog te bouwen: Reviews (pagina.reviews); komt na Uitleg en vóór het formulier. -->
 
-  <!-- Aanvraagformulier: komt na Reviews (of Pakketten) en vóór Beeld. -->
+  <!-- Aanvraagformulier: komt na Reviews (of Pakketten) en vóór Uit de blog. -->
   {
     pagina.formulier && (
       <div class="sectie">
@@ -247,7 +252,16 @@ const jsonLd = [
     )
   }
 
-  <!-- Beeld: altijd de laatste sectie, onder het formulier en direct vóór de footer. -->
+  <!-- Uit de blog: direct vóór Beeld, alleen als er gepubliceerde posts voor deze pagina zijn. -->
+  {
+    blogPosts.length > 0 && (
+      <div class="sectie">
+        <LatestPosts posts={blogPosts} />
+      </div>
+    )
+  }
+
+  <!-- Beeld: altijd de laatste sectie, onder Uit de blog (of het formulier) en direct vóór de footer. -->
   {
     pagina.beeld && (
       <div class="sectie sectie--beeld">

@@ -1,0 +1,70 @@
+---
+/**
+ * Zichtbaar broodkruimelpad. Het laatste item is de huidige pagina en geen link.
+ * De paden hebben geen trailing slash (trailingSlash: 'never').
+ */
+interface Item {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav class="kruimels" aria-label="Broodkruimelpad">
+  <ol>
+    {
+      items.map((item, index) => {
+        const laatste = index === items.length - 1;
+        return (
+          <li>
+            {index > 0 && (
+              <span class="kruimels__scheiding" aria-hidden="true">
+                ›
+              </span>
+            )}
+            {item.href && !laatste ? <a href={item.href}>{item.label}</a> : <span aria-current="page">{item.label}</span>}
+          </li>
+        );
+      })
+    }
+  </ol>
+</nav>
+
+<style>
+  .kruimels ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35em 0.4em;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--font-size-small);
+    line-height: 1.4;
+  }
+
+  .kruimels li {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4em;
+  }
+
+  .kruimels a {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .kruimels a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .kruimels__scheiding {
+    color: var(--ink-gedempt);
+  }
+</style>

@@ -1,0 +1,402 @@
+---
+/**
+ * /blog/[...slug]. Drafts alleen in dev: in productie levert getStaticPaths ze niet, dus ze komen niet in dist of de sitemap.
+ */
+import { Picture, getImage } from 'astro:assets';
+import type { GetStaticPaths } from 'astro';
+import { getEntry, render } from 'astro:content';
+import Auteur from '../../components/blog/Auteur.astro';
+import BlogKaart from '../../components/blog/BlogKaart.astro';
+import Cta from '../../components/blog/Cta.astro';
+import CtaBlok from '../../components/blog/CtaBlok.astro';
+import Figure from '../../components/blog/Figure.astro';
+import Gallery from '../../components/blog/Gallery.astro';
+import GeenH1 from '../../components/blog/GeenH1.astro';
+import Kruimels from '../../components/blog/Kruimels.astro';
+import Note from '../../components/blog/Note.astro';
+import Proza from '../../components/blog/Proza.astro';
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import { blogCategorie } from '../../data/blog-categories';
+import { BREEDTES_HERO, FALLBACK_FORMAAT, FORMATEN } from '../../lib/beeld';
+import {
+  aantalPerCategorie,
+  categorieHref,
+  ctaVanPost,
+  datumNl,
+  documentTitel,
+  gerelateerdePosts,
+  gepubliceerdePosts,
+  leestijdMinuten,
+  postPad,
+  postsVoorRoutes,
+} from '../../lib/blog';
+import { absoluteUrl, blogPosting, breadcrumbList, faqPage } from '../../lib/schema';
+
+export const getStaticPaths = (async () => {
+  const posts = await postsVoorRoutes();
+  return posts.map((post) => ({ params: { slug: post.id } }));
+}) satisfies GetStaticPaths;
+
+const slug = Astro.params.slug;
+if (!slug || slug.includes('/')) throw new Error(`Ongeldige blogslug "${slug ?? ''}".`);
+
+const post = await getEntry('blog', slug);
+if (!post) throw new Error(`Blogpost "${slug}" niet gevonden.`);
+if (import.meta.env.PROD && post.data.draft) {
+  throw new Error(`Draft "${slug}" wordt niet gebouwd.`);
+}
+
+const { Content, headings } = await render(post);
+const h2s = headings.filter((heading) => heading.depth === 2);
+const categorie = blogCategorie(post.data.category);
+const gepubliceerd = await gepubliceerdePosts();
+const aantallen = aantalPerCategorie(gepubliceerd);
+const pad = postPad(post.id);
+const cta = ctaVanPost(post);
+const minuten = leestijdMinuten(post.body);
+const titel = documentTitel(post.data.title, post.data.seoTitle);
+const gewijzigd = post.data.updatedDate ?? post.data.pubDate;
+const gerelateerd = gerelateerdePosts(post, gepubliceerd);
+
+const og = await getImage({
+  src: post.data.heroImage,
+  width: 1200,
+  height: 630,
+  format: 'jpg',
+  fit: 'cover',
+  position: 'center',
+});
+const ogAbsoluut = absoluteUrl(og.src);
+
+const jsonLd = [
+  breadcrumbList([
+    { name: 'Home', path: '/' },
+    { name: 'Blog', path: '/blog' },
+    { name: post.data.title, path: pad },
+  ]),
+  blogPosting({
+    headline: post.data.title,
+    description: post.data.description,
+    image: ogAbsoluut,
+    datePublished: post.data.pubDate,
+    dateModified: gewijzigd,
+    articleSection: categorie.label,
+    keywords: post.data.tags,
+    path: pad,
+  }),
+  ...(post.data.faq?.length
+    ? [
+        faqPage({
+          path: `${pad}#veelgestelde-vragen`,
+          vragen: post.data.faq.map((item) => ({ vraag: item.question, antwoord: item.answer })),
+        }),
+      ]
+    : []),
+];
+---
+
+<BlogLayout
+  title={titel}
+  description={post.data.description}
+  canonical={pad}
+  ogImage={ogAbsoluut}
+  ogType="article"
+  publishedTime={post.data.pubDate}
+  modifiedTime={gewijzigd}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  jsonLd={jsonLd}
+>
+  <article class="bericht">
+    <Kruimels
+      items={[
+        { label: 'Home', href: '/' },
+        { label: 'Blog', href: '/blog' },
+        { label: post.data.title },
+      ]}
+    />
+
+    <p class="bericht__categorie">
+      <a href={categorieHref(categorie.slug, aantallen.get(categorie.slug) ?? 0)}>{categorie.label}</a>
+    </p>
+
+    <h1 class="bericht__titel">{post.data.title}</h1>
+
+    <p class="bericht__meta">
+      Paul Breuker
+      {post.data.location && <><span aria-hidden="true"> · </span>{post.data.location}</>}
+      <span aria-hidden="true"> · </span>
+      <time datetime={post.data.pubDate.toISOString()}>{datumNl(post.data.pubDate)}</time>
+      {
+        post.data.updatedDate && (
+          <>
+            <span aria-hidden="true"> · </span>
+            bijgewerkt op <time datetime={post.data.updatedDate.toISOString()}>{datumNl(post.data.updatedDate)}</time>
+          </>
+        )
+      }
+      <span aria-hidden="true"> · </span>
+      {minuten} min leestijd
+    </p>
+
+    <Picture
+      pictureAttributes={{ class: 'bericht__hero' }}
+      src={post.data.heroImage}
+      alt={post.data.heroAlt}
+      width={post.data.heroImage.width}
+      height={post.data.heroImage.height}
+      widths={BREEDTES_HERO}
+      sizes="(min-width: 1280px) 70rem, 89vw"
+      formats={FORMATEN}
+      fallbackFormat={FALLBACK_FORMAAT}
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+    />
+
+    {
+      h2s.length >= 4 && (
+        <nav class="inhoud" aria-label="Inhoud">
+          <p class="inhoud__label">(inhoud)</p>
+          <ol>
+            {h2s.map((heading) => (
+              <li>
+                <a href={`#${heading.slug}`}>{heading.text}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
+
+    <Proza>
+      <Content components={{ Cta, Figure, Gallery, Note, h1: GeenH1 }} />
+    </Proza>
+
+    {
+      post.data.faq && post.data.faq.length > 0 && (
+        <section class="faq" id="veelgestelde-vragen" aria-labelledby="faq-titel">
+          <h2 id="faq-titel">Veelgestelde vragen</h2>
+          {post.data.faq.map((item) => (
+            <details class="faq__item">
+              <summary>{item.question}</summary>
+              <p>{item.answer}</p>
+            </details>
+          ))}
+        </section>
+      )
+    }
+
+    <Auteur />
+    <CtaBlok heading={cta.heading} href={cta.href} label={cta.label} />
+
+    {
+      gerelateerd.length > 0 && (
+        <section class="lees-ook" aria-labelledby="lees-ook-titel">
+          <h2 id="lees-ook-titel">Lees ook</h2>
+          <ul>
+            {gerelateerd.map((item) => (
+              <li>
+                <BlogKaart post={item} aantallen={aantallen} kop="h3" />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </article>
+</BlogLayout>
+
+<style>
+  /*
+   * Eén raster voor het hele artikel, in drie breedtes (tokens in global.css):
+   *   tekst  (--blog-tekst)  leeskolom: kruimels, titel, meta, inhoudsopgave, tekst, FAQ, auteur en CTA
+   *   beeld  (--blog-beeld)  hero, Figure, Gallery en "Lees ook"
+   * De buitenste kolommen (minmax(var(--gutter), 1fr)) zorgen voor de centrering en vangen de rest van het scherm op.
+   * Op een smal scherm krimpt de tekstkolom tot scherm min twee gutters en zijn de beeldkolommen 0 breed: alles
+   * staat dan op dezelfde breedte. Elk direct kind staat standaard in de tekstkolom; wat breder mag, zegt dat zelf.
+   * Margins van rastercellen vallen niet samen: spacing staat dus overal als margin-top of margin-bottom.
+   */
+  .bericht {
+    --beeld-zij: calc((var(--blog-beeld) - var(--blog-tekst)) / 2);
+    display: grid;
+    grid-template-columns:
+      [volledig-start] minmax(var(--gutter), 1fr)
+      [beeld-start] minmax(0, var(--beeld-zij))
+      [tekst-start] min(var(--blog-tekst), 100% - 2 * var(--gutter))
+      [tekst-end] minmax(0, var(--beeld-zij))
+      [beeld-end] minmax(var(--gutter), 1fr)
+      [volledig-end];
+    padding: clamp(1.5rem, 4vw, 3rem) 0 var(--sectie-ruimte);
+    font-size: var(--blog-font-size);
+    line-height: var(--blog-regelhoogte);
+  }
+
+  .bericht > :global(*) {
+    grid-column: tekst-start / tekst-end;
+    min-width: 0;
+  }
+
+  .bericht > :global(.proza) {
+    grid-column: 1 / -1;
+  }
+
+  .bericht > :global(.bericht__hero),
+  .bericht > .lees-ook {
+    grid-column: beeld-start / beeld-end;
+  }
+
+  .bericht__categorie {
+    max-width: none;
+    margin: 1.25rem 0 0;
+    font-size: var(--font-size-small);
+  }
+
+  .bericht__categorie a {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .bericht__categorie a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .bericht__titel {
+    margin: 0.35em 0 0;
+    font-size: clamp(2rem, 1.4rem + 2.4vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .bericht__meta {
+    max-width: none;
+    margin: 1rem 0 0;
+    color: var(--ink-gedempt);
+    font-size: var(--font-size-small);
+    line-height: 1.5;
+  }
+
+  .bericht > :global(.bericht__hero) {
+    margin-top: clamp(1.75rem, 3.5vw, 3rem);
+  }
+
+  .bericht :global(.bericht__hero img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Rustige inhoudsopgave: kleiner dan de tekst, in de tekstkolom en met eigen ruimte eronder. */
+  .inhoud {
+    margin: 2rem 0 2.25rem;
+    font-size: var(--font-size-small);
+    line-height: 1.5;
+  }
+
+  .inhoud__label {
+    max-width: none;
+    margin: 0 0 0.5rem;
+    color: var(--ink-gedempt);
+    font-weight: 500;
+  }
+
+  .inhoud ol {
+    margin: 0;
+    padding-left: 1.25em;
+    list-style: decimal;
+  }
+
+  .inhoud li + li {
+    margin-top: 0.3em;
+  }
+
+  .inhoud a {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .inhoud a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .faq {
+    margin-top: 3rem;
+  }
+
+  .faq h2 {
+    margin-bottom: 0.5rem;
+    font-size: var(--blog-h2);
+  }
+
+  .faq__item {
+    border-top: var(--haarlijn);
+  }
+
+  .faq__item:last-child {
+    border-bottom: var(--haarlijn);
+  }
+
+  .faq__item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 44px;
+    padding: 0.9rem 0;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__item summary::marker {
+    content: '';
+  }
+
+  .faq__item summary::after {
+    content: '+';
+    flex: none;
+    font-weight: 500;
+  }
+
+  .faq__item[open] summary::after {
+    content: '–';
+  }
+
+  .faq__item p {
+    max-width: none;
+    margin: 0 0 1rem;
+  }
+
+  .lees-ook {
+    margin-top: 4rem;
+  }
+
+  .lees-ook h2 {
+    margin-bottom: 1.25rem;
+    font-size: var(--blog-h2);
+  }
+
+  .lees-ook ul {
+    display: grid;
+    gap: 8vw;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 700px) {
+    .lees-ook ul {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(0.75rem, 1.7vw, 1.5rem);
+    }
+  }
+</style>

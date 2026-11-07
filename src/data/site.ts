@@ -27,7 +27,10 @@ export const WHATSAPP: { display: string; href: string } | undefined = undefined
 /** Naam in de headerbalk (desktop en mobiel). De H1 in de hero blijft alleen "Paul Breuker" (home.hero.h1). */
 export const WORDMARK = 'Paul Breuker Fotografie';
 
-/** Hoofdnavigatie (kleine letters, max. 6 items). Geen "home": het wordmark is de homelink. Geen /promoties. */
+/**
+ * Hoofdnavigatie (kleine letters, max. 6 items). Geen "home": het wordmark is de homelink. Geen /promoties.
+ * "blog" staat hier niet vast: Header en Footer voegen die toe zodra er een gepubliceerde post is (src/lib/blog.ts).
+ */
 export const NAV = [
   // TODO(paul): placeholder-links; de echte pagina's volgen in een latere ronde.
   { label: 'bruiloft', href: '/fotograaf-bruiloft' },
@@ -54,7 +57,7 @@ export const FOOTER_SOCIALS = SOCIALS.filter((social) => social.label !== 'insta
 export const FOOTER_TEKST = 'Een bruiloft, een portret, een idee? Ik hoor het graag.';
 export const FOOTER_TEKST_BREUK_NA = 'een portret,';
 
-/** Voettekstnavigatie (vier links, met hoofdletter). Geen /promoties en geen /exposities. */
+/** Voettekstnavigatie (met hoofdletter). Geen /promoties en geen /exposities. "Blog" komt erbij vanuit de Footer zodra er een gepubliceerde post is. */
 export const FOOTER_NAV = [
   { label: 'Bruiloft', href: '/fotograaf-bruiloft' },
   { label: 'Portret', href: '/portretfotos' },

@@ -16,9 +16,14 @@ import {
   FOOTER_WORDMARK,
   PRIVACY,
 } from '../data/site';
+import { aantalGepubliceerdePosts, isHuidigePagina, voegBlogToe } from '../lib/blog';
 
 const year = new Date().getFullYear();
 const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const footerNav =
+  (await aantalGepubliceerdePosts()) > 0
+    ? voegBlogToe(FOOTER_NAV, { label: 'Blog', href: '/blog' }, '/series')
+    : FOOTER_NAV;
 
 // Tagline in twee delen voor de vaste regelbreuk op desktop (op mobiel lopen ze gewoon door).
 const breukIndex = FOOTER_TEKST.indexOf(FOOTER_TEKST_BREUK_NA);
@@ -36,9 +41,9 @@ const regel2 = FOOTER_TEKST.slice(splitsAt).trim();
   <nav class="site-footer__nav" aria-label="Footernavigatie">
     <ul class="site-footer__nav-hoofd">
       {
-        FOOTER_NAV.map((item) => (
+        footerNav.map((item) => (
           <li>
-            <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
+            <a href={item.href} aria-current={isHuidigePagina(item.href, currentPath) ? 'page' : undefined}>
               {item.label}
             </a>
           </li>

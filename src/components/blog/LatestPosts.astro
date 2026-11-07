@@ -1,0 +1,68 @@
+---
+/**
+ * "Uit de blog" onderaan een landingspagina of /series. De aanroeper geeft alleen posts mee als die er zijn;
+ * deze component rendert dan de sectie. Zonder posts rendert hij niets.
+ */
+import BlogKaart from './BlogKaart.astro';
+import { aantalPerCategorie, gepubliceerdePosts, type BlogPost } from '../../lib/blog';
+
+interface Props {
+  posts: BlogPost[];
+}
+
+const { posts } = Astro.props;
+// Telling over alle gepubliceerde posts, niet alleen de drie die hier staan: anders klopt de categorielink niet.
+const aantallen = aantalPerCategorie(await gepubliceerdePosts());
+---
+
+{
+  posts.length > 0 && (
+    <section class="uit-de-blog" aria-labelledby="uit-de-blog-titel">
+      <h2 id="uit-de-blog-titel" class="uit-de-blog__kop">
+        Uit de blog
+      </h2>
+      <ul class="uit-de-blog__lijst">
+        {posts.map((post) => (
+          <li>
+            <BlogKaart post={post} aantallen={aantallen} kop="h3" />
+          </li>
+        ))}
+      </ul>
+      <a class="statement-link uit-de-blog__meer" href="/blog">
+        Alle stukken <span aria-hidden="true">→</span>
+      </a>
+    </section>
+  )
+}
+
+<style>
+  .uit-de-blog {
+    padding-inline: var(--gutter);
+  }
+
+  .uit-de-blog__kop {
+    margin: 0 0 clamp(1.5rem, 3vw, 2.5rem);
+    padding-top: var(--statement-boven);
+    border-top: var(--haarlijn);
+    font-size: clamp(1.75rem, 3vw, 2.75rem);
+  }
+
+  .uit-de-blog__lijst {
+    display: grid;
+    gap: 8vw;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .uit-de-blog__meer {
+    margin-top: 1.5rem;
+  }
+
+  @media (min-width: 700px) {
+    .uit-de-blog__lijst {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.7vw;
+    }
+  }
+</style>

@@ -45,7 +45,7 @@ De secties op de homepage staan altijd in deze volgorde: Hero, OverPaul, Project
 
 ## Volgorde commerciële landingspagina (bindend)
 
-De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze, Pakketten, Impressie, OverPaul, Vragen, Uitleg, Reviews, Aanvraagformulier, Beeld (foto van rand tot rand, geen kop). Daarna volgt de gedeelde footer. Een sectie wordt alleen getoond als de data ervoor bestaat; de volgorde verandert nooit. (De oude volgorde met Impressie vóór Pakketten en Uitleg vóór Pakketten vervalt.) Elke sectie zit in een eigen wrapper met --sectie-ruimte; geen margins die van buren afhangen.
+De secties op een landingspagina staan altijd in deze volgorde: Hero, Werkwijze, Pakketten, Impressie, OverPaul, Vragen, Uitleg, Reviews, Aanvraagformulier, Uit de blog, Beeld (foto van rand tot rand, geen kop). Daarna volgt de gedeelde footer. Een sectie wordt alleen getoond als de data ervoor bestaat; de volgorde verandert nooit. Uit de blog verschijnt alleen als er minstens één gepubliceerde post voor die pagina is (groep of stad, via src/lib/blog.ts) en staat op elke landingspagina direct vóór Beeld, ook bij de afwijkende volgorde van /trouwfotograaf-nijmegen. (De oude volgorde met Impressie vóór Pakketten en Uitleg vóór Pakketten vervalt.) Elke sectie zit in een eigen wrapper met --sectie-ruimte; geen margins die van buren afhangen.
 
 ## URL's
 

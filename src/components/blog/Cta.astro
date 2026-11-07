@@ -1,0 +1,16 @@
+---
+/**
+ * Inline call-to-action in een blogpost. De pijl komt uit de component, verborgen voor schermlezers,
+ * dezelfde stijl als "Bruiloft aanvragen →" op de rest van de site. De ruimte eromheen staat in Proza.astro.
+ */
+interface Props {
+  href: string;
+}
+
+const { href } = Astro.props;
+---
+
+<p class="inline-cta">
+  <a class="statement-link" href={href}><slot /> <span aria-hidden="true">→</span></a>
+</p>
+

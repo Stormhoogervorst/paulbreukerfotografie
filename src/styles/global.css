@@ -76,6 +76,18 @@
      linker- tot de rechtergutter. Geen eigen getal: volgt altijd --gutter. */
   --wordmark-width: calc(100vw - 2 * var(--gutter));
   --measure: 40rem; /* leesbare tekstbreedte */
+
+  /* Blog: drie breedtes, allemaal gecentreerd en nooit smaller dan het scherm min twee gutters.
+     --blog-tekst: leeskolom van een artikel (tekst, FAQ, Note, inhoudsopgave); ongeveer 75 tot 80 tekens per regel.
+     --blog-beeld: hero, Figure, Gallery en "Lees ook". --blog-raster: overzicht en categoriepagina's (kaarten).
+     --blog-rand: de zijmarge van de rastercontainer (gutter, of de ruimte die overblijft naast --blog-raster). */
+  --blog-tekst: 44rem;
+  --blog-beeld: 70rem;
+  --blog-raster: 90rem;
+  --blog-rand: max(var(--gutter), calc((100% - var(--blog-raster)) / 2));
+  --blog-font-size: 1.2rem; /* 19,2px; de site-body is 20px */
+  --blog-regelhoogte: 1.65;
+  --blog-h2: clamp(1.9rem, 1.65rem + 0.6vw, 2.3rem); /* 1,6 tot 1,9 keer de tekst */
   /* Ruimte tussen twee homepage-secties: elke .sectie-wrapper geeft de helft boven en onder. */
   --sectie-ruimte: clamp(6rem, 12vw, 14rem);
 

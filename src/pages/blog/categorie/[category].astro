@@ -1,0 +1,133 @@
+---
+/**
+ * /blog/categorie/[category]. Alleen gegenereerd bij minstens drie gepubliceerde posts (CATEGORIE_DREMPEL).
+ * Dunne categorieën hebben geen URL; het label linkt dan naar /blog#[slug].
+ */
+import type { GetStaticPaths } from 'astro';
+import PaginaKop from '../../../components/PaginaKop.astro';
+import BlogKaart from '../../../components/blog/BlogKaart.astro';
+import CtaBlok from '../../../components/blog/CtaBlok.astro';
+import Kruimels from '../../../components/blog/Kruimels.astro';
+import BlogLayout from '../../../layouts/BlogLayout.astro';
+import { blogCategorie, type BlogCategorySlug } from '../../../data/blog-categories';
+import {
+  aantalPerCategorie,
+  categoriePad,
+  categorieenMetPagina,
+  documentTitel,
+  gepubliceerdePosts,
+} from '../../../lib/blog';
+import { breadcrumbList, collectionPage } from '../../../lib/schema';
+
+export const getStaticPaths = (async () => {
+  const posts = await gepubliceerdePosts();
+  return categorieenMetPagina(posts).map((categorie) => ({
+    params: { category: categorie.slug },
+  }));
+}) satisfies GetStaticPaths;
+
+const category = Astro.params.category;
+if (!category) throw new Error('Categorie ontbreekt.');
+
+const categorie = blogCategorie(category as BlogCategorySlug);
+const posts = (await gepubliceerdePosts()).filter((post) => post.data.category === categorie.slug);
+if (posts.length === 0) throw new Error(`Categorie "${categorie.slug}" heeft geen gepubliceerde posts.`);
+
+const aantallen = aantalPerCategorie(await gepubliceerdePosts());
+const pad = categoriePad(categorie.slug);
+const titel = documentTitel(categorie.label, `${categorie.label} | Blog | Paul Breuker`);
+
+const jsonLd = [
+  breadcrumbList([
+    { name: 'Home', path: '/' },
+    { name: 'Blog', path: '/blog' },
+    { name: categorie.label, path: pad },
+  ]),
+  collectionPage({
+    name: categorie.label,
+    description: categorie.description,
+    path: pad,
+    items: posts.map((post) => ({ name: post.data.title, path: `/blog/${post.id}` })),
+  }),
+];
+---
+
+<BlogLayout title={titel} description={categorie.description} canonical={pad} jsonLd={jsonLd}>
+  <div class="kruimel-balk">
+    <Kruimels
+      items={[
+        { label: 'Home', href: '/' },
+        { label: 'Blog', href: '/blog' },
+        { label: categorie.label },
+      ]}
+    />
+  </div>
+
+  <PaginaKop titel={categorie.label}>
+    <p slot="intro" class="intro">{categorie.description}</p>
+  </PaginaKop>
+
+  <div class="raster">
+    <ul class="raster__lijst">
+      {
+        posts.map((post, index) => (
+          <li>
+            <BlogKaart post={post} aantallen={aantallen} eager={index === 0} />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <div class="cta">
+    <CtaBlok heading={categorie.ctaHeading} href={categorie.defaultCtaHref} label={categorie.defaultCtaLabel} />
+  </div>
+</BlogLayout>
+
+<style>
+  /* Rastercontainer: gecentreerd op --blog-raster (zie global.css); PaginaKop schuift mee via --pagina-kop-rand. */
+  :global(.pagina-kop) {
+    --pagina-kop-rand: var(--blog-rand);
+    --pagina-kop-grootte: min(14vw, calc(var(--blog-raster) * 0.14)); /* 14vw, maar nooit groter dan 14% van de container */
+  }
+
+  .kruimel-balk {
+    padding: 1.5rem var(--blog-rand) 0;
+  }
+
+  /* De intro staat onder de titel: de kop is groot en een lang woord ("trouwdag", "Trouwlocaties") past niet in een halve kolom. */
+  .intro {
+    max-width: 34rem;
+    margin: clamp(1.25rem, 2.5vw, 2.5rem) 0 0;
+    font-size: var(--font-size-body);
+    line-height: var(--intro-lh);
+  }
+
+  .raster,
+  .cta {
+    padding-inline: var(--blog-rand);
+  }
+
+  .raster__lijst {
+    display: grid;
+    gap: 8vw;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cta {
+    padding-bottom: var(--sectie-ruimte);
+  }
+
+  .cta :global(.cta-blok) {
+    margin-top: clamp(3rem, 8vw, 6rem);
+  }
+
+  @media (min-width: 700px) {
+    .raster__lijst {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4vw 1.7vw;
+    }
+  }
+</style>

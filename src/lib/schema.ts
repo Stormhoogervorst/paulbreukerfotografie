@@ -6,7 +6,7 @@
  * - Verzin geen feiten: ontbrekende velden zijn optioneel en worden weggelaten.
  * - Person en LocalBusiness verwijzen naar elkaar via @id.
  */
-import { BUSINESS_ID, PERSON_ID, SITE_NAME, SITE_URL, WEBSITE_ID } from '../data/site';
+import { BUSINESS_ID, FOOTER_SOCIALS, PERSON_ID, SITE_NAME, SITE_URL, WEBSITE_ID } from '../data/site';
 
 /** Verwijzing naar een ander node via @id. */
 export interface IdRef {
@@ -606,6 +606,85 @@ export function fotoCollectie(input: FotoCollectieInput): FotoCollectieSchema {
   };
 }
 
+// ---------------------------------------------------------------------------
+// BlogPosting
+// ---------------------------------------------------------------------------
+
+export interface BlogPostingSchema extends JsonLdNode {
+  '@type': 'BlogPosting';
+  headline: string;
+  description: string;
+  /** Absolute URL van de Open Graph-uitsnede (1200×630). */
+  image: string;
+  datePublished: string;
+  dateModified: string;
+  inLanguage: 'nl-NL';
+  articleSection: string;
+  keywords?: string;
+  mainEntityOfPage: string;
+  author: {
+    '@type': 'Person';
+    name: string;
+    url: string;
+    sameAs: string[];
+  };
+  publisher: {
+    '@type': 'Organization';
+    name: string;
+    logo: {
+      '@type': 'ImageObject';
+      url: string;
+    };
+  };
+}
+
+export interface BlogPostingInput {
+  headline: string;
+  description: string;
+  /** Pad of absolute URL van de 1200×630-uitsnede. */
+  image: string;
+  datePublished: Date;
+  dateModified: Date;
+  /** Categorielabel, niet de slug. */
+  articleSection: string;
+  /** Tags. Ontbreekt de lijst, dan geen `keywords`. */
+  keywords?: string[];
+  /** Pad of URL van de post. */
+  path: string;
+}
+
+/** Blogpost. Geen AggregateRating of Review. sameAs zijn de LinkedIn- en Facebook-URL uit de footer. */
+export function blogPosting(input: BlogPostingInput): BlogPostingSchema {
+  const page = absoluteUrl(input.path);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: input.headline,
+    description: input.description,
+    image: absoluteUrl(input.image),
+    datePublished: input.datePublished.toISOString(),
+    dateModified: input.dateModified.toISOString(),
+    inLanguage: 'nl-NL',
+    articleSection: input.articleSection,
+    ...(input.keywords?.length ? { keywords: input.keywords.join(', ') } : {}),
+    mainEntityOfPage: page,
+    author: {
+      '@type': 'Person',
+      name: 'Paul Breuker',
+      url: SITE_URL,
+      sameAs: FOOTER_SOCIALS.map((social) => social.href),
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      logo: {
+        '@type': 'ImageObject',
+        url: absoluteUrl('/apple-touch-icon.png'),
+      },
+    },
+  };
+}
+
 /** Alle JSON-LD-nodes die deze module kan opleveren. */
 export type AnySchema =
   | WebSiteSchema
@@ -618,4 +697,5 @@ export type AnySchema =
   | ImageGallerySchema
   | FaqPageSchema
   | CollectionPageSchema
-  | FotoCollectieSchema;
+  | FotoCollectieSchema
+  | BlogPostingSchema;

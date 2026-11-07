@@ -1,0 +1,233 @@
+---
+/**
+ * /blog: overzicht. Leeg en noindex zolang er geen gepubliceerde post is.
+ * Drafts staan hier niet, ook niet in dev.
+ */
+import PaginaKop from '../../components/PaginaKop.astro';
+import BlogKaart from '../../components/blog/BlogKaart.astro';
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import { BLOG_CATEGORIES } from '../../data/blog-categories';
+import {
+  BLOG_BESCHRIJVING,
+  BLOG_INTRO,
+  BLOG_TITEL,
+  aantalPerCategorie,
+  categorieHref,
+  gepubliceerdePosts,
+} from '../../lib/blog';
+import { breadcrumbList, collectionPage } from '../../lib/schema';
+
+const posts = await gepubliceerdePosts();
+const leeg = posts.length === 0;
+const uitgelicht = posts[0];
+const overige = posts.slice(1);
+const aantallen = aantalPerCategorie(posts);
+const zichtbareCategorieen = BLOG_CATEGORIES.filter((categorie) => (aantallen.get(categorie.slug) ?? 0) > 0);
+
+const ankerVan = new Map<string, string>();
+const gezien = new Set<string>();
+for (const post of posts) {
+  if (gezien.has(post.data.category)) continue;
+  gezien.add(post.data.category);
+  ankerVan.set(post.id, post.data.category);
+}
+const losseAnkers = BLOG_CATEGORIES.filter((categorie) => !gezien.has(categorie.slug));
+
+const jsonLd = [
+  breadcrumbList([
+    { name: 'Home', path: '/' },
+    { name: 'Blog', path: '/blog' },
+  ]),
+  collectionPage({
+    name: 'Blog',
+    description: BLOG_BESCHRIJVING,
+    path: '/blog',
+    items: posts.map((post) => ({ name: post.data.title, path: `/blog/${post.id}` })),
+  }),
+];
+---
+
+<BlogLayout
+  title={BLOG_TITEL}
+  description={BLOG_BESCHRIJVING}
+  canonical="/blog"
+  jsonLd={jsonLd}
+  robots={leeg ? 'noindex' : undefined}
+>
+  <PaginaKop titel="Blog">
+    <div slot="intro" class="blog-intro">
+      {BLOG_INTRO.map((zin) => <p>{zin}</p>)}
+    </div>
+  </PaginaKop>
+
+  {
+    losseAnkers.map((categorie) => (
+      <span id={categorie.slug} class="visually-hidden" aria-hidden="true" />
+    ))
+  }
+
+  {
+    zichtbareCategorieen.length > 0 && (
+      <nav class="filters" aria-label="Categorieën">
+        <ul>
+          {zichtbareCategorieen.map((categorie) => (
+            <li>
+              <a href={categorieHref(categorie.slug, aantallen.get(categorie.slug) ?? 0)}>{categorie.label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )
+  }
+
+  {
+    uitgelicht && (
+      <div class="uitgelicht">
+        <BlogKaart
+          post={uitgelicht}
+          aantallen={aantallen}
+          anker={ankerVan.get(uitgelicht.id)}
+          eager
+          groot
+        />
+      </div>
+    )
+  }
+
+  {
+    overige.length > 0 && (
+      <div class="raster">
+        <ul class="raster__lijst">
+          {overige.map((post) => (
+            <li>
+              <BlogKaart post={post} aantallen={aantallen} anker={ankerVan.get(post.id)} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+
+  {
+    leeg && (
+      <p class="leeg">Er staan nog geen stukken. Zodra ik er een publiceer, staat het hier.</p>
+    )
+  }
+
+  <section class="slot" aria-label="Contact">
+    <p>Een vraag over een bruiloft, een portret of iets anders?</p>
+    <a class="statement-link" href="/contact">Neem contact op <span aria-hidden="true">→</span></a>
+  </section>
+</BlogLayout>
+
+<style>
+  .blog-intro p {
+    max-width: 34rem;
+    margin: 0;
+    font-size: var(--font-size-body);
+    font-weight: 500;
+    line-height: var(--intro-lh);
+    letter-spacing: 0;
+  }
+
+  .blog-intro p + p {
+    margin-top: 0.6em;
+  }
+
+  /* Rastercontainer: gecentreerd op --blog-raster (zie global.css); PaginaKop schuift mee via --pagina-kop-rand. */
+  :global(.pagina-kop) {
+    --pagina-kop-rand: var(--blog-rand);
+    --pagina-kop-grootte: min(14vw, calc(var(--blog-raster) * 0.14)); /* 14vw, maar nooit groter dan 14% van de container */
+  }
+
+  .filters {
+    padding: 0 var(--blog-rand) clamp(2rem, 4vw, 3rem);
+  }
+
+  .filters ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--font-size-small);
+  }
+
+  .filters a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .filters a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .uitgelicht,
+  .raster,
+  .leeg,
+  .slot {
+    padding-inline: var(--blog-rand);
+  }
+
+  .uitgelicht {
+    padding-bottom: clamp(3rem, 8vw, 6rem);
+  }
+
+  .raster {
+    padding-bottom: clamp(2rem, 4vw, 3rem);
+  }
+
+  .raster__lijst {
+    display: grid;
+    gap: 8vw;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .leeg {
+    max-width: 34rem;
+    margin: 0;
+    color: var(--ink-gedempt);
+  }
+
+  .slot {
+    padding-top: clamp(3rem, 8vw, 6rem);
+    padding-bottom: var(--sectie-ruimte);
+  }
+
+  .slot p {
+    max-width: 34rem;
+    margin-bottom: 0.75rem;
+  }
+
+  @media (min-width: 700px) {
+    .raster__lijst {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4vw 1.7vw;
+    }
+  }
+
+  @media (min-width: 768px) {
+    :global(.pagina-kop--met-intro) {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      column-gap: 1.7vw;
+      align-items: last baseline;
+    }
+
+    .blog-intro {
+      min-width: 0;
+      max-width: min(34rem, 100%);
+    }
+
+    .blog-intro p {
+      margin: 0;
+    }
+  }
+</style>

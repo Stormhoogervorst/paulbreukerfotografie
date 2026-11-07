@@ -6,7 +6,7 @@
  *
  * De volgorde van de secties ligt vast in `src/layouts/LandingLayout.astro` (zie de regel "Volgorde commerciële
  * landingspagina (bindend)" in `.cursor/rules/paulbreuker-regels.mdc`): Hero, Werkwijze, Pakketten, Impressie, OverPaul,
- * Vragen, Uitleg, Reviews, Aanvraagformulier, Beeld. Een sectie verschijnt alleen als de data ervoor bestaat. Alles na
+ * Vragen, Uitleg, Reviews, Aanvraagformulier, Uit de blog, Beeld. Uit de blog alleen met gepubliceerde posts. Alles na
  * de hero is optioneel; Reviews is nog niet gebouwd. Uitzondering op uitdrukkelijk verzoek: /trouwfotograaf-nijmegen zet
  * Pakketten na Impressie (`pakkettenPlek`), OverPaul direct vóór Pakketten (`overPaulPlek`) en Uitleg daarna
  * (`uitlegPlek`). Locaties staat na Uitleg (geen andere pagina gebruikt Locaties).

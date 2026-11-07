@@ -1,0 +1,113 @@
+---
+/**
+ * Proza van een blogpost. Staat als direct kind in het raster van `.bericht` (src/pages/blog/[...slug].astro) en neemt
+ * dat raster over via subgrid: tekst, koppen, lijsten, Note en Cta staan in de leeskolom, Figure en Gallery in de
+ * bredere beeldkolom. De breedtes staan als tokens in global.css (--blog-tekst en --blog-beeld).
+ * Margins van rastercellen vallen niet samen: elk blok geeft ruimte onder zich, en een kop extra ruimte boven zich.
+ * De globale `ul { list-style: none }` geldt hier niet.
+ */
+---
+
+<div class="proza">
+  <slot />
+</div>
+
+<style>
+  .proza {
+    display: grid;
+    grid-template-columns: subgrid;
+  }
+
+  .proza > :global(*) {
+    grid-column: tekst-start / tekst-end;
+    min-width: 0;
+  }
+
+  .proza > :global(.figuur),
+  .proza > :global(.galerij),
+  .proza > :global(p:has(img)) {
+    grid-column: beeld-start / beeld-end;
+  }
+
+  /* Alleen de blokken op het hoogste niveau: een p in een Note of blockquote en een lijst in een lijst houden hun eigen marge. */
+  .proza > :global(p) {
+    max-width: none;
+    margin: 0 0 1.25em;
+  }
+
+  .proza :global(h2),
+  .proza :global(h3) {
+    scroll-margin-top: 1rem;
+    text-wrap: balance;
+  }
+
+  .proza > :global(h2) {
+    margin: 1.1em 0 0.5em;
+    font-size: var(--blog-h2);
+    line-height: 1.15;
+  }
+
+  .proza > :global(h3) {
+    margin: 1em 0 0.4em;
+    font-size: 1.35rem;
+    line-height: 1.25;
+  }
+
+  .proza > :global(ul:not(.galerij)),
+  .proza > :global(ol) {
+    margin: 0 0 1.25em;
+  }
+
+  .proza :global(ul:not(.galerij)),
+  .proza :global(ol) {
+    padding-left: 1.25em;
+  }
+
+  .proza :global(ul:not(.galerij)) {
+    list-style: disc;
+  }
+
+  .proza :global(ol) {
+    list-style: decimal;
+  }
+
+  .proza :global(li + li) {
+    margin-top: 0.35em;
+  }
+
+  .proza :global(.galerij li + li) {
+    margin-top: 0;
+  }
+
+  .proza > :global(blockquote) {
+    margin: 1.5em 0 1.75em;
+  }
+
+  .proza :global(blockquote) {
+    padding-left: 1em;
+    border-left: var(--haarlijn);
+  }
+
+  .proza :global(blockquote p) {
+    margin: 0;
+  }
+
+  .proza :global(a) {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .proza :global(a:hover) {
+    text-decoration-thickness: 2px;
+  }
+
+  .proza :global(strong) {
+    font-weight: 700;
+  }
+
+  /* De Cta is een alinea met een pijl-link: iets meer ruimte eromheen dan tussen gewone alinea's. */
+  .proza > :global(.inline-cta) {
+    margin: 0.5em 0 1.75em;
+  }
+</style>

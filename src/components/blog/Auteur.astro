@@ -1,0 +1,76 @@
+---
+/**
+ * Auteursblok onder een blogpost. De foto is het bestaande portret van Paul (src/assets/landing/paul.webp).
+ */
+import { Picture } from 'astro:assets';
+import paulFoto from '../../assets/landing/paul.webp';
+import { BREEDTES_PAUL, FALLBACK_FORMAAT, FORMATEN } from '../../lib/beeld';
+---
+
+<aside class="auteur" aria-label="Over de auteur">
+  <Picture
+    class="auteur__foto"
+    src={paulFoto}
+    alt="Portret van Paul Breuker"
+    width={paulFoto.width}
+    height={paulFoto.height}
+    widths={BREEDTES_PAUL}
+    sizes="5.5rem"
+    formats={FORMATEN}
+    fallbackFormat={FALLBACK_FORMAAT}
+    loading="lazy"
+    decoding="async"
+  />
+  <div class="auteur__tekst">
+    <p>
+      Paul Breuker is fotograaf en beeldend kunstenaar uit Nijmegen. Hij fotografeert bruiloften sinds 1992, maakt
+      portretten en werkt aan langlopende <a href="/series">series</a>; zijn werk hing onder meer op Photoville New York,
+      in de Kunsthal Rotterdam en in Museum Het Valkhof.
+    </p>
+    <a class="statement-link" href="/contact">Neem contact op <span aria-hidden="true">→</span></a>
+  </div>
+</aside>
+
+<style>
+  .auteur {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 1rem 1.25rem;
+    align-items: start;
+    margin-top: 3rem;
+    padding-top: 1.25rem;
+    border-top: var(--haarlijn);
+  }
+
+  .auteur__foto {
+    width: 4.5rem;
+    height: auto;
+  }
+
+  .auteur__tekst p {
+    max-width: none;
+    margin: 0 0 0.75rem;
+    font-size: var(--font-size-small);
+    line-height: 1.55;
+  }
+
+  .auteur__tekst a {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .auteur__tekst a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  @media (min-width: 700px) {
+    .auteur {
+      grid-template-columns: 5.5rem minmax(0, 1fr);
+    }
+
+    .auteur__foto {
+      width: 5.5rem;
+    }
+  }
+</style>

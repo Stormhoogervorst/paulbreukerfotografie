@@ -108,7 +108,9 @@ const blokPlekken: LandingUitlegBlok = {
     {
       soort: 'alinea',
       tekst: [
-        'Welke plek past, hangt af van jullie dag, het licht en de tijd die er is. Dat bespreken we tijdens de kennismaking.',
+        'Welke plek past, hangt af van jullie dag, het licht en de tijd die er is. Dat bespreken we tijdens de kennismaking. Meer over de locaties en fotoplekken schrijf ik in ',
+        { tekst: 'trouwen in Arnhem', href: '/blog/trouwen-in-arnhem' },
+        '.',
       ],
     },
   ],

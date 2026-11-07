@@ -7,8 +7,13 @@
  * niet in de toegankelijkheidsboom.
  */
 import { CONTACT, NAV, WORDMARK } from '../data/site';
+import { aantalGepubliceerdePosts, isHuidigePagina, voegBlogToe } from '../lib/blog';
 
 const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const navigatie =
+  (await aantalGepubliceerdePosts()) > 0
+    ? voegBlogToe(NAV, { label: 'blog', href: '/blog' }, '/portfolio')
+    : NAV;
 ---
 
 <header class="site-header">
@@ -19,9 +24,9 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
     <nav class="site-header__nav" aria-label="Hoofdnavigatie">
       <ul class="site-header__col">
         {
-          NAV.map((item) => (
+          navigatie.map((item) => (
             <li>
-              <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
+              <a href={item.href} aria-current={isHuidigePagina(item.href, currentPath) ? 'page' : undefined}>
                 {item.label}
               </a>
             </li>
@@ -47,11 +52,11 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
               <a href="/" aria-current={currentPath === '/' ? 'page' : undefined}>home</a>
             </li>
             {
-              NAV.map((item) => (
+              navigatie.map((item) => (
                 <li>
                   <a
                     href={item.href}
-                    aria-current={currentPath === item.href ? 'page' : undefined}
+                    aria-current={isHuidigePagina(item.href, currentPath) ? 'page' : undefined}
                   >
                     {item.label}
                   </a>

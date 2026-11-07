@@ -2,7 +2,7 @@
 /**
  * /series: overzicht van Pauls projecten. Vaste opbouw: header, H1 "Series" (PaginaKop) met een korte tekst ernaast
  * (eronder op smalle schermen), raster met kaarten, footer.
- * Geen filters, geen andere secties. Data en volgorde: src/data/series.ts.
+ * Geen filters. Data en volgorde: src/data/series.ts. Onderaan "Uit de blog" als er gepubliceerde posts in de groep kunst zijn.
  * Elk blok zit in een eigen wrapper met alleen padding; geen margins die van buren afhangen.
  */
 import { Picture } from 'astro:assets';
@@ -13,6 +13,8 @@ import { serieLijst, serieHref } from '../data/series';
 import { breadcrumbList, collectionPage } from '../lib/schema';
 import { BREEDTES_KAART, FALLBACK_FORMAAT, FORMATEN } from '../lib/beeld';
 import { linkSegmenten } from '../lib/segmenten';
+import LatestPosts from '../components/blog/LatestPosts.astro';
+import { postsOnderaan } from '../lib/blog';
 
 /** Letterlijk deze zin; alleen het woord "contact" is een link (linkSegmenten). */
 const inleiding = linkSegmenten(
@@ -23,6 +25,8 @@ const inleiding = linkSegmenten(
 const title = 'Fotoseries en projecten | Paul Breuker';
 const description =
   'Fotoseries van Paul Breuker: Love & Marriage, Take me to the river, De Gaarkeuken en meer. Portret, reportage en kunst, ook als boek of magazine.';
+
+const blogPosts = await postsOnderaan('series');
 
 const jsonLd = [
   breadcrumbList([
@@ -46,7 +50,7 @@ const jsonLd = [
     </p>
   </PaginaKop>
 
-  <div class="series-raster">
+  <div class:list={['series-raster', { 'series-raster--met-blog': blogPosts.length > 0 }]}>
     <ul class="series-raster__lijst" role="list">
       {
         serieLijst.map((project, index) => (
@@ -76,6 +80,14 @@ const jsonLd = [
       }
     </ul>
   </div>
+
+  {
+    blogPosts.length > 0 && (
+      <div class="series-blog">
+        <LatestPosts posts={blogPosts} />
+      </div>
+    )
+  }
 </BaseLayout>
 
 <style>
@@ -113,6 +125,14 @@ const jsonLd = [
   /* ---------- Raster (mobiel: één kolom) ---------- */
   .series-raster {
     padding: 0 var(--gutter) var(--sectie-ruimte);
+  }
+
+  .series-raster--met-blog {
+    padding-bottom: 0;
+  }
+
+  .series-blog {
+    padding-bottom: var(--sectie-ruimte);
   }
 
   .series-raster__lijst {

@@ -1,0 +1,171 @@
+---
+/**
+ * Kaart van een blogpost: beeld in zijn eigen verhouding (zoals de kaarten op /series), categorielabel, titel,
+ * omschrijving en datum. Het label is een eigen link, omdat het ergens anders heen gaat dan de kaart.
+ */
+import { Picture } from 'astro:assets';
+import { blogCategorie } from '../../data/blog-categories';
+import { BREEDTES_HERO, BREEDTES_KAART, FALLBACK_FORMAAT, FORMATEN } from '../../lib/beeld';
+import { categorieHref, datumNl, postPad, type BlogPost } from '../../lib/blog';
+
+interface Props {
+  post: BlogPost;
+  /** Aantal gepubliceerde posts per categorie. Bepaalt of het label naar de categoriepagina of het anker linkt. */
+  aantallen: Map<string, number>;
+  kop?: 'h2' | 'h3';
+  /** Id van het categorie-anker op /blog. Alleen de eerste kaart van die categorie. */
+  anker?: string;
+  eager?: boolean;
+  /** Uitgelichte kaart bovenaan /blog: groter beeld en grotere titel. */
+  groot?: boolean;
+}
+
+const { post, aantallen, kop = 'h2', anker, eager = false, groot = false } = Astro.props;
+const categorie = blogCategorie(post.data.category);
+const href = postPad(post.id);
+const catHref = categorieHref(categorie.slug, aantallen.get(categorie.slug) ?? 0);
+const Kop = kop;
+const beeld = post.data.heroImage;
+---
+
+<article class:list={['kaart', { 'kaart--groot': groot }]} id={anker}>
+  <a class="kaart__beeld" href={href}>
+    <Picture
+      src={beeld}
+      alt={post.data.heroAlt}
+      width={beeld.width}
+      height={beeld.height}
+      widths={groot ? BREEDTES_HERO : BREEDTES_KAART}
+      sizes={groot ? '89vw' : '(min-width: 700px) 44vw, 89vw'}
+      formats={FORMATEN}
+      fallbackFormat={FALLBACK_FORMAAT}
+      loading={eager ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : undefined}
+      decoding="async"
+      class="kaart__foto"
+    />
+  </a>
+  <p class="kaart__categorie">
+    <a href={catHref}>{categorie.label}</a>
+  </p>
+  <Kop class="kaart__titel"><a href={href}>{post.data.title}</a></Kop>
+  <p class="kaart__tekst">{post.data.description}</p>
+  <p class="kaart__datum">
+    <time datetime={post.data.pubDate.toISOString()}>{datumNl(post.data.pubDate)}</time>
+  </p>
+</article>
+
+<style>
+  .kaart {
+    min-width: 0;
+  }
+
+  .kaart__beeld {
+    display: block;
+    overflow: hidden;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Eigen verhouding uit width/height van het bronbestand: niet croppen. Alle heroes zijn liggend. */
+  .kaart__beeld :global(.kaart__foto) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .kaart__categorie {
+    max-width: none;
+    margin: max(0.75rem, 1vw) 0 0;
+    font-size: var(--font-size-small);
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .kaart__categorie a {
+    color: inherit;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .kaart__categorie a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .kaart__titel {
+    margin: 0.35em 0 0;
+    font-size: max(1.125rem, 2vw);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .kaart--groot .kaart__titel {
+    font-size: clamp(1.75rem, 3vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .kaart__titel a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .kaart__tekst {
+    max-width: 42rem;
+    margin: 0.5em 0 0;
+    font-size: var(--font-size-small);
+    line-height: 1.5;
+  }
+
+  .kaart--groot .kaart__tekst {
+    font-size: var(--font-size-body);
+    line-height: 1.45;
+  }
+
+  .kaart__datum {
+    max-width: none;
+    margin: 0.4em 0 0;
+    color: var(--ink-gedempt);
+    font-size: var(--font-size-small);
+    line-height: 1.3;
+  }
+
+  .kaart__titel a:hover {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .kaart__beeld:focus-visible,
+  .kaart__titel a:focus-visible,
+  .kaart__categorie a:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .kaart__beeld :global(.kaart__foto) {
+      transition: transform 0.6s cubic-bezier(0.2, 0.6, 0.2, 1);
+    }
+
+    .kaart__beeld:hover :global(.kaart__foto),
+    .kaart__beeld:focus-visible :global(.kaart__foto) {
+      transform: scale(1.04);
+      will-change: transform;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kaart__beeld :global(.kaart__foto),
+    .kaart__beeld:hover :global(.kaart__foto),
+    .kaart__beeld:focus-visible :global(.kaart__foto) {
+      transition: none;
+      transform: none;
+      will-change: auto;
+    }
+  }
+</style>

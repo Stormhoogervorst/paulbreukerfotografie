@@ -19,6 +19,16 @@ interface Props {
   noindex?: boolean;
   /** Extra JSON-LD voor deze pagina. WebSite wordt altijd automatisch toegevoegd. */
   jsonLd?: AnySchema[];
+  /** Vervangt de robots-regel, bijvoorbeeld "noindex" op een lege /blog. */
+  robots?: string;
+  /** Standaard `website`. Blogposts gebruiken `article`. */
+  ogType?: 'website' | 'article';
+  publishedTime?: Date;
+  modifiedTime?: Date;
+  /** Pad van de RSS-feed. Alleen de blogpagina's zetten dit. */
+  rssHref?: string;
+  ogImageWidth?: number;
+  ogImageHeight?: number;
   /** Header tonen (standaard ja). /portfolio zet hem uit. */
   header?: boolean;
   /** Footer tonen (standaard ja). /portfolio zet hem uit. */
@@ -34,6 +44,13 @@ const {
   ogImage = DEFAULT_OG_IMAGE,
   noindex,
   jsonLd = [],
+  robots,
+  ogType,
+  publishedTime,
+  modifiedTime,
+  rssHref,
+  ogImageWidth,
+  ogImageHeight,
   header = true,
   footer = true,
   htmlClass,
@@ -62,6 +79,13 @@ const deelafbeelding = ogImage ?? DEFAULT_OG_IMAGE ?? (await bruiloftenDeelafbee
       canonical={canonical}
       ogImage={deelafbeelding}
       noindex={noindex}
+      robots={robots}
+      ogType={ogType}
+      publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
+      rssHref={rssHref}
+      ogImageWidth={ogImageWidth}
+      ogImageHeight={ogImageHeight}
       jsonLd={schemas}
     />
   </head>

@@ -1,0 +1,66 @@
+---
+/**
+ * Eén foto in een blogpost, met een optioneel bijschrift. Staat in de bredere beeldkolom (zie Proza.astro), gecentreerd, en
+ * is nooit hoger dan 80% van het scherm: de breedte volgt uit die hoogte en de verhouding van de foto, dus een staande foto
+ * wordt smaller in plaats van afgesneden of omrand.
+ * `src` is een pad relatief aan src/assets (zie src/lib/blog-foto.ts). Geen import in de MDX.
+ * Onder de vouw: lui laden. Het hero-beeld van de post staat buiten dit component en is eager.
+ */
+import { Picture } from 'astro:assets';
+import { blogFoto } from '../../lib/blog-foto';
+import { BREEDTES_FOTO, FALLBACK_FORMAAT, FORMATEN } from '../../lib/beeld';
+
+interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+}
+
+const { src, alt, caption } = Astro.props;
+
+if (!alt?.trim()) throw new Error('Figure: een foto heeft een alt-tekst nodig.');
+if (!src?.trim()) throw new Error('Figure: een foto heeft een src nodig.');
+
+const beeld = await blogFoto(src);
+// Verhouding breed/hoog van deze ene foto; de stijl hieronder rekent er de maximale breedte mee uit.
+const verhouding = (beeld.width / beeld.height).toFixed(4);
+---
+
+<figure class="figuur" style={`--verhouding: ${verhouding}`}>
+  <Picture
+    src={beeld}
+    alt={alt}
+    width={beeld.width}
+    height={beeld.height}
+    widths={BREEDTES_FOTO}
+    sizes="(min-width: 1280px) 70rem, 89vw"
+    formats={FORMATEN}
+    fallbackFormat={FALLBACK_FORMAAT}
+    loading="lazy"
+    decoding="async"
+  />
+  {caption?.trim() && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .figuur {
+    justify-self: center;
+    width: 100%;
+    max-width: min(100%, calc(80svh * var(--verhouding, 1.5)));
+    margin: 1rem 0 2.25rem;
+  }
+
+  .figuur :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .figuur figcaption {
+    max-width: var(--blog-tekst);
+    margin-top: 0.6rem;
+    color: var(--ink-gedempt);
+    font-size: var(--font-size-small);
+    line-height: 1.4;
+  }
+</style>

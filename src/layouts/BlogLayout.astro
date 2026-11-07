@@ -1,0 +1,30 @@
+---
+/**
+ * Layout voor /blog, categoriepagina's en posts. Zelfde BaseLayout als de rest van de site,
+ * plus de RSS-link in de head. Geen eigen header of footer.
+ */
+import BaseLayout from './BaseLayout.astro';
+import { rssPad } from '../lib/blog';
+import type { AnySchema } from '../lib/schema';
+
+interface Props {
+  title: string;
+  description: string;
+  canonical: string;
+  ogImage?: string;
+  noindex?: boolean;
+  robots?: string;
+  jsonLd?: AnySchema[];
+  ogType?: 'website' | 'article';
+  publishedTime?: Date;
+  modifiedTime?: Date;
+  ogImageWidth?: number;
+  ogImageHeight?: number;
+}
+
+const props = Astro.props;
+---
+
+<BaseLayout {...props} rssHref={rssPad()}>
+  <slot />
+</BaseLayout>

@@ -4,6 +4,7 @@ import { defineConfig, envField } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import mdx from '@astrojs/mdx';
 import vercel from '@astrojs/vercel';
+import { gepubliceerdeBlogSlugs } from './src/lib/blog-indexeerbaar.ts';
 
 // Niet-indexeerbare paden: houd deze lijst gelijk aan de pagina's met `noindex`.
 const NOT_INDEXABLE = ['/bedankt', '/404', '/portfolio', '/portfolio/portretten', '/portfolio/bruiloften', '/privacy'];
@@ -35,8 +36,17 @@ export default defineConfig({
   integrations: [
     sitemap({
       filter: (page) => {
-        const { pathname } = new URL(page);
-        return !NOT_INDEXABLE.includes(pathname.replace(/\/$/, ''));
+        const pad = new URL(page).pathname.replace(/\/$/, '') || '/';
+        if (NOT_INDEXABLE.includes(pad)) return false;
+        // /blog is noindex zolang er geen gepubliceerde post is. Drafts worden niet gebouwd; deze check is de vangnet.
+        const gepubliceerd = gepubliceerdeBlogSlugs();
+        if (pad === '/blog') return gepubliceerd.size > 0;
+        if (pad.startsWith('/blog/') && !pad.startsWith('/blog/categorie/')) {
+          const slug = pad.slice('/blog/'.length);
+          if (!slug || slug.includes('/')) return false;
+          return gepubliceerd.has(slug);
+        }
+        return true;
       },
     }),
     mdx(),

@@ -160,8 +160,8 @@ export const fotograafBruiloft: LandingPagina = {
         vraag: 'Hoeveel kost een trouwfotograaf?',
         antwoord: [
           [
-            `Dat verschilt per fotograaf en per pakket. Een bruiloft kost bij mij ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog), en ik ben dan de hele dag aanwezig. Een combinatie van digitaal en analoog is op aanvraag mogelijk. Wat er per pakket bij zit, zie je bij `,
-            { tekst: 'de pakketten', href: '#pakketten' },
+            `Een bruiloft kost bij mij ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog), de hele dag, met een ingebonden fotoboek. Een combinatie is op aanvraag. Hoe die bedragen zich verhouden tot andere offertes, schrijf ik in `,
+            { tekst: 'wat een trouwfotograaf kost', href: '/blog/wat-kost-een-trouwfotograaf' },
             '.',
           ],
         ],
@@ -180,7 +180,9 @@ export const fotograafBruiloft: LandingPagina = {
           [
             'Kijk eerst of de stijl je aanspreekt, bijvoorbeeld in ',
             { tekst: 'mijn portfolio', href: '/portfolio' },
-            '. Je bent een hele dag samen, dus het moet ook klikken. Daarom begin ik altijd met een kennismaking: dan vertel je hoe jullie dag eruitziet en zie je hoe ik werk. Wil je dat? ',
+            '. Je bent een hele dag samen, dus het moet ook klikken. Daarom begin ik altijd met een kennismaking: dan vertel je hoe jullie dag eruitziet en zie je hoe ik werk. Welke vragen je daarbij kunt stellen, zet ik op een rij in ',
+            { tekst: 'twaalf vragen voor je een trouwfotograaf kiest', href: '/blog/trouwfotograaf-kiezen' },
+            '. Wil je dat? ',
             { tekst: 'Vraag een bruiloft aan', href: '#aanvragen' },
             '.',
           ],

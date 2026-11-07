@@ -1,0 +1,33 @@
+---
+/**
+ * CTA onderaan een post of categoriepagina. De kop komt van de categorie en kan ontbreken.
+ * De link gebruikt de pijl-stijl van de site.
+ */
+import { labelZonderPijl } from '../../lib/blog';
+
+interface Props {
+  heading?: string;
+  href: string;
+  label: string;
+}
+
+const { heading, href, label } = Astro.props;
+---
+
+<aside class="cta-blok">
+  {heading && <h2 class="cta-blok__kop">{heading}</h2>}
+  <a class="statement-link" href={href}>{labelZonderPijl(label)} <span aria-hidden="true">→</span></a>
+</aside>
+
+<style>
+  .cta-blok {
+    margin-top: 3rem;
+    padding-top: 1.25rem;
+    border-top: var(--haarlijn);
+  }
+
+  .cta-blok__kop {
+    margin: 0 0 0.75rem;
+    font-size: var(--blog-h2);
+  }
+</style>

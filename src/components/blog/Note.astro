@@ -1,0 +1,26 @@
+---
+/**
+ * Rustig kader voor een tip of kanttekening in een blogpost. Geen accentkleur: dezelfde haarlijn als de rest van de site.
+ */
+---
+
+<aside class="noot">
+  <slot />
+</aside>
+
+<style>
+  .noot {
+    margin: 1.5rem 0 2.25rem;
+    padding: 1.25rem 1.5rem;
+    border: var(--haarlijn);
+  }
+
+  .noot :global(p) {
+    max-width: none;
+    margin: 0;
+  }
+
+  .noot :global(p + p) {
+    margin-top: 0.75em;
+  }
+</style>

@@ -1,6 +1,6 @@
 ---
 /**
- * Paginakop: de grote H1 bovenaan een overzichtspagina (gedeeld door /series, /contact en /privacy). Uitgelijnd op --gutter, geen
+ * Paginakop: de grote H1 bovenaan een overzichtspagina (gedeeld door /series, /contact en /privacy). Uitgelijnd op --gutter (of op --pagina-kop-rand als een pagina die zet; --pagina-kop-grootte vervangt de 14vw), geen
  * eigen marges buiten de padding van de wrapper.
  *
  * - Mobiel (onder 700px): 8vw boven, 6vw onder. Desktop: 4vw onder, tenzij een omringend element
@@ -24,12 +24,12 @@ const metIntro = Astro.slots.has('intro');
 
 <style>
   .pagina-kop {
-    padding: 8vw var(--gutter) 6vw; /* mobiel: iets minder ruimte onder de kop dan op desktop */
+    padding: 8vw var(--pagina-kop-rand, var(--gutter)) 6vw; /* mobiel: iets minder ruimte onder de kop dan op desktop; de blogpagina's zetten --pagina-kop-rand op de gecentreerde rastercontainer */
   }
 
   .pagina-kop__titel {
     margin: 0;
-    font-size: 14vw;
+    font-size: var(--pagina-kop-grootte, 14vw);
     font-weight: 700;
     line-height: 0.9;
     letter-spacing: -0.04em;
