@@ -265,7 +265,9 @@ const fotoC = heroFoto('C');
          B is 10,4vw hoog en blijft 2,5vw boven de letters. Dat geeft 14,9vw - 7,5rem - 0,063em
          (0,063em = bovenkant titelregel tot letters). Minimaal 3vw, zodat het wordmark niet tegen het menu zit.
          15,72vw = 2vw + 2,6vw (2,5vw plus marge voor de bovenhoogte van l/k/B) + B-hoogte (13,9vw * 4/5 = 11,12vw). */
-      padding-top: max(3vw, calc(15.72vw - 7.5rem - var(--wordmark-size) * 0.063));
+      /* De header is nu één regel (geen verticaal menu meer): 0,5rem in plaats van 7,5rem, zodat B onder de
+         header-regel begint en niet over het menu valt. */
+      padding-top: max(3vw, calc(15.72vw - 0.5rem - var(--wordmark-size) * 0.063));
     }
 
     .hero__title span {
@@ -322,7 +324,6 @@ const fotoC = heroFoto('C');
       width: var(--foto-b);
       top: calc(-1 * (var(--letters-boven-t) + 2.6vw + var(--foto-b-hoogte)));
       left: calc(var(--foto-b-links) - var(--gutter));
-      z-index: 21; /* boven de header (z-index 20, eigen achtergrond): B staat deels in de lege strook van de header */
     }
 
     .hero__photo--c {
@@ -355,44 +356,6 @@ const fotoC = heroFoto('C');
 
     .hero__lead {
       max-width: none;
-    }
-
-    /* Lichte parallax op A, B en C: puur CSS (scroll-driven animations), geen JavaScript. Alleen een transform op de
-       wrapper (niet op de <img>), dus de LCP-meting en de layout (CLS) veranderen niet. De foto's schuiven over de
-       eerste schermhoogte elk een ander stuk: A en C blijven iets achter op de scroll, B beweegt de andere kant op.
-       Browsers zonder ondersteuning of met "minder beweging" tonen de foto's gewoon stil. */
-    @media (prefers-reduced-motion: no-preference) {
-      @supports (animation-timeline: scroll()) {
-        .hero__photo--a,
-        .hero__photo--b,
-        .hero__photo--c {
-          animation: hero-parallax linear both;
-          animation-timeline: scroll(root block);
-          animation-range: 0 100vh;
-          will-change: transform;
-        }
-
-        .hero__photo--a {
-          --parallax: 5vw;
-        }
-
-        .hero__photo--b {
-          --parallax: -4vw;
-        }
-
-        .hero__photo--c {
-          --parallax: 10vw;
-        }
-
-        @keyframes hero-parallax {
-          from {
-            transform: translate3d(0, 0, 0);
-          }
-          to {
-            transform: translate3d(0, var(--parallax), 0);
-          }
-        }
-      }
     }
   }
 </style>

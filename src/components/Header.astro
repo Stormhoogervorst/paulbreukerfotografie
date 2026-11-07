@@ -1,44 +1,23 @@
 ---
 /**
- * Header: statisch (niet sticky), wit, zonder JavaScript.
- * - Vanaf 900px: twee kolommen (wordmark, navigatie). Contactgegevens staan in de footer (en in het mobiele menu); socials alleen in de footer.
- * - Onder 900px: alleen een "menu"-knop rechts (native <details>/<summary>), zonder naam.
- * Er is één blok per breakpoint; het andere blok is `display: none` en dus ook
- * niet in de toegankelijkheidsboom.
+ * Header: statisch (niet sticky), zonder JavaScript.
+ * - Eén menu voor alle schermbreedtes: een "menu"-knop rechts (native <details>/<summary>) die een paneel opent
+ *   met de navigatie en de contactgegevens. Blog staat niet in de header (wel in de footer).
+ * - Vanaf 900px staat links het logo "Paul Breuker Fotografie" (klein, gelijk aan het menu) op dezelfde basislijn als
+ *   de knop. Onder 900px alleen de knop; de homelink staat dan bovenaan het menu.
  */
 import { CONTACT, NAV, WORDMARK } from '../data/site';
-import { aantalGepubliceerdePosts, isHuidigePagina, voegBlogToe } from '../lib/blog';
+import { isHuidigePagina } from '../lib/blog';
 
 const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
-const navigatie =
-  (await aantalGepubliceerdePosts()) > 0
-    ? voegBlogToe(NAV, { label: 'blog', href: '/blog' }, '/portfolio')
-    : NAV;
+// Blog staat bewust niet in de header (wel in de footer).
+const navigatie = NAV;
 ---
 
 <header class="site-header">
-  <!-- Desktop: vanaf 900px -->
-  <div class="site-header__desktop">
+  <div class="site-header__bar">
     <a class="site-header__brand" href="/">{WORDMARK}</a>
 
-    <nav class="site-header__nav" aria-label="Hoofdnavigatie">
-      <ul class="site-header__col">
-        {
-          navigatie.map((item) => (
-            <li>
-              <a href={item.href} aria-current={isHuidigePagina(item.href, currentPath) ? 'page' : undefined}>
-                {item.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
-  </div>
-
-  <!-- Mobiel: onder 900px -->
-  <div class="site-header__mobile">
-    <!-- Geen naam in de mobiele header: alleen de menuknop. De homelink staat bovenaan het menu. -->
     <details class="menu">
       <summary class="menu__button">
         <span class="menu__label menu__label--open">menu</span>
@@ -108,31 +87,28 @@ const navigatie =
   }
 
   .site-header__brand {
-    font-size: 1.75rem; /* 28px */
+    font-size: var(--font-size-small); /* gelijk aan de menu-items: het logo concurreert niet met de H1 */
     font-weight: 500; /* dunner dan de vette hero-titel; 500 is het lichtste gewicht dat self-hosted is */
-    line-height: calc(var(--font-size-small) * 1.8); /* zelfde regelbox als de kolommen: gelijke bovenlijn */
-    letter-spacing: -0.02em;
+    line-height: inherit; /* zelfde regelbox als de menu-items: dezelfde basislijn */
+    letter-spacing: -0.01em;
     white-space: nowrap;
   }
 
-  /* Desktop: de vorm van de P begint op de gutter, net als het wordmark in de hero (optische zijmarge van de P). */
-  @media (min-width: 900px) {
-    .site-header__brand {
-      margin-left: -0.09em;
-    }
+  /* ---------- Balk ---------- */
+  .site-header__bar {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--gutter);
   }
 
-  /* ---------- Mobiel ---------- */
-  .site-header__desktop {
+  /* Logo alleen vanaf 900px; de knop staat altijd rechts. */
+  .site-header__brand {
     display: none;
   }
 
-  .site-header__mobile {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--space-3);
-    padding: var(--space-3) var(--gutter);
+  .menu {
+    margin-left: auto;
   }
 
   .menu__button {
@@ -200,28 +176,14 @@ const navigatie =
 
   /* ---------- Desktop ---------- */
   @media (min-width: 900px) {
-    .site-header__mobile {
-      display: none;
+    .site-header__bar {
+      /* Logo en menuknop lopen van gutter tot gutter, gelijk aan het wordmark in de hero. */
+      padding-block: var(--space-3) 0;
     }
 
-    .site-header__desktop {
-      display: grid;
-      /* Logo links op de gutter; de navigatie sluit rechts aan op dezelfde gutter (breedte = 100vw - 2 gutters,
-         gelijk aan het wordmark in de hero). Eerder stond hier een vaste 83vw, waardoor rechts 11,5vw bleef. */
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: start;
-      width: var(--wordmark-width);
-      margin-left: var(--gutter);
-      padding-top: clamp(0.75rem, 1.6vw, 1.75rem);
-    }
-
-    .site-header__col {
+    .site-header__brand {
       display: block;
-    }
-
-    .site-header__nav {
-      justify-self: end;
-      text-align: right;
+      margin-left: -0.09em; /* de vorm van de P begint op de gutter, net als het wordmark in de hero */
     }
   }
 </style>
