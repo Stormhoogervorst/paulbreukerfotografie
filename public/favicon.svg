@@ -1,13 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Paul Breuker">
   <title>Paul Breuker</title>
-  <style>
-    path { fill: #151515; }
-    @media (prefers-color-scheme: dark) {
-      path { fill: #fff; }
-    }
-  </style>
-  <g transform="translate(0.638 24.671) scale(0.023725 -0.023725)">
+  <rect width="32" height="32" fill="#e6e6e6"/>
+  <g transform="translate(3.25 23.7) scale(0.021 -0.021)" fill="#151515">
     <path d="M370 252C516 252 612 351 612 492C612 635 517 731 370 731L81 731L81 0L209 0L209 252ZM345 617C430 617 478 573 478 493C478 413 431 366 343 366L209 366L209 617Z"/>
     <path d="M81 0L377 0C528 0 615 73 615 198C615 283 576 341 499 366C568 395 604 453 604 534C604 656 516 731 372 731L81 731ZM361 618C433 618 473 584 473 521C473 456 434 419 364 419L209 419L209 618ZM372 311C443 311 484 276 484 214C484 148 444 113 372 113L209 113L209 311Z" transform="translate(599 0)"/>
   </g>

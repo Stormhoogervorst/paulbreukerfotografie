@@ -67,10 +67,13 @@ const deelafbeelding = ogImage ?? DEFAULT_OG_IMAGE ?? (await bruiloftenDeelafbee
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" sizes="any" />
-    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <!-- Google toont alleen favicons die een veelvoud van 48 px zijn (48, 96, 192): daarom de PNG's naast de SVG en ICO. -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon-48x48.png" sizes="48x48" />
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/png" href="/favicon-192x192.png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="mask-icon" href="/favicon.svg" color="#151515" />
     <link rel="preload" href={fontBold} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={fontMedium} as="font" type="font/woff2" crossorigin />
     <SEOHead
