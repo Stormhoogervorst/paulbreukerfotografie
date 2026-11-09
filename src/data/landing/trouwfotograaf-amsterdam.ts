@@ -102,7 +102,7 @@ export const trouwfotograafAmsterdam: LandingPagina = {
   slug: 'trouwfotograaf-amsterdam',
 
   seo: {
-    title: 'Trouwfotograaf Amsterdam | Paul Breuker',
+    title: 'Trouwfotograaf Amsterdam | Wereldwijd geëxposeerd | Paul Breuker',
     description: 'Trouwfotograaf Amsterdam: Paul Breuker, geëxposeerd van Photoville in New York tot de kunsthallen in Rotterdam. De hele dag aanwezig, digitaal of analoog.',
   },
 

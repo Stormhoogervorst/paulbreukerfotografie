@@ -120,7 +120,7 @@ export const trouwfotograafArnhem: LandingPagina = {
   slug: 'trouwfotograaf-arnhem',
 
   seo: {
-    title: 'Trouwfotograaf Arnhem | Paul Breuker',
+    title: 'Trouwfotograaf Arnhem | Wereldwijd geëxposeerd | Paul Breuker',
     description: "Bruiloft in Arnhem? Paul Breuker fotografeert de hele dag, met fotoboek. Trouwfoto's geëxposeerd van Photoville New York tot kunsthallen Rotterdam.",
   },
 

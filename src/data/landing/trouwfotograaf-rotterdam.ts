@@ -101,7 +101,7 @@ export const trouwfotograafRotterdam: LandingPagina = {
   slug: 'trouwfotograaf-rotterdam',
 
   seo: {
-    title: 'Trouwfotograaf Rotterdam | Paul Breuker',
+    title: 'Trouwfotograaf Rotterdam | Wereldwijd geëxposeerd | Paul Breuker',
     description: 'Trouwfotograaf Rotterdam: Paul Breuker, trouwfoto\'s geëxposeerd in de Rotterdamse kunsthallen en op Photoville in New York. De hele dag, met fotoboek.',
   },
 

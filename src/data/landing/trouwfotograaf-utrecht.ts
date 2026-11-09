@@ -100,7 +100,7 @@ export const trouwfotograafUtrecht: LandingPagina = {
   slug: 'trouwfotograaf-utrecht',
 
   seo: {
-    title: 'Trouwfotograaf Utrecht | Paul Breuker',
+    title: 'Trouwfotograaf Utrecht | Wereldwijd geëxposeerd | Paul Breuker',
     description: "Trouwen in Utrecht? Paul Breuker fotografeert van ochtend tot avond. Trouwfoto's geëxposeerd van Photoville in New York tot de kunsthallen in Rotterdam.",
   },
 
