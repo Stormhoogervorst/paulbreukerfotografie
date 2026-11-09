@@ -98,6 +98,7 @@ const blokPlekken: LandingUitlegBlok = {
 
 export const trouwfotograafUtrecht: LandingPagina = {
   slug: 'trouwfotograaf-utrecht',
+  reviewCategorie: 'bruiloft',
 
   seo: {
     title: 'Trouwfotograaf Utrecht | Wereldwijd geëxposeerd | Paul Breuker',
@@ -287,6 +288,7 @@ export const trouwfotograafUtrecht: LandingPagina = {
 
   schema: {
     dienstNaam: 'Trouwfotografie in Utrecht',
+    productNaam: 'Trouwreportage Utrecht door Paul Breuker',
     serviceType: 'Bruiloftfotografie',
     vanPrijs: laagste,
     faqSchema: false,

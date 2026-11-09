@@ -118,6 +118,7 @@ const blokPlekken: LandingUitlegBlok = {
 
 export const trouwfotograafArnhem: LandingPagina = {
   slug: 'trouwfotograaf-arnhem',
+  reviewCategorie: 'bruiloft',
 
   seo: {
     title: 'Trouwfotograaf Arnhem | Wereldwijd geëxposeerd | Paul Breuker',
@@ -316,6 +317,7 @@ export const trouwfotograafArnhem: LandingPagina = {
 
   schema: {
     dienstNaam: 'Trouwfotografie in Arnhem',
+    productNaam: 'Trouwreportage Arnhem door Paul Breuker',
     serviceType: 'Bruiloftfotografie',
     vanPrijs: laagste,
     faqSchema: false,

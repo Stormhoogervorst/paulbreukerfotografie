@@ -2,7 +2,8 @@
  * Typed JSON-LD helpers (schema.org).
  *
  * Regels (zie .cursor/rules/paulbreuker-regels.mdc):
- * - Geen AggregateRating of Review voor Pauls eigen bedrijf.
+ * - Geen AggregateRating of Review voor Pauls eigen bedrijf. Enige uitzondering, op uitdrukkelijk verzoek: het
+ *   Product-schema met Google-reviewscore in src/components/RatingSnippet.astro (cijfers in src/config/reviews.ts).
  * - Verzin geen feiten: ontbrekende velden zijn optioneel en worden weggelaten.
  * - Person en LocalBusiness verwijzen naar elkaar via @id.
  */

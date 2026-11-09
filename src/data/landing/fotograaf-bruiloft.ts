@@ -37,6 +37,7 @@ const vanaf = euro(bruiloftVanPrijs);
 
 export const fotograafBruiloft: LandingPagina = {
   slug: 'fotograaf-bruiloft',
+  reviewCategorie: 'bruiloft',
 
   seo: {
     title: 'Fotograaf bruiloft | Paul Breuker',
@@ -246,6 +247,7 @@ export const fotograafBruiloft: LandingPagina = {
 
   schema: {
     dienstNaam: 'Bruiloftfotografie',
+    productNaam: 'Trouwreportage door Paul Breuker',
     vanPrijs: bruiloftVanPrijs,
     // TODO(paul): werkgebied aanvullen of bevestigen.
     werkgebied: ['Nijmegen', 'Arnhem'],

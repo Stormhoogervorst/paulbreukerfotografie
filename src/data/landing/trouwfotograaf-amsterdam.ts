@@ -100,6 +100,7 @@ const blokPlekken: LandingUitlegBlok = {
 
 export const trouwfotograafAmsterdam: LandingPagina = {
   slug: 'trouwfotograaf-amsterdam',
+  reviewCategorie: 'bruiloft',
 
   seo: {
     title: 'Trouwfotograaf Amsterdam | Wereldwijd geëxposeerd | Paul Breuker',
@@ -288,6 +289,7 @@ export const trouwfotograafAmsterdam: LandingPagina = {
 
   schema: {
     dienstNaam: 'Trouwfotografie in Amsterdam',
+    productNaam: 'Trouwreportage Amsterdam door Paul Breuker',
     serviceType: 'Bruiloftfotografie',
     vanPrijs: laagste,
     faqSchema: false,

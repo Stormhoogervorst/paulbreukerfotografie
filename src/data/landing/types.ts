@@ -12,6 +12,7 @@
  * (`uitlegPlek`). Locaties staat na Uitleg (geen andere pagina gebruikt Locaties).
  */
 import type { ImageMetadata } from 'astro';
+import type { ReviewCategory } from '../../config/reviews';
 
 export interface LandingLink {
   label: string;
@@ -48,6 +49,11 @@ export interface LandingHeroFoto {
 export interface LandingSchema {
   /** Naam van de dienst in JSON-LD (`Service.name`). */
   dienstNaam: string;
+  /**
+   * Naam van het product in de Product-JSON-LD van `RatingSnippet` (Google-reviewscore onder de H1), bijvoorbeeld
+   * "Trouwreportage Nijmegen door Paul Breuker". Ontbreekt het, dan staat er geen RatingSnippet op de pagina.
+   */
+  productNaam?: string;
   /** Soort dienst in JSON-LD (`Service.serviceType`), bijvoorbeeld "Portretfotografie op locatie". Ontbreekt het, dan staat er niets. */
   serviceType?: string;
   /**
@@ -285,6 +291,11 @@ export interface LandingFormulier {
 export interface LandingPagina {
   /** URL-slug zonder slash, bijvoorbeeld "fotograaf-bruiloft". */
   slug: string;
+  /**
+   * Categorie voor het Google-reviewsblok onder Uitleg (src/config/reviews.ts). Ontbreekt het, dan is er geen blok. Zijn
+   * er (nog) geen reviews met deze categorie, dan rendert het blok niets, ook geen lege sectie.
+   */
+  reviewCategorie?: ReviewCategory;
   seo: {
     /** Rond 60 tekens. */
     title: string;

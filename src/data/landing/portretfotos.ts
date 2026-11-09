@@ -64,6 +64,7 @@ if (eindeEersteDeel === -1) throw new Error('portretfotos: de tekst `kunstenaar`
 
 export const portretfotos: LandingPagina = {
   slug: 'portretfotos',
+  reviewCategorie: 'portret',
 
   seo: {
     title: portretTitle,
@@ -274,6 +275,7 @@ export const portretfotos: LandingPagina = {
 
   schema: {
     dienstNaam: 'Portretfotografie',
+    productNaam: 'Portretfotografie door Paul Breuker',
     serviceType: 'Portretfotografie op locatie',
     // Geen vanPrijs: die komt uit de pakketprijzen zodra Paul ze aanlevert (zie LandingLayout.astro).
     // TODO(paul): werkgebied aanvullen of bevestigen.

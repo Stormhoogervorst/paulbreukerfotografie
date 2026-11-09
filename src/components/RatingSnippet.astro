@@ -1,0 +1,83 @@
+---
+/**
+ * Zichtbare Google-reviewscore plus Product-schema met AggregateRating (src/config/reviews.ts).
+ * Precies één keer per commerciële pagina, direct onder de H1 (via de slot van LandingHero).
+ * De zichtbare tekst en de JSON-LD komen uit dezelfde bron, zodat ze altijd overeenkomen.
+ */
+import { googleRating as r } from '../config/reviews';
+
+interface Props {
+  name: string;
+  description?: string;
+  image?: string;
+  price?: number;
+}
+
+const { name, description, image, price } = Astro.props;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name,
+  ...(description && { description }),
+  ...(image && { image }),
+  brand: { '@type': 'Brand', name: 'Paul Breuker Fotografie' },
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: r.value,
+    bestRating: 5,
+    reviewCount: r.count,
+  },
+  ...(price && {
+    offers: {
+      '@type': 'Offer',
+      price,
+      priceCurrency: 'EUR',
+      availability: 'https://schema.org/InStock',
+      url: Astro.url.href,
+    },
+  }),
+};
+
+const stars = '★'.repeat(Math.round(r.value)) + '☆'.repeat(5 - Math.round(r.value));
+const score = r.value.toFixed(1).replace('.', ',');
+---
+
+<p class="rating-snippet">
+  <span class="rating-stars" aria-hidden="true">{stars}</span>
+  <strong>{score}</strong>/5 op basis van
+  <a href={r.url} target="_blank" rel="noopener">
+    {r.count} {r.count === 1 ? 'Google-review' : 'Google-reviews'}
+  </a>
+</p>
+
+<script type="application/ld+json" set:html={JSON.stringify(schema).replace(/</g, '\\u003c')} />
+
+<style>
+  .rating-snippet {
+    margin: 0;
+    font-size: var(--font-size-small);
+    line-height: 1.3;
+    color: var(--ink);
+  }
+
+  .rating-snippet strong {
+    font-weight: 700;
+  }
+
+  /* Sterren in de inktkleur van de site (geen geel): de huisstijl is zwart op grijs. */
+  .rating-stars {
+    margin-right: 0.35rem;
+    letter-spacing: 0.1em;
+  }
+
+  .rating-snippet a {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .rating-snippet a:hover {
+    text-decoration-thickness: 2px;
+  }
+</style>

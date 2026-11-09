@@ -128,6 +128,7 @@ const blokPlekken: LandingUitlegBlok = {
 
 export const trouwfotograafNijmegen: LandingPagina = {
   slug: 'trouwfotograaf-nijmegen',
+  reviewCategorie: 'bruiloft',
 
   seo: {
     title: 'Trouwfotograaf Nijmegen | Wereldwijd geëxposeerd | Paul Breuker',
@@ -346,6 +347,7 @@ export const trouwfotograafNijmegen: LandingPagina = {
 
   schema: {
     dienstNaam: 'Trouwfotografie in Nijmegen',
+    productNaam: 'Trouwreportage Nijmegen door Paul Breuker',
     serviceType: 'Bruiloftfotografie',
     vanPrijs: laagste,
     // Geen FAQPage in de JSON-LD (op verzoek); de vragen blijven zichtbaar.

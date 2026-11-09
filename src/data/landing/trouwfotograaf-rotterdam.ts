@@ -99,6 +99,7 @@ const blokPlekken: LandingUitlegBlok = {
 
 export const trouwfotograafRotterdam: LandingPagina = {
   slug: 'trouwfotograaf-rotterdam',
+  reviewCategorie: 'bruiloft',
 
   seo: {
     title: 'Trouwfotograaf Rotterdam | Wereldwijd geëxposeerd | Paul Breuker',
@@ -287,6 +288,7 @@ export const trouwfotograafRotterdam: LandingPagina = {
 
   schema: {
     dienstNaam: 'Trouwfotografie in Rotterdam',
+    productNaam: 'Trouwreportage Rotterdam door Paul Breuker',
     serviceType: 'Bruiloftfotografie',
     vanPrijs: laagste,
     faqSchema: false,
