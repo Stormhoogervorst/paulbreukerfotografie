@@ -2,6 +2,7 @@
  * Centrale sitegegevens. Alles wat Paul nog moet bevestigen staat als TODO(paul).
  * Gebruik deze waarden overal (header, footer, JSON-LD) zodat ze op één plek wijzigen.
  */
+import { googleRating } from '../config/reviews';
 
 export const SITE_URL = 'https://paulbreuker.nl';
 export const SITE_NAME = 'Paul Breuker Fotografie';
@@ -98,6 +99,12 @@ export const PRIVACY = { label: 'Privacyverklaring', href: '/privacy' } as const
 
 /** Voor `sameAs` in JSON-LD. TODO(paul): Singulart-URL aanleveren. */
 export const SAME_AS: string[] = SOCIALS.map((social) => social.href);
+
+/** Google Bedrijfsprofiel van Paul Breuker Fotografie (Google Maps), dezelfde URL als bij de reviews. */
+export const GOOGLE_BEDRIJFSPROFIEL = googleRating.url;
+
+/** `sameAs` van het bedrijf (LocalBusiness): de profielen van Paul plus het Google Bedrijfsprofiel. */
+export const BUSINESS_SAME_AS: string[] = [...SAME_AS, GOOGLE_BEDRIJFSPROFIEL];
 
 /**
  * TODO(paul): standaard deelafbeelding (1200x630, eigen foto) aanleveren.

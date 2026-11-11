@@ -13,6 +13,16 @@ const BLOG_DIR = join(process.cwd(), 'src/content/blog');
 export interface BlogBestand {
   slug: string;
   draft: boolean;
+  /** `updatedDate` uit de frontmatter, anders `pubDate` (ISO 8601). Ontbreekt bij een onleesbare datum. */
+  gewijzigd?: string;
+}
+
+/** Leest een datumveld (`pubDate: 2026-10-08`, met of zonder aanhalingstekens) uit de frontmatter. */
+function frontmatterDatum(frontmatter: string, veld: string): Date | undefined {
+  const waarde = frontmatter.match(new RegExp(`^${veld}:\\s*['"]?([^'"\\r\\n]+)`, 'm'))?.[1]?.trim();
+  if (!waarde) return undefined;
+  const datum = new Date(waarde);
+  return Number.isNaN(datum.getTime()) ? undefined : datum;
 }
 
 export function leesBlogBestanden(): BlogBestand[] {
@@ -25,8 +35,29 @@ export function leesBlogBestanden(): BlogBestand[] {
       return {
         slug: naam.replace(/\.(mdx|md)$/, ''),
         draft: /^draft:\s*true\b/im.test(frontmatter),
+        gewijzigd: (
+          frontmatterDatum(frontmatter, 'updatedDate') ?? frontmatterDatum(frontmatter, 'pubDate')
+        )?.toISOString(),
       };
     });
+}
+
+/**
+ * `lastmod` voor de sitemap. Een blogpost: zijn `updatedDate`, anders `pubDate` (dezelfde datum als `dateModified` in de
+ * JSON-LD). /blog: de datum van de nieuwste gepubliceerde post. Elk ander pad: geen datum.
+ */
+export function blogLaatstGewijzigd(pad: string): string | undefined {
+  const gepubliceerd = leesBlogBestanden().filter((bestand) => !bestand.draft);
+  if (pad === '/blog') {
+    return gepubliceerd
+      .map((bestand) => bestand.gewijzigd)
+      .filter((datum): datum is string => Boolean(datum))
+      .sort()
+      .at(-1);
+  }
+  if (!pad.startsWith('/blog/')) return undefined;
+  const slug = pad.slice('/blog/'.length);
+  return gepubliceerd.find((bestand) => bestand.slug === slug)?.gewijzigd;
 }
 
 export function gepubliceerdeBlogSlugs(): Set<string> {

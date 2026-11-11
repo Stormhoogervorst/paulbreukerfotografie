@@ -23,6 +23,16 @@
       "permanent": true
     },
     {
+      "source": "/panoramas",
+      "destination": "/series",
+      "permanent": true
+    },
+    {
+      "source": "/panoramas/",
+      "destination": "/series",
+      "permanent": true
+    },
+    {
       "source": "/portretten",
       "destination": "/portretfotos",
       "permanent": true

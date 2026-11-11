@@ -19,7 +19,7 @@ import LandingFormulier from '../components/landing/LandingFormulier.astro';
 import Panorama from '../components/Panorama.astro';
 import { regels, formulier, seo, breadcrumb } from '../data/contact';
 import { home } from '../data/home';
-import { CONTACT, SAME_AS } from '../data/site';
+import { BUSINESS_SAME_AS, CONTACT, GOOGLE_BEDRIJFSPROFIEL } from '../data/site';
 import { breadcrumbList, contactPage, localBusiness } from '../lib/schema';
 import { BREEDTES_PAUL, FALLBACK_FORMAAT, FORMATEN } from '../lib/beeld';
 import paulFoto from '../assets/landing/paul.webp';
@@ -39,7 +39,8 @@ const jsonLd = [
     email: CONTACT.email,
     address: home.schema.address,
     areaServed: home.schema.areaServed,
-    sameAs: SAME_AS,
+    sameAs: BUSINESS_SAME_AS,
+    hasMap: GOOGLE_BEDRIJFSPROFIEL,
     contactPoint: {
       contactType: 'customer service',
       telephone: CONTACT.phoneHref.replace('tel:', ''),

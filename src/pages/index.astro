@@ -7,9 +7,14 @@ import BeeldDuo from '../components/BeeldDuo.astro';
 import Exposities from '../components/Exposities.astro';
 import Panorama from '../components/Panorama.astro';
 import Projecten from '../components/Projecten.astro';
+import { getImage } from 'astro:assets';
 import { home } from '../data/home';
-import { localBusiness } from '../lib/schema';
-import { CONTACT, SAME_AS } from '../data/site';
+import { localBusiness, person } from '../lib/schema';
+import { BUSINESS_SAME_AS, CONTACT, GOOGLE_BEDRIJFSPROFIEL, SAME_AS } from '../data/site';
+// Zelfde bronbestand als de foto van Paul in "Over Paul" (geen tweede kopie).
+import paulFoto from '../assets/landing/paul.webp';
+
+const paulPortret = await getImage({ src: paulFoto, width: 400, format: 'webp' });
 
 const jsonLd = [
   localBusiness({
@@ -18,6 +23,15 @@ const jsonLd = [
     email: CONTACT.email || undefined,
     address: home.schema.address,
     areaServed: home.schema.areaServed,
+    sameAs: BUSINESS_SAME_AS,
+    hasMap: GOOGLE_BEDRIJFSPROFIEL,
+  }),
+  // Het Person-node waar `founder` van het bedrijf en `author` van de blogposts via @id naar verwijzen.
+  person({
+    name: 'Paul Breuker',
+    url: '/',
+    jobTitle: 'Fotograaf',
+    image: paulPortret.src,
     sameAs: SAME_AS,
   }),
 ];

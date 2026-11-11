@@ -4,7 +4,7 @@ import { defineConfig, envField } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import mdx from '@astrojs/mdx';
 import vercel from '@astrojs/vercel';
-import { gepubliceerdeBlogSlugs } from './src/lib/blog-indexeerbaar.ts';
+import { blogLaatstGewijzigd, gepubliceerdeBlogSlugs } from './src/lib/blog-indexeerbaar.ts';
 
 // Niet-indexeerbare paden: houd deze lijst gelijk aan de pagina's met `noindex`.
 const NOT_INDEXABLE = ['/bedankt', '/404', '/portfolio', '/portfolio/portretten', '/portfolio/bruiloften', '/privacy'];
@@ -15,7 +15,10 @@ export default defineConfig({
   trailingSlash: 'never',
   // Statisch, behalve de API-route (src/pages/api/aanvraag.ts, `prerender = false`): die draait on-demand via de adapter.
   output: 'static',
-  adapter: vercel(),
+  // Skew Protection uit: anders krijgt elk bestand in /_astro bij elke deploy een andere URL (`?dpl=dpl_...`), ook in
+  // og:image, de afbeeldingensitemap en de JSON-LD. Google Afbeeldingen ziet dan na elke deploy nieuwe URL's. De site is
+  // statisch (alleen het formulier draait on-demand), dus de bescherming tegen versieverschillen is hier niet nodig.
+  adapter: vercel({ skewProtection: false }),
   // Afbeeldingen: alle varianten (AVIF/WebP, meerdere breedtes) worden bij de build gemaakt en staan als statische bestanden in
   // /_astro (geen runtime-optimalisatie, geen serverless function). De eigen service is de sharp-service van Astro met een
   // vaste kwaliteit per formaat (AVIF 70, WebP 76), zie src/lib/image-service.ts en src/lib/beeld.ts.
@@ -47,6 +50,13 @@ export default defineConfig({
           return gepubliceerd.has(slug);
         }
         return true;
+      },
+      // `lastmod` alleen waar een echte datum bestaat: blogposts (updatedDate, anders pubDate) en /blog (de nieuwste
+      // post). Andere pagina's hebben geen betrouwbare wijzigingsdatum en krijgen er dus geen.
+      serialize: (item) => {
+        const pad = new URL(item.url).pathname.replace(/\/$/, '') || '/';
+        const lastmod = blogLaatstGewijzigd(pad);
+        return lastmod ? { ...item, lastmod } : item;
       },
     }),
     mdx(),

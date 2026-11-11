@@ -162,6 +162,7 @@ export interface LocalBusinessSchema extends JsonLdNode {
   address?: PostalAddressSchema;
   areaServed?: string[];
   sameAs?: string[];
+  hasMap?: string;
   priceRange?: string;
   contactPoint?: ContactPointSchema;
 }
@@ -177,6 +178,8 @@ export interface LocalBusinessInput {
   /** Plaatsnamen of regio's, bijvoorbeeld ["Nijmegen", "Arnhem"]. */
   areaServed?: string[];
   sameAs?: string[];
+  /** URL van het Google Bedrijfsprofiel op Google Maps. */
+  hasMap?: string;
   priceRange?: string;
   /** Contactpunt (alleen op /contact): telefoon, e-mail, taal en werkgebied als `ContactPoint`. */
   contactPoint?: Omit<ContactPointSchema, '@type'>;
@@ -198,6 +201,7 @@ export function localBusiness(input: LocalBusinessInput = {}): LocalBusinessSche
     ...(input.address ? { address: { '@type': 'PostalAddress', ...input.address } } : {}),
     ...(input.areaServed?.length ? { areaServed: input.areaServed } : {}),
     ...(input.sameAs?.length ? { sameAs: input.sameAs } : {}),
+    ...(input.hasMap ? { hasMap: input.hasMap } : {}),
     ...(input.priceRange ? { priceRange: input.priceRange } : {}),
     ...(input.contactPoint ? { contactPoint: { '@type': 'ContactPoint', ...input.contactPoint } } : {}),
   };
@@ -625,6 +629,8 @@ export interface BlogPostingSchema extends JsonLdNode {
   mainEntityOfPage: string;
   author: {
     '@type': 'Person';
+    /** Hetzelfde @id als het Person-node op de homepage, zodat de auteur en Paul één entiteit zijn. */
+    '@id': string;
     name: string;
     url: string;
     sameAs: string[];
@@ -671,6 +677,7 @@ export function blogPosting(input: BlogPostingInput): BlogPostingSchema {
     mainEntityOfPage: page,
     author: {
       '@type': 'Person',
+      '@id': PERSON_ID,
       name: 'Paul Breuker',
       url: SITE_URL,
       sameAs: FOOTER_SOCIALS.map((social) => social.href),

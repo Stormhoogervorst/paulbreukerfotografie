@@ -359,6 +359,7 @@ export const home = {
     // TODO(paul): straat en postcode. Tot die tijd alleen plaats en land.
     address: { addressLocality: 'Nijmegen', addressCountry: 'NL' },
     // TODO(paul): openingstijden, alleen toevoegen als ze bekend zijn.
-    areaServed: ['Nijmegen', 'Arnhem'],
+    // De vijf steden met een eigen bruiloftspagina (/trouwfotograaf-...).
+    areaServed: ['Nijmegen', 'Arnhem', 'Utrecht', 'Amsterdam', 'Rotterdam'],
   },
 };
