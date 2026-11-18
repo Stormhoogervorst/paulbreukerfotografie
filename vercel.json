@@ -14,6 +14,36 @@
   "redirects": [
     {
       "source": "/promoties",
+      "has": [{ "type": "host", "value": "www.paulbreuker.nl" }],
+      "destination": "https://www.fotograafpromotiesradboud.nl/",
+      "permanent": true
+    },
+    {
+      "source": "/werk",
+      "has": [{ "type": "host", "value": "www.paulbreuker.nl" }],
+      "destination": "https://paulbreuker.nl/series",
+      "permanent": true
+    },
+    {
+      "source": "/panoramas",
+      "has": [{ "type": "host", "value": "www.paulbreuker.nl" }],
+      "destination": "https://paulbreuker.nl/series",
+      "permanent": true
+    },
+    {
+      "source": "/portretten",
+      "has": [{ "type": "host", "value": "www.paulbreuker.nl" }],
+      "destination": "https://paulbreuker.nl/portretfotos",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.paulbreuker.nl" }],
+      "destination": "https://paulbreuker.nl/$1",
+      "permanent": true
+    },
+    {
+      "source": "/promoties",
       "destination": "https://www.fotograafpromotiesradboud.nl/",
       "permanent": true
     },

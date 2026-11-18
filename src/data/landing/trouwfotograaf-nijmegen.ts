@@ -131,7 +131,7 @@ export const trouwfotograafNijmegen: LandingPagina = {
   reviewCategorie: 'bruiloft',
 
   seo: {
-    title: 'Trouwfotograaf Nijmegen | Wereldwijd geëxposeerd | Paul Breuker',
+    title: 'Trouwfotograaf Nijmegen | Wereldwijd geëxposeerd',
     // TODO(paul): bevestig "Nijmegen" als vestigingsplaats en werkgebied.
     description: 'Trouwfotograaf Nijmegen? Paul Breuker, geëxposeerd van Photoville in New York tot de kunsthallen in Rotterdam. Analoog of digitaal.',
   },

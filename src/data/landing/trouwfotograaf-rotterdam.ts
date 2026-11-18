@@ -102,7 +102,7 @@ export const trouwfotograafRotterdam: LandingPagina = {
   reviewCategorie: 'bruiloft',
 
   seo: {
-    title: 'Trouwfotograaf Rotterdam | Wereldwijd geëxposeerd | Paul Breuker',
+    title: 'Trouwfotograaf Rotterdam | Wereldwijd geëxposeerd',
     description: 'Trouwfotograaf Rotterdam: Paul Breuker, trouwfoto\'s geëxposeerd in de Rotterdamse kunsthallen en op Photoville in New York. De hele dag, met fotoboek.',
   },
 

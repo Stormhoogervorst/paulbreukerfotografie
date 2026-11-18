@@ -121,7 +121,7 @@ export const trouwfotograafArnhem: LandingPagina = {
   reviewCategorie: 'bruiloft',
 
   seo: {
-    title: 'Trouwfotograaf Arnhem | Wereldwijd geëxposeerd | Paul Breuker',
+    title: 'Trouwfotograaf Arnhem | Wereldwijd geëxposeerd',
     description: "Bruiloft in Arnhem? Paul Breuker fotografeert de hele dag, met fotoboek. Trouwfoto's geëxposeerd van Photoville New York tot kunsthallen Rotterdam.",
   },
 

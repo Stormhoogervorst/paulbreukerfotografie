@@ -101,7 +101,7 @@ export const trouwfotograafUtrecht: LandingPagina = {
   reviewCategorie: 'bruiloft',
 
   seo: {
-    title: 'Trouwfotograaf Utrecht | Wereldwijd geëxposeerd | Paul Breuker',
+    title: 'Trouwfotograaf Utrecht | Wereldwijd geëxposeerd',
     description: "Trouwen in Utrecht? Paul Breuker fotografeert van ochtend tot avond. Trouwfoto's geëxposeerd van Photoville in New York tot de kunsthallen in Rotterdam.",
   },
 
