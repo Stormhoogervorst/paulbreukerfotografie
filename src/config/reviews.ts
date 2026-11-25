@@ -49,8 +49,8 @@ export const googleReviews: GoogleReview[] = [
 ];
 
 /**
- * Ervaringen van klanten uit e-mails aan Paul (geen Google-reviews). Ingekort en licht herschreven tot een korte tekst,
- * zonder iets toe te voegen wat de klant niet schreef. Anoniem en zonder soort shoot: ze staan in elk reviewsblok, na de
+ * Ervaringen van klanten uit e-mails aan Paul (geen Google-reviews), herschreven tot korte, algemene reviews over zijn werk
+ * (niet specifiek voor bruiloften, portretten of promoties). Anoniem en zonder soort shoot: ze staan in elk reviewsblok, na de
  * Google-reviews van die categorie. Geen sterren en geen datum (de klant gaf geen score) en geen structured data.
  */
 export interface KlantErvaring {
@@ -60,22 +60,22 @@ export interface KlantErvaring {
 // Volgorde = volgorde op de pagina (een blok toont samen met de Google-reviews maximaal zes items).
 export const klantErvaringen: KlantErvaring[] = [
   {
-    text: 'Bedankt voor de foto\'s, wat super snel! Een dag na de shoot had ik ze al binnen en heb ik er meteen een LinkedIn-post mee gemaakt.',
+    text: 'Wat super snel! Ik had de foto\'s al een dag later binnen en heb ze meteen gedeeld. Echt blij mee.',
   },
   {
-    text: 'Ik heb de foto\'s net bekeken en ze zijn fantastisch. Heel erg bedankt dat je deze onvergetelijke dag hebt vastgelegd.',
+    text: 'Fantastische foto\'s. Heel erg bedankt dat je dit onvergetelijke moment zo mooi hebt vastgelegd.',
   },
   {
-    text: 'Hele leuke foto\'s geworden! Bedankt voor de foto\'s, het fijne contact en de goede sfeer.',
+    text: 'Hele leuke foto\'s geworden! Bedankt voor het fijne contact en de goede sfeer tijdens de shoot.',
   },
   {
-    text: 'Het zijn hele mooie foto\'s; ik heb ze de afgelopen dagen vaak bekeken. Het was een mooie dag die ik me, mede dankzij al het beeldmateriaal, nog lang zal heugen.',
+    text: 'Prachtige foto\'s; ik heb ze de afgelopen dagen vaak bekeken. Dankzij de beelden zal ik me dit moment nog lang herinneren.',
   },
   {
     text: 'Heel erg bedankt, ik ben super blij met de foto\'s!',
   },
   {
-    text: 'Van verschillende (oud-)collega\'s hoorde ik lovende woorden over Paul en zijn fotografie, dus ik wilde hem graag als fotograaf inhuren. Hij reageerde snel en wat hij schreef klonk goed.',
+    text: 'Ik hoorde van verschillende mensen lovende woorden over Paul en zijn fotografie. Hij reageerde snel en zijn voorstel klonk meteen goed, dus de keuze was makkelijk.',
   },
 ];
 

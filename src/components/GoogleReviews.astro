@@ -1,7 +1,7 @@
 ---
 /**
  * Reviews onderaan een commerciële pagina, als gewone HTML (geen iframe, widget of JavaScript): eerst de Google-reviews,
- * daarna de ervaringen uit e-mails van klanten (anoniem, zonder sterren, met het label "Uit een e-mail"), samen maximaal
+ * daarna de ervaringen uit e-mails van klanten (anoniem, zonder sterren en zonder bronregel), samen maximaal
  * `limit`. Google-reviews alleen met de gevraagde categorie; de ervaringen staan in elk blok (src/config/reviews.ts).
  * Zonder items rendert het component niets: geen lege sectie en geen kop.
  *
@@ -46,8 +46,7 @@ const KOP_ID = `reviews-titel-${category}`;
       </h2>
 
       <p class="reviews__samenvatting">
-        {score} <span aria-hidden="true">{sterren(Math.round(googleRating.value))}</span> · {googleRating.count}{' '}
-        {googleRating.count === 1 ? 'review' : 'reviews'} op Google
+        {score} <span aria-hidden="true">{sterren(Math.round(googleRating.value))}</span> op Google
       </p>
 
       <ul class="reviews__raster" role="list">
@@ -77,9 +76,6 @@ const KOP_ID = `reviews-titel-${category}`;
               <blockquote class="review__tekst">
                 <p>{ervaring.text}</p>
               </blockquote>
-              <figcaption class="review__bron">
-                <span class="review__label">Uit een e-mail van een klant</span>
-              </figcaption>
             </figure>
           </li>
         ))}
