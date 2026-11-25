@@ -24,7 +24,7 @@ import { impressieAfbeeldingen, impressieSchemaAfbeeldingen } from '../lib/landi
 import { segmentenTekst } from '../lib/segmenten';
 import { breadcrumbList, faqPage, imageGallery, service } from '../lib/schema';
 import type { LandingPagina } from '../data/landing/types';
-import { ervaringenVoorCategorie, reviewsVoorCategorie } from '../config/reviews';
+import { klantErvaringen, reviewsVoorCategorie } from '../config/reviews';
 
 interface Props {
   pagina: LandingPagina;
@@ -34,7 +34,7 @@ const { pagina } = Astro.props;
 // Reviewsectie alleen als er voor deze categorie iets te tonen is (anders geen lege .sectie-wrapper).
 const toonReviews =
   !!pagina.reviewCategorie &&
-  reviewsVoorCategorie(pagina.reviewCategorie).length + ervaringenVoorCategorie(pagina.reviewCategorie).length > 0;
+  reviewsVoorCategorie(pagina.reviewCategorie).length + klantErvaringen.length > 0;
 const blogPosts = await postsOnderaan(pagina.slug);
 const pad = `/${pagina.slug}`;
 /** Uitleg-blokken direct na Impressie in plaats van na Vragen (zie de volgorde in de opmerking hieronder). */

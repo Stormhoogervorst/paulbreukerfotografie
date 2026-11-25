@@ -50,54 +50,38 @@ export const googleReviews: GoogleReview[] = [
 
 /**
  * Ervaringen van klanten uit e-mails aan Paul (geen Google-reviews). Ingekort en licht herschreven tot een korte tekst,
- * zonder iets toe te voegen wat de klant niet schreef. Anoniem: alleen de soort shoot. Geen sterren en geen datum (de klant
- * gaf geen score) en geen structured data.
+ * zonder iets toe te voegen wat de klant niet schreef. Anoniem en zonder soort shoot: ze staan in elk reviewsblok, na de
+ * Google-reviews van die categorie. Geen sterren en geen datum (de klant gaf geen score) en geen structured data.
  */
 export interface KlantErvaring {
   text: string;
-  categories: ReviewCategory[];
-  /** Soort shoot, in plaats van een naam, bijv. 'Promotie'. */
-  context: string;
 }
 
-// Volgorde = volgorde op de pagina (afwisselend soorten shoots; de portretpagina toont er maar drie).
-// TODO(paul): controleer per ervaring de soort shoot (context en categorieën); die is afgeleid uit de e-mail.
+// Volgorde = volgorde op de pagina (een blok toont samen met de Google-reviews maximaal zes items).
 export const klantErvaringen: KlantErvaring[] = [
   {
     text: 'Bedankt voor de foto\'s, wat super snel! Een dag na de shoot had ik ze al binnen en heb ik er meteen een LinkedIn-post mee gemaakt.',
-    categories: ['zakelijk', 'portret'],
-    context: 'Zakelijk portret',
   },
   {
     text: 'Ik heb de foto\'s net bekeken en ze zijn fantastisch. Heel erg bedankt dat je deze onvergetelijke dag hebt vastgelegd.',
-    categories: ['promotie', 'portret'],
-    context: 'Promotie',
   },
   {
     text: 'Hele leuke foto\'s geworden! Bedankt voor de foto\'s, het fijne contact en de goede sfeer.',
-    categories: ['zakelijk', 'portret'],
-    context: 'Zakelijk portret',
   },
   {
     text: 'Het zijn hele mooie foto\'s; ik heb ze de afgelopen dagen vaak bekeken. Het was een mooie dag die ik me, mede dankzij al het beeldmateriaal, nog lang zal heugen.',
-    categories: ['promotie', 'portret'],
-    context: 'Promotie',
   },
   {
     text: 'Heel erg bedankt, ik ben super blij met de foto\'s!',
-    categories: ['portret'],
-    context: 'Portretshoot',
   },
   {
     text: 'Van verschillende (oud-)collega\'s hoorde ik lovende woorden over Paul en zijn fotografie, dus ik wilde hem graag als fotograaf inhuren. Hij reageerde snel en wat hij schreef klonk goed.',
-    categories: ['promotie', 'portret'],
-    context: 'Promotie',
   },
 ];
 
-/** Ervaringen uit e-mails van één categorie, in de volgorde van de lijst, maximaal `limit`. */
-export function ervaringenVoorCategorie(category: ReviewCategory, limit = 6): KlantErvaring[] {
-  return klantErvaringen.filter((ervaring) => ervaring.categories.includes(category)).slice(0, limit);
+/** Ervaringen uit e-mails, in de volgorde van de lijst, maximaal `limit`. */
+export function klantErvaringenTonen(limit = 6): KlantErvaring[] {
+  return klantErvaringen.slice(0, limit);
 }
 
 /** Reviews van één categorie, nieuwste eerst, maximaal `limit`. Eén bron voor GoogleReviews.astro en LandingLayout.astro. */
