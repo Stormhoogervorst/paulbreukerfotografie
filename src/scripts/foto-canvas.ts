@@ -1,9 +1,11 @@
 /**
- * Oneindig canvas voor /portfolio en /portfolio/portretten (gedeeld; markup en data komen van
+ * Foto-canvas voor /portfolio en de subpagina's (gedeeld; markup en data komen van
  * src/components/canvas/FotoCanvas.astro).
- * - Wereld: een tegel uit generateLayout die via modulo in beide richtingen herhaalt.
+ * - Wereld: één eindige tegel uit generateLayout (eindigRaster: zoveel kolommen als in de breedte passen, elke foto één
+ *   keer). Het canvas beweegt alleen omhoog en omlaag, tussen de bovenkant (onder de terug-knoppen) en de onderkant (boven
+ *   de overlay); horizontaal staat de tegel gecentreerd.
  * - Virtualisatie: alleen foto's binnen het beeld plus een halve schermhoogte marge staan in de DOM (Map met sleutel
- *   `${fotoId}:${kx}:${ky}`), met een maximum per frame en in totaal. Een tegel krijgt zijn afbeelding op het moment dat hij
+ *   `${fotoId}:${kx}:${ky}`, kx en ky zijn altijd 0), met een maximum per frame en in totaal. Een tegel krijgt zijn afbeelding op het moment dat hij
  *   wordt aangemeld, dus alleen foto's in of vlak bij het beeld laden; bij slepen laden nieuwe foto's mee. (Native
  *   `loading="lazy"` is hier niet bruikbaar: gemeten met 30 lazy-afbeeldingen in een getransformeerde wereld binnen een
  *   container met overflow: hidden (800 px breed, venster 1440 px): Chromium laadde er 8 en WebKit 6, dus de drempel is de
@@ -15,7 +17,7 @@
  *   gedeelde module src/scripts/lightbox.ts, de markup en stijl in src/components/Lightbox.astro.
  * - Lus: requestAnimationFrame alleen tijdens slepen, uitloop of achterstallig werk.
  */
-import { generateLayout, type Layout, type LayoutItem } from '../lib/portfolio-layout';
+import { eindigRaster, generateLayout, type Layout, type LayoutItem } from '../lib/portfolio-layout';
 import { createLightbox } from './lightbox';
 
 /** Instellingen per pagina; niet gezette waarden vallen terug op de standaard van /portfolio. */
@@ -67,6 +69,8 @@ const DAMPING = 0.94;
 const STOP_SPEED = 0.05; // px per frame van 16 ms
 const KEY_STEP = 120;
 const KEY_STEP_LARGE = 360;
+/** Ruimte tussen de terug-knoppen (boven) of de overlay (onder) en de eerste of laatste rij foto's, in px. */
+const RAND = 8;
 const MOBILE_BREAKPOINT = 700;
 const FIRST_SCREEN_WAIT = 1500; // ms
 /** Aantal tegels dat bij het openen meteen laadt (de LCP-tegel plus de naastgelegen); de rest wacht op het load-event. */
@@ -119,6 +123,8 @@ if (root && dataEl) {
   const canvas = root.querySelector<HTMLElement>('.portfolio__canvas')!;
   const world = root.querySelector<HTMLElement>('.portfolio__world')!;
   const hint = root.querySelector<HTMLElement>('.portfolio__hint');
+  const nav = root.querySelector<HTMLElement>('.portfolio__nav');
+  const overlay = root.querySelector<HTMLElement>('.portfolio__overlay');
   const dialog = root.querySelector<HTMLDialogElement>('.lightbox')!;
 
   const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -128,6 +134,9 @@ if (root && dataEl) {
   let layout!: Layout;
   let viewW = 0;
   let viewH = 0;
+  /** Ruimte boven en onder de tegel (terug-knoppen en overlay liggen over het canvas heen). */
+  let padTop = 0;
+  let padBottom = 0;
   let offX = 0;
   let offY = 0;
   let vx = 0;
@@ -159,14 +168,19 @@ if (root && dataEl) {
   const measure = () => {
     viewW = canvas.clientWidth;
     viewH = canvas.clientHeight;
+    padTop = nav ? nav.offsetTop + nav.offsetHeight + RAND : 0;
+    // De overlay vervaagt naar boven toe; de onderste rij hoeft alleen boven de tekst en links uit te komen.
+    const overlayTekst = overlay?.firstElementChild as HTMLElement | null;
+    padBottom = overlay && overlayTekst ? overlay.offsetHeight - overlayTekst.offsetTop + RAND : 0;
   };
 
   const buildLayout = () => {
     const mobile = viewW < MOBILE_BREAKPOINT;
-    const [cellW, cellH] = mobile ? (config.cellMobile ?? CELL_MOBILE) : (config.cellDesktop ?? CELL_DESKTOP);
+    const raster = eindigRaster(viewW, mobile ? (config.cellMobile ?? CELL_MOBILE) : (config.cellDesktop ?? CELL_DESKTOP));
     layout = generateLayout(photos, {
-      cellW,
-      cellH,
+      cellW: raster.cellW,
+      cellH: raster.cellH,
+      cols: raster.cols,
       viewportW: viewW,
       viewportH: viewH,
       ...(config.gap !== undefined ? { gap: config.gap } : {}),
@@ -278,13 +292,28 @@ if (root && dataEl) {
     return el;
   };
 
+  /** Houdt de tegel horizontaal in het midden en verticaal tussen de bovenkant en de onderkant. */
+  const clampOffset = () => {
+    offX = Math.round((viewW - layout.tileW) / 2);
+    vx = 0;
+    const min = Math.min(padTop, viewH - padBottom - layout.tileH);
+    if (offY > padTop) {
+      offY = padTop;
+      vy = 0;
+    } else if (offY < min) {
+      offY = min;
+      vy = 0;
+    }
+  };
+
   const applyTransform = () => {
+    clampOffset();
     world.style.transform = `translate3d(${offX}px, ${offY}px, 0)`;
   };
 
   /** Zet de DOM gelijk aan wat zichtbaar moet zijn. `limit` = max. aan- en afmeldingen elk. */
   const reconcile = (limit: number) => {
-    const { tileW, tileH, items, cellW } = layout;
+    const { tileW, tileH, items } = layout;
     if (!tileW || !tileH) return;
     // Marge: ongeveer een halve schermhoogte (rondom, maar horizontaal niet meer dan het scherm breed is). Binnen deze marge
     // staan en laden de tegels; erbuiten niet.
@@ -299,29 +328,13 @@ if (root && dataEl) {
     const centerY = -offY + viewH / 2;
 
     const wanted: Wanted[] = [];
-    const kx0 = Math.floor((left - cellW) / tileW);
-    const kx1 = Math.floor(right / tileW);
-    const ky0 = Math.floor(top / tileH) - 1;
-    const ky1 = Math.floor(bottom / tileH);
-    for (let ky = ky0; ky <= ky1; ky += 1) {
-      for (let kx = kx0; kx <= kx1; kx += 1) {
-        const baseX = kx * tileW;
-        const baseY = ky * tileH;
-        for (const item of items) {
-          const x = baseX + item.x;
-          const y = baseY + item.y;
-          if (x > right || x + item.w < left || y > bottom || y + item.h < top) continue;
-          const dx = x + item.w / 2 - centerX;
-          const dy = y + item.h / 2 - centerY;
-          wanted.push({
-            key: `${photos[item.photo].id}:${kx}:${ky}`,
-            item,
-            kx,
-            ky,
-            dist: dx * dx + dy * dy,
-          });
-        }
-      }
+    // Eén eindige tegel: geen herhaling, dus kx en ky zijn altijd 0.
+    for (const item of items) {
+      const { x, y } = item;
+      if (x > right || x + item.w < left || y > bottom || y + item.h < top) continue;
+      const dx = x + item.w / 2 - centerX;
+      const dy = y + item.h / 2 - centerY;
+      wanted.push({ key: `${photos[item.photo].id}:0:0`, item, kx: 0, ky: 0, dist: dx * dx + dy * dy });
     }
     wanted.sort((a, b) => a.dist - b.dist);
     if (wanted.length > MAX_NODES) wanted.length = MAX_NODES;
@@ -504,7 +517,6 @@ if (root && dataEl) {
 
   canvas.addEventListener('pointermove', (event) => {
     if (event.pointerId !== pointerId) return;
-    offX += event.clientX - lastX;
     offY += event.clientY - lastY;
     lastX = event.clientX;
     lastY = event.clientY;
@@ -560,14 +572,7 @@ if (root && dataEl) {
       event.preventDefault();
       const unit =
         event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? (viewH || window.innerHeight) : 1;
-      let dx = event.deltaX * unit;
-      let dy = event.deltaY * unit;
-      if (event.shiftKey && dx === 0) {
-        dx = dy;
-        dy = 0;
-      }
-      offX -= dx;
-      offY -= dy;
+      offY -= event.deltaY * unit;
       stopInertia();
       markInteracted();
       requestFrame();
@@ -594,20 +599,26 @@ if (root && dataEl) {
 
   canvas.addEventListener('keydown', (event) => {
     const step = event.shiftKey ? KEY_STEP_LARGE : KEY_STEP;
-    let dx = 0;
+    const pagina = Math.max(viewH - padTop - padBottom, KEY_STEP);
     let dy = 0;
     switch (event.key) {
-      case 'ArrowLeft':
-        dx = step;
-        break;
-      case 'ArrowRight':
-        dx = -step;
-        break;
       case 'ArrowUp':
         dy = step;
         break;
       case 'ArrowDown':
         dy = -step;
+        break;
+      case 'PageUp':
+        dy = pagina;
+        break;
+      case 'PageDown':
+        dy = -pagina;
+        break;
+      case 'Home':
+        dy = Infinity;
+        break;
+      case 'End':
+        dy = -Infinity;
         break;
       case 'Enter':
       case ' ': {
@@ -623,7 +634,6 @@ if (root && dataEl) {
         return;
     }
     event.preventDefault();
-    offX += dx;
     offY += dy;
     stopInertia();
     markInteracted();
@@ -645,8 +655,8 @@ if (root && dataEl) {
       clearAll();
       buildLayout();
     }
-    reconcile(Infinity);
     applyTransform();
+    reconcile(Infinity);
     releaseHeldInView();
   });
 
@@ -706,8 +716,7 @@ if (root && dataEl) {
 
   measure();
   buildLayout();
-  offX = -Math.round(layout.cellW * 0.25);
-  offY = -Math.round(layout.cellH * 0.15);
+  offY = padTop;
   applyTransform();
   reconcile(Infinity);
   resizeObserver.observe(canvas);

@@ -1,6 +1,6 @@
 ---
 /**
- * /portfolio/bruiloften: alle bruiloftfoto's van Paul op hetzelfde oneindige canvas als /portfolio (galerij-pagina,
+ * /portfolio/bruiloften: alle bruiloftfoto's van Paul op hetzelfde canvas als /portfolio (galerij-pagina,
  * gelinkt vanaf /fotograaf-bruiloft). Data: src/data/bruiloften.ts. Canvas: src/components/canvas/FotoCanvas.astro.
  * Geen eigen zoekwoorddoel naast /fotograaf-bruiloft en /love-marriage: lage SEO-prioriteit, beleving.
  */
@@ -19,7 +19,7 @@ const config: CanvasConfig = { holdMarginMobile: true };
 
 const aantal = bruiloften.length;
 const title = 'Bruiloften | Bruiloftfotografie door Paul Breuker';
-const description = `${aantal} foto's van bruiloften door Paul Breuker, van de ochtend tot het feest. Sleep door de beelden, klik voor groot formaat of vraag je bruiloft aan.`;
+const description = `${aantal} foto's van bruiloften door Paul Breuker, van de ochtend tot het feest. Scroll door de beelden, klik voor groot formaat of vraag je bruiloft aan.`;
 
 // Deelafbeelding (1200 × 630): dezelfde variant als de terugval voor pagina's zonder eigen og:image.
 const ogImage = await bruiloftenDeelafbeelding();
@@ -61,7 +61,7 @@ const schemaFotos = await Promise.all(
   ]}
   fotos={bruiloften}
   h1="Bruiloften"
-  instructie="Sleep om te verkennen. Klik op een foto voor groot formaat."
+  instructie="Scroll omhoog en omlaag. Klik op een foto voor groot formaat."
   terug={[
     { label: 'portfolio', href: '/portfolio' },
     { label: 'home', href: '/' },

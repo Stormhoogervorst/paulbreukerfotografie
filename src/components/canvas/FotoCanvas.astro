@@ -1,7 +1,7 @@
 ---
 /**
- * Gedeeld foto-canvas: één oneindig, sleepbaar canvas met lightbox (slepen om te verkennen, klikken voor groot formaat,
- * sluiten). Gebruikt door /portfolio (src/pages/portfolio.astro) en /portfolio/portretten
+ * Gedeeld foto-canvas: één sleepbaar canvas met lightbox dat alleen omhoog en omlaag beweegt (scrollen of slepen om te
+ * verkennen, klikken voor groot formaat, sluiten). Elke foto staat er één keer in; het canvas herhaalt niet. Gebruikt door /portfolio (src/pages/portfolio.astro) en /portfolio/portretten
  * (src/pages/portfolio/portretten.astro). Het component rendert de hele pagina (BaseLayout zonder header en footer).
  *
  * Gedrag: src/scripts/foto-canvas.ts. Plaatsing: src/lib/portfolio-layout.ts (deterministisch; elke foto behoudt zijn
@@ -26,7 +26,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Lightbox from '../Lightbox.astro';
 import { getPortfolioImages, toSrcset, type ImagePhoto } from '../../lib/portfolio-images';
-import { generateLayout } from '../../lib/portfolio-layout';
+import { eindigRaster, generateLayout } from '../../lib/portfolio-layout';
 import type { AnySchema } from '../../lib/schema';
 import type { CanvasConfig, ClientPhoto } from '../../scripts/foto-canvas';
 
@@ -73,8 +73,8 @@ const NOSCRIPT_LIMIT = 48;
 const EAGER_COUNT = 6;
 /** Referentiescherm (mobiel) om te bepalen welke foto's bij het startpunt in beeld komen. */
 const REFERENCE_VIEW = { w: 390, h: 780 };
-/** Zelfde startpositie als in foto-canvas.ts (offX/offY bij de start). */
-const START_OFFSET = { x: 0.25, y: 0.15 };
+/** Ongeveer de ruimte boven de eerste rij bij de start (onder de terug-knoppen), zie padTop in foto-canvas.ts. */
+const START_TOP = 72;
 
 const {
   title,
@@ -137,24 +137,26 @@ const cellMobile = config?.cellMobile ?? [150, 130];
 const cellDesktop = config?.cellDesktop ?? [290, 230];
 const eager = new Map<number, number>(); // foto-index -> breedte (px) op het referentiescherm
 if (bron === 'html' && fotos.length > 0) {
-  const [cellW, cellH] = cellMobile;
+  const raster = eindigRaster(REFERENCE_VIEW.w, cellMobile);
   const layout = generateLayout(
     fotos.map((foto) => ({ id: foto.id, series: foto.series ?? null, width: foto.width, height: foto.height })),
-    { cellW, cellH, viewportW: REFERENCE_VIEW.w, viewportH: REFERENCE_VIEW.h, ...(config?.gap !== undefined ? { gap: config.gap } : {}) },
+    {
+      cellW: raster.cellW,
+      cellH: raster.cellH,
+      cols: raster.cols,
+      viewportW: REFERENCE_VIEW.w,
+      viewportH: REFERENCE_VIEW.h,
+      ...(config?.gap !== undefined ? { gap: config.gap } : {}),
+    },
   );
-  const centerX = REFERENCE_VIEW.w / 2 + Math.round(cellW * START_OFFSET.x);
-  const centerY = REFERENCE_VIEW.h / 2 + Math.round(cellH * START_OFFSET.y);
+  // Midden van het beeld bij de start, in coördinaten van de tegel (gecentreerd, bovenaan).
+  const centerX = layout.tileW / 2;
+  const centerY = REFERENCE_VIEW.h / 2 - START_TOP;
   const nearest = new Map<number, { dist: number; w: number }>();
   for (const item of layout.items) {
-    for (const kx of [-1, 0, 1]) {
-      for (const ky of [-1, 0, 1]) {
-        const dx = kx * layout.tileW + item.x + item.w / 2 - centerX;
-        const dy = ky * layout.tileH + item.y + item.h / 2 - centerY;
-        const dist = dx * dx + dy * dy;
-        const current = nearest.get(item.photo);
-        if (!current || dist < current.dist) nearest.set(item.photo, { dist, w: item.w });
-      }
-    }
+    const dx = item.x + item.w / 2 - centerX;
+    const dy = item.y + item.h / 2 - centerY;
+    nearest.set(item.photo, { dist: dx * dx + dy * dy, w: item.w });
   }
   [...nearest.entries()]
     .sort((a, b) => a[1].dist - b[1].dist)
@@ -195,7 +197,7 @@ function maxWidth(foto: CanvasFoto, [cellW, cellH]: readonly [number, number]): 
       class="portfolio__canvas"
       tabindex="0"
       role="region"
-      aria-label="Fotogalerij: sleep of gebruik de pijltjestoetsen om te verkennen"
+      aria-label="Fotogalerij: scroll, sleep of gebruik de pijltjestoetsen omhoog en omlaag"
     >
       <div class="portfolio__world"></div>
     </div>

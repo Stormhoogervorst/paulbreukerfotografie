@@ -1,6 +1,6 @@
 ---
 /**
- * /portfolio/portretten: alle portretten van Paul op hetzelfde oneindige canvas als /portfolio (galerij-pagina,
+ * /portfolio/portretten: alle portretten van Paul op hetzelfde canvas als /portfolio (galerij-pagina,
  * gelinkt vanaf /portretfotos). Data: src/data/portretten.ts. Canvas: src/components/canvas/FotoCanvas.astro.
  * De oude URL /portretten is een 301 naar /portretfotos (vercel.json).
  */
@@ -25,7 +25,7 @@ const config: CanvasConfig = {
 
 const aantal = portretten.length;
 const title = 'Portretten | Portretfotografie door Paul Breuker';
-const description = `${aantal} portretten van mensen en beroepen door Paul Breuker. Sleep door de beelden, klik voor groot formaat of laat zelf een portretfoto maken.`;
+const description = `${aantal} portretten van mensen en beroepen door Paul Breuker. Scroll door de beelden, klik voor groot formaat of laat zelf een portretfoto maken.`;
 
 const ogPhoto = portretten.find((foto) => foto.file === OG_FILE) ?? portretten[0];
 const ogImage = ogPhoto
@@ -79,7 +79,7 @@ const schemaFotos = await Promise.all(
   ]}
   fotos={portretten}
   h1="Portretten"
-  instructie="Sleep om te verkennen. Klik op een foto voor groot formaat."
+  instructie="Scroll omhoog en omlaag. Klik op een foto voor groot formaat."
   terug={[
     { label: 'portfolio', href: '/portfolio' },
     { label: 'home', href: '/' },

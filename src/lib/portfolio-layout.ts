@@ -1,11 +1,14 @@
 /**
- * Deterministische layout voor het oneindige canvas op /portfolio (zonder DOM, ook in Node bruikbaar).
+ * Deterministische layout voor het foto-canvas op /portfolio (zonder DOM, ook in Node bruikbaar).
  *
  * Eén tegel = kolommen × rijen cellen in een verspringend raster (oneven rijen een halve cel naar
- * rechts). Elke foto staat er één keer in; is de tegel kleiner dan 2 × 2 schermen of zijn er minder
- * dan `minCount` foto's, dan worden de foto's herhaald tot hij groot genoeg is en zijn alle cellen
- * gevuld. Zonder aanvulling blijven de restcellen van de laatste rij(en) leeg. De tegel herhaalt
- * zich naadloos: daarvoor is het aantal rijen altijd even.
+ * rechts).
+ * - Eindig (`cols` gezet, zie `eindigRaster`): een vast aantal kolommen dat in de schermbreedte past, elke foto precies
+ *   één keer, zoveel rijen als nodig. Het canvas scrolt dan alleen omhoog en omlaag.
+ * - Herhalend (zonder `cols`): elke foto staat er één keer in; is de tegel kleiner dan 2 × 2 schermen of zijn er minder
+ *   dan `minCount` foto's, dan worden de foto's herhaald tot hij groot genoeg is en zijn alle cellen gevuld. De tegel
+ *   herhaalt zich naadloos: daarvoor is het aantal rijen altijd even.
+ * Zonder aanvulling blijven restcellen leeg (verspreid over de tegel).
  */
 
 export interface LayoutPhoto {
@@ -24,6 +27,8 @@ export interface LayoutOptions {
   /** Minimale ruimte tussen buren in px. */
   gap?: number;
   minCount?: number;
+  /** Eindige layout met dit aantal kolommen: elke foto één keer, geen herhaling (zie `eindigRaster`). */
+  cols?: number;
 }
 
 export interface LayoutItem {
@@ -79,6 +84,19 @@ function pickScale(random: () => number): number {
   return SCALES[SCALES.length - 1];
 }
 
+/**
+ * Kolommen en celmaat voor de eindige layout: zoveel kolommen als bij de gewenste celmaat in `viewportW` passen (met de
+ * halve cel waarmee oneven rijen verspringen), daarna de cel zo geschaald dat het raster de breedte precies vult.
+ */
+export function eindigRaster(
+  viewportW: number,
+  [cellW, cellH]: readonly [number, number],
+): { cols: number; cellW: number; cellH: number } {
+  const cols = Math.max(1, Math.round(viewportW / cellW - 0.5));
+  const breedte = Math.floor(viewportW / (cols + 0.5));
+  return { cols, cellW: breedte, cellH: Math.round((cellH * breedte) / cellW) };
+}
+
 function gridFor(count: number): { cols: number; rows: number } {
   const cols = Math.max(1, Math.ceil(Math.sqrt(count * 1.3)));
   const rows = Math.ceil(count / cols);
@@ -90,16 +108,19 @@ export function generateLayout(photos: LayoutPhoto[], options: LayoutOptions): L
   const random = createRandom(seed);
   const total = photos.length;
   if (total === 0) return { cols: 0, rows: 0, cellW, cellH, tileW: 0, tileH: 0, items: [] };
+  const eindig = options.cols !== undefined;
 
-  // Aantal plaatsen: minstens alle foto's één keer, aangevuld tot de tegel 2 × 2 schermen dekt.
+  // Aantal plaatsen: minstens alle foto's één keer; herhalend aangevuld tot de tegel 2 × 2 schermen dekt.
   let count = total;
-  for (;;) {
+  while (!eindig) {
     const { cols, rows } = gridFor(count);
     const bigEnough = cols * cellW >= viewportW * 2 && rows * cellH >= viewportH * 2;
     if ((bigEnough && count >= Math.min(minCount, total * 20)) || count >= total * 20) break;
     count += 1;
   }
-  const { cols, rows } = gridFor(count);
+  const { cols, rows } = eindig
+    ? { cols: Math.max(1, options.cols!), rows: Math.ceil(total / Math.max(1, options.cols!)) }
+    : gridFor(count);
   const cells = cols * rows;
   // Wordt er aangevuld, dan meteen alle cellen; anders blijven de restcellen leeg.
   if (count > total) count = cells;
@@ -115,16 +136,18 @@ export function generateLayout(photos: LayoutPhoto[], options: LayoutOptions): L
   const empty = new Set(shuffle([...Array(cells).keys()], random).slice(0, cells - count));
 
   const grid: number[] = new Array(cells).fill(-1);
-  const at = (c: number, r: number) =>
-    grid[(((r % rows) + rows) % rows) * cols + (((c % cols) + cols) % cols)];
+  const at = (c: number, r: number) => {
+    if (eindig && (c < 0 || c >= cols || r < 0 || r >= rows)) return -1;
+    return grid[(((r % rows) + rows) % rows) * cols + (((c % cols) + cols) % cols)];
+  };
 
-  /** Buren die al geplaatst zijn (links, rij erboven, en via de wrap rechts/onder). */
+  /** Buren die al geplaatst zijn (links, rij erboven, en herhalend via de wrap rechts/onder). */
   const neighbours = (c: number, r: number): number[] => {
     const shifted = r % 2 === 1;
     const above = shifted ? [c, c + 1] : [c - 1, c];
     const below = shifted ? [c, c + 1] : [c - 1, c];
     const list = [at(c - 1, r), at(c + 1, r), ...above.map((x) => at(x, r - 1))];
-    if (r === rows - 1) list.push(...below.map((x) => at(x, 0)));
+    if (!eindig && r === rows - 1) list.push(...below.map((x) => at(x, 0)));
     return list.filter((value) => value >= 0);
   };
 
@@ -169,5 +192,7 @@ export function generateLayout(photos: LayoutPhoto[], options: LayoutOptions): L
     });
   }
 
-  return { cols, rows, cellW, cellH, tileW: cols * cellW, tileH: rows * cellH, items };
+  // Eindig: de tegel is precies zo breed als het raster inclusief de verspringing van de oneven rijen.
+  const tileW = eindig && rows > 1 ? cols * cellW + cellW / 2 : cols * cellW;
+  return { cols, rows, cellW, cellH, tileW, tileH: rows * cellH, items };
 }
