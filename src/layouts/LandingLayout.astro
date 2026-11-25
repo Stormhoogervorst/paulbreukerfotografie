@@ -16,6 +16,7 @@ import LandingOverPaul from '../components/landing/LandingOverPaul.astro';
 import LandingPakketten from '../components/landing/LandingPakketten.astro';
 import LandingUitleg from '../components/landing/LandingUitleg.astro';
 import LandingVragen from '../components/landing/LandingVragen.astro';
+import GoogleReviews from '../components/GoogleReviews.astro';
 import Statement from '../components/Statement.astro';
 import LatestPosts from '../components/blog/LatestPosts.astro';
 import { postsOnderaan } from '../lib/blog';
@@ -23,12 +24,17 @@ import { impressieAfbeeldingen, impressieSchemaAfbeeldingen } from '../lib/landi
 import { segmentenTekst } from '../lib/segmenten';
 import { breadcrumbList, faqPage, imageGallery, service } from '../lib/schema';
 import type { LandingPagina } from '../data/landing/types';
+import { ervaringenVoorCategorie, reviewsVoorCategorie } from '../config/reviews';
 
 interface Props {
   pagina: LandingPagina;
 }
 
 const { pagina } = Astro.props;
+// Reviewsectie alleen als er voor deze categorie iets te tonen is (anders geen lege .sectie-wrapper).
+const toonReviews =
+  !!pagina.reviewCategorie &&
+  reviewsVoorCategorie(pagina.reviewCategorie).length + ervaringenVoorCategorie(pagina.reviewCategorie).length > 0;
 const blogPosts = await postsOnderaan(pagina.slug);
 const pad = `/${pagina.slug}`;
 /** Uitleg-blokken direct na Impressie in plaats van na Vragen (zie de volgorde in de opmerking hieronder). */
@@ -241,7 +247,14 @@ const jsonLd = [
       ))
   }
 
-  <!-- Reviews: tijdelijk niet getoond. Terugzetten: <GoogleReviews category={pagina.reviewCategorie} /> in een .sectie-wrapper, na Uitleg en vóór het formulier (component: src/components/GoogleReviews.astro). -->
+  <!-- Reviews (Google en ervaringen uit e-mails): na Uitleg en vóór het formulier. Zonder items voor deze categorie geen sectie. -->
+  {
+    toonReviews && pagina.reviewCategorie && (
+      <div class="sectie">
+        <GoogleReviews category={pagina.reviewCategorie} />
+      </div>
+    )
+  }
 
   <!-- Aanvraagformulier: komt na Reviews (of Pakketten) en vóór Uit de blog. -->
   {

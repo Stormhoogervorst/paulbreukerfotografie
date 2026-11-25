@@ -1,13 +1,15 @@
 ---
 /**
- * Google-reviews onderaan een commerciële pagina, als gewone HTML (geen iframe, widget of JavaScript).
- * Toont alleen reviews met de gevraagde categorie (src/config/reviews.ts). Zonder reviews rendert het component niets:
+ * Reviews onderaan een commerciële pagina, als gewone HTML (geen iframe, widget of JavaScript): eerst de Google-reviews,
+ * daarna de ervaringen uit e-mails van klanten (anoniem, zonder sterren, met het label "Uit een e-mail"), samen maximaal
+ * `limit`. Toont alleen items met de gevraagde categorie (src/config/reviews.ts). Zonder items rendert het component niets:
  * geen lege sectie en geen kop.
  *
  * Bewust GEEN structured data (geen JSON-LD, microdata of itemprop): de enige aggregateRating op de pagina komt uit
  * RatingSnippet.astro.
  */
 import {
+  ervaringenVoorCategorie,
   googleRating,
   reviewsVoorCategorie,
   writeReviewUrl,
@@ -23,6 +25,7 @@ interface Props {
 const { category, limit = 6, title = 'Wat klanten zeggen' } = Astro.props;
 
 const reviews = reviewsVoorCategorie(category, limit);
+const ervaringen = ervaringenVoorCategorie(category, Math.max(0, limit - reviews.length));
 
 const maandJaar = new Intl.DateTimeFormat('nl-NL', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 const maandJaarTekst = (datum: string) => {
@@ -36,7 +39,7 @@ const KOP_ID = `reviews-titel-${category}`;
 ---
 
 {
-  reviews.length > 0 && (
+  reviews.length + ervaringen.length > 0 && (
     <section class="reviews" id="reviews" aria-labelledby={KOP_ID}>
       <h2 id={KOP_ID} class="reviews__titel">
         {title}
@@ -64,6 +67,19 @@ const KOP_ID = `reviews-titel-${category}`;
                   <time datetime={review.date}>{maandJaarTekst(review.date)}</time>
                 </span>
                 <span class="review__label">Google-review</span>
+              </figcaption>
+            </figure>
+          </li>
+        ))}
+        {ervaringen.map((ervaring) => (
+          <li class="reviews__item">
+            <figure class="review">
+              <blockquote class="review__tekst">
+                <p>{ervaring.text}</p>
+              </blockquote>
+              <figcaption class="review__bron">
+                <span class="review__auteur">{ervaring.context}</span>
+                <span class="review__label">Uit een e-mail</span>
               </figcaption>
             </figure>
           </li>
