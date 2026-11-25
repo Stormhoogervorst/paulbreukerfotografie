@@ -33,6 +33,15 @@ const blog = defineCollection({
         .regex(/^\//, 'ctaHref begint met /')
         .optional(),
       ctaLabel: z.string().optional(),
+      /** Extra links in het CTA-blok onderaan, onder de hoofdlink (bijvoorbeeld stadspagina's). */
+      ctaExtra: z
+        .array(
+          z.object({
+            href: z.string().regex(/^\//, 'ctaExtra.href begint met /'),
+            label: z.string().min(1),
+          }),
+        )
+        .optional(),
       /** Voor locatiereportages, bijvoorbeeld "Kasteel Doorwerth". */
       location: z.string().optional(),
       faq: z

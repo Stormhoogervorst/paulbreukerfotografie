@@ -103,7 +103,7 @@ export const trouwfotograafAmsterdam: LandingPagina = {
   reviewCategorie: 'bruiloft',
 
   seo: {
-    title: 'Trouwfotograaf Amsterdam | Wereldwijd geëxposeerd',
+    title: `Trouwfotograaf Amsterdam vanaf ${euro(laagste)} | Paul Breuker`,
     description: 'Trouwfotograaf Amsterdam: Paul Breuker, geëxposeerd van Photoville in New York tot de kunsthallen in Rotterdam. De hele dag aanwezig, digitaal of analoog.',
   },
 
@@ -219,7 +219,9 @@ export const trouwfotograafAmsterdam: LandingPagina = {
         vraag: 'Wat kost een trouwfotograaf in Amsterdam?',
         antwoord: [
           [
-            `Een bruiloft in Amsterdam kost bij mij ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog). Daarvoor ben ik van ’s ochtends vroeg tot ’s avonds laat aanwezig, bij beide pakketten inclusief een ingebonden fotoboek. Wie een trouwfotograaf zoekt, zoekt ook wel een bruidsfotograaf: dat is hetzelfde werk. Een combinatie van digitaal en analoog kan op aanvraag.`,
+            `Een bruiloft in Amsterdam kost bij mij ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog). Daarvoor ben ik van ’s ochtends vroeg tot ’s avonds laat aanwezig, bij beide pakketten inclusief een ingebonden fotoboek. Wie een trouwfotograaf zoekt, zoekt ook wel een bruidsfotograaf: dat is hetzelfde werk. Een combinatie van digitaal en analoog kan op aanvraag. Lees ook `,
+            { tekst: 'wat een trouwfotograaf in Nederland gemiddeld kost', href: '/blog/wat-kost-een-trouwfotograaf' },
+            ', en waar je voor betaalt.',
           ],
         ],
       },

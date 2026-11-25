@@ -121,7 +121,7 @@ export const trouwfotograafArnhem: LandingPagina = {
   reviewCategorie: 'bruiloft',
 
   seo: {
-    title: 'Trouwfotograaf Arnhem | Wereldwijd geëxposeerd',
+    title: `Trouwfotograaf Arnhem vanaf ${euro(laagste)} | Paul Breuker`,
     description: "Bruiloft in Arnhem? Paul Breuker fotografeert de hele dag, met fotoboek. Trouwfoto's geëxposeerd van Photoville New York tot kunsthallen Rotterdam.",
   },
 
@@ -244,7 +244,9 @@ export const trouwfotograafArnhem: LandingPagina = {
         vraag: 'Wat kost een trouwfotograaf in Arnhem?',
         antwoord: [
           [
-            `Een bruiloft in Arnhem kost bij mij ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog). Ik ben dan van ’s ochtends vroeg tot ’s avonds laat aanwezig, en bij beide pakketten hoort een ingebonden fotoboek. Trouwfotograaf en bruidsfotograaf is hetzelfde werk. Een combinatie van digitaal en analoog kan op aanvraag.`,
+            `Een bruiloft in Arnhem kost bij mij ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog). Ik ben dan van ’s ochtends vroeg tot ’s avonds laat aanwezig, en bij beide pakketten hoort een ingebonden fotoboek. Trouwfotograaf en bruidsfotograaf is hetzelfde werk. Een combinatie van digitaal en analoog kan op aanvraag. Waar de verschillen tussen trouwfotografen vandaan komen, leg ik uit in `,
+            { tekst: 'wat kost een trouwfotograaf', href: '/blog/wat-kost-een-trouwfotograaf' },
+            '.',
           ],
         ],
       },

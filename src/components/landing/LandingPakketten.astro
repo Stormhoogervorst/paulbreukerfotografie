@@ -17,13 +17,14 @@
  *   "pakket", dan kiest src/scripts/formulier.ts daar dit pakket; anders wordt het attribuut niet gebruikt.
  * - Optioneel `noot` (veld `pakkettenNoot` van de pagina): kleine tekst onder de pakketten in --ink-gedempt; "op aanvraag"
  *   erin is een gewone tekstlink naar #aanvragen (met `data-pakket={nootPakket}`). Zonder `noot` is de uitvoer ongewijzigd.
+ * - Optioneel `pakketten.verwijzing`: één regel met een link (Segmenten), in de stijl van de noot en direct eronder.
  * - Geen eigen buitenmarges: de verticale ruimte rond de sectie komt van de .sectie-wrapper in LandingLayout.astro.
  * - Het enige JavaScript is het bestaande script van Marquee.astro.
  *
  * Content: `pagina.pakketten` (zie src/data/landing/types.ts).
  */
 import Marquee from '../Marquee.astro';
-import type { LandingPakketten } from '../../data/landing/types';
+import type { LandingPakketten, Segment } from '../../data/landing/types';
 
 interface Props {
   pakketten: LandingPakketten;
@@ -103,6 +104,16 @@ const nummer = (index: number) => String(index + 1).padStart(2, '0');
             </>
           ) : (
             noot
+          )}
+        </p>
+      )
+    }
+
+    {
+      pakketten.verwijzing && (
+        <p class="pakketten__noot pakketten__verwijzing">
+          {pakketten.verwijzing.map((segment: Segment) =>
+            typeof segment === 'string' ? segment : <a href={segment.href}>{segment.tekst}</a>,
           )}
         </p>
       )
@@ -265,6 +276,11 @@ const nummer = (index: number) => String(index + 1).padStart(2, '0');
 
   .pakketten__noot a:hover {
     text-decoration-thickness: 2px;
+  }
+
+  /* Verwijzing direct onder de noot: dezelfde stijl, zonder de grote witruimte ertussen. */
+  .pakketten__noot + .pakketten__verwijzing {
+    margin-top: 0.5em;
   }
 
   /* ---------- Pakketten (desktop) ---------- */

@@ -102,7 +102,7 @@ export const trouwfotograafRotterdam: LandingPagina = {
   reviewCategorie: 'bruiloft',
 
   seo: {
-    title: 'Trouwfotograaf Rotterdam | Wereldwijd geëxposeerd',
+    title: `Trouwfotograaf Rotterdam vanaf ${euro(laagste)} | Paul Breuker`,
     description: 'Trouwfotograaf Rotterdam: Paul Breuker, trouwfoto\'s geëxposeerd in de Rotterdamse kunsthallen en op Photoville in New York. De hele dag, met fotoboek.',
   },
 
@@ -218,7 +218,9 @@ export const trouwfotograafRotterdam: LandingPagina = {
         vraag: 'Wat kost een trouwfotograaf in Rotterdam?',
         antwoord: [
           [
-            `Een bruiloft in Rotterdam fotografeer ik voor ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog). Ik ben dan van ’s ochtends vroeg tot ’s avonds laat aanwezig, bij beide pakketten met een ingebonden fotoboek. Een trouwfotograaf wordt ook bruidsfotograaf genoemd. Een combinatie van digitaal en analoog kan op aanvraag.`,
+            `Een bruiloft in Rotterdam fotografeer ik voor ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog). Ik ben dan van ’s ochtends vroeg tot ’s avonds laat aanwezig, bij beide pakketten met een ingebonden fotoboek. Een trouwfotograaf wordt ook bruidsfotograaf genoemd. Een combinatie van digitaal en analoog kan op aanvraag. In mijn blog lees je `,
+            { tekst: 'waarom de prijzen van trouwfotografen uiteenlopen', href: '/blog/wat-kost-een-trouwfotograaf' },
+            '.',
           ],
         ],
       },

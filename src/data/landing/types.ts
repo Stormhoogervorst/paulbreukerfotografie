@@ -145,6 +145,11 @@ export interface LandingPakketten {
   titel: string;
   /** Eén regel kleine tekst onder de kolommen (bijvoorbeeld "inclusief btw"). Ontbreekt hij, dan komt er niets. */
   voetnoot?: string;
+  /**
+   * Eén kleine regel lopende tekst met een link onder de pakketten (in de stijl van `pakkettenNoot`), bijvoorbeeld naar
+   * de blog over prijzen. Ontbreekt hij, dan komt er niets.
+   */
+  verwijzing?: Segment[];
   items: LandingPakket[];
 }
 

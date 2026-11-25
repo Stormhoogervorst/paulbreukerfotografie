@@ -131,7 +131,7 @@ export const trouwfotograafNijmegen: LandingPagina = {
   reviewCategorie: 'bruiloft',
 
   seo: {
-    title: 'Trouwfotograaf Nijmegen | Wereldwijd geëxposeerd',
+    title: `Trouwfotograaf Nijmegen vanaf ${euro(laagste)} | Paul Breuker`,
     // TODO(paul): bevestig "Nijmegen" als vestigingsplaats en werkgebied.
     description: 'Trouwfotograaf Nijmegen? Paul Breuker, geëxposeerd van Photoville in New York tot de kunsthallen in Rotterdam. Analoog of digitaal.',
   },
@@ -272,7 +272,9 @@ export const trouwfotograafNijmegen: LandingPagina = {
         vraag: 'Wat kost een trouwfotograaf in Nijmegen?',
         antwoord: [
           [
-            `Een trouwfotograaf wordt ook wel bruidsfotograaf genoemd. Een bruiloft kost bij mij ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog). Ik ben dan van ’s ochtends vroeg tot ’s avonds laat aanwezig, en bij beide pakketten hoort een ingebonden fotoboek. Een combinatie van digitaal en analoog kan op aanvraag.`,
+            `Een trouwfotograaf wordt ook wel bruidsfotograaf genoemd. Een bruiloft kost bij mij ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog). Ik ben dan van ’s ochtends vroeg tot ’s avonds laat aanwezig, en bij beide pakketten hoort een ingebonden fotoboek. Een combinatie van digitaal en analoog kan op aanvraag. Hoe die bedragen zich verhouden tot andere trouwfotografen, lees je in `,
+            { tekst: 'wat een trouwfotograaf kost', href: '/blog/wat-kost-een-trouwfotograaf' },
+            '.',
           ],
         ],
       },

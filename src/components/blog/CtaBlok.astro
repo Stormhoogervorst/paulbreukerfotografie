@@ -1,7 +1,8 @@
 ---
 /**
  * CTA onderaan een post of categoriepagina. De kop komt van de categorie en kan ontbreken.
- * De link gebruikt de pijl-stijl van de site.
+ * De link gebruikt de pijl-stijl van de site. Optionele `extra` links (frontmatter `ctaExtra`) staan eronder, elk op een
+ * eigen regel en in dezelfde stijl.
  */
 import { labelZonderPijl } from '../../lib/blog';
 
@@ -9,14 +10,28 @@ interface Props {
   heading?: string;
   href: string;
   label: string;
+  extra?: Array<{ href: string; label: string }>;
 }
 
-const { heading, href, label } = Astro.props;
+const { heading, href, label, extra } = Astro.props;
 ---
 
 <aside class="cta-blok">
   {heading && <h2 class="cta-blok__kop">{heading}</h2>}
   <a class="statement-link" href={href}>{labelZonderPijl(label)} <span aria-hidden="true">→</span></a>
+  {
+    extra && extra.length > 0 && (
+      <ul class="cta-blok__extra" role="list">
+        {extra.map((link) => (
+          <li>
+            <a class="statement-link" href={link.href}>
+              {labelZonderPijl(link.label)} <span aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
 </aside>
 
 <style>
@@ -29,5 +44,15 @@ const { heading, href, label } = Astro.props;
   .cta-blok__kop {
     margin: 0 0 0.75rem;
     font-size: var(--blog-h2);
+  }
+
+  .cta-blok__extra {
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cta-blok__extra li {
+    margin: 0.25rem 0 0;
   }
 </style>

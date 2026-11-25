@@ -24,6 +24,12 @@ import type { LandingPakketten } from './types';
 
 export const pakketten: LandingPakketten = {
   titel: 'Pakketten',
+  // Interne link naar de prijsblog, op alle bruiloftspagina's met deze pakketten (onder de noot).
+  verwijzing: [
+    'Op de blog heb ik ',
+    { tekst: 'de prijzen van trouwfotografen vergeleken', href: '/blog/wat-kost-een-trouwfotograaf' },
+    ', en wat je voor dat geld krijgt.',
+  ],
   items: [
     {
       naam: 'Digitaal',

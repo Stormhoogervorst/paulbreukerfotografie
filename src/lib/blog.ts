@@ -103,6 +103,8 @@ export interface BlogCta {
   href: string;
   label: string;
   heading?: string;
+  /** Extra links onder de hoofdlink (frontmatter `ctaExtra`). */
+  extra?: Array<{ href: string; label: string }>;
 }
 
 /** CTA van de post, of de standaard van de categorie als de post geen eigen link heeft. */
@@ -112,6 +114,7 @@ export function ctaVanPost(post: BlogPost): BlogCta {
     href: post.data.ctaHref ?? categorie.defaultCtaHref,
     label: post.data.ctaLabel ?? categorie.defaultCtaLabel,
     heading: categorie.ctaHeading,
+    extra: post.data.ctaExtra,
   };
 }
 

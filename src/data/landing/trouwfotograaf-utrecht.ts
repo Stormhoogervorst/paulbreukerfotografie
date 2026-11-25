@@ -101,7 +101,7 @@ export const trouwfotograafUtrecht: LandingPagina = {
   reviewCategorie: 'bruiloft',
 
   seo: {
-    title: 'Trouwfotograaf Utrecht | Wereldwijd geëxposeerd',
+    title: `Trouwfotograaf Utrecht vanaf ${euro(laagste)} | Paul Breuker`,
     description: "Trouwen in Utrecht? Paul Breuker fotografeert van ochtend tot avond. Trouwfoto's geëxposeerd van Photoville in New York tot de kunsthallen in Rotterdam.",
   },
 
@@ -218,7 +218,9 @@ export const trouwfotograafUtrecht: LandingPagina = {
         vraag: 'Wat kost een trouwfotograaf in Utrecht?',
         antwoord: [
           [
-            `Een bruiloft in Utrecht fotografeer ik voor ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog). Ik ben dan van ’s ochtends vroeg tot ’s avonds laat aanwezig, bij beide pakketten met een ingebonden fotoboek erbij. Een trouwfotograaf heet ook wel bruidsfotograaf. Een combinatie van digitaal en analoog kan op aanvraag.`,
+            `Een bruiloft in Utrecht fotografeer ik voor ${pakketPrijs('Digitaal')} (Digitaal) of ${pakketPrijs('Volledig analoog')} (Volledig analoog). Ik ben dan van ’s ochtends vroeg tot ’s avonds laat aanwezig, bij beide pakketten met een ingebonden fotoboek erbij. Een trouwfotograaf heet ook wel bruidsfotograaf. Een combinatie van digitaal en analoog kan op aanvraag. Hoe die bedragen zich verhouden tot `,
+            { tekst: 'de prijzen van andere trouwfotografen', href: '/blog/wat-kost-een-trouwfotograaf' },
+            ', lees je op de blog.',
           ],
         ],
       },
