@@ -3,8 +3,11 @@
  *
  * Dit is het enige on-demand deel van de site (`prerender = false`); de rest is statisch.
  *
- * Volgorde: body lezen, formulier kiezen op `type`, spamcontroles (honeypot, tijdstempel, Origin; bij spam doen we alsof
- * het gelukt is en versturen we niets), valideren met Zod, dan mailen via Resend.
+ * GET geeft een formuliertoken (`{ token }`) dat het script bij het formulier ophaalt, zie src/lib/formulieren/spam.ts.
+ *
+ * Volgorde POST: body lezen, formulier kiezen op `type`, botcontroles (honeypot, Origin, token; bij een bot doen we
+ * alsof het gelukt is en versturen we niets), valideren met Zod, inhoudsfilter (reclame: niets versturen; verdacht: wel
+ * naar Paul met "[Mogelijk reclame]" in het onderwerp, geen bevestiging), dan mailen via Resend.
  * - Zonder RESEND_API_KEY: in dev een dry-run (niets versturen, aanvraag loggen, succes); in productie en preview een 503,
  *   zodat een aanvraag nooit stilletjes verdwijnt.
  * - Mislukt de mail naar Paul: 502, nooit een succesmelding. Mislukt alleen de bevestiging: loggen en toch succes.
@@ -18,14 +21,31 @@ import { Resend } from 'resend';
 import { CONTACT } from '../../data/site';
 import { kiesFormulier } from '../../lib/formulieren';
 import { fout, succes } from '../../lib/formulieren/respons';
+import { beoordeel, controleerToken, maakToken, tokenSleutel } from '../../lib/formulieren/spam';
 
 export const prerender = false;
 
 /** Veldnaam van de honeypot (verborgen voor mensen, zie LandingFormulier.astro). */
 const HONEYPOT = 'website';
-/** Milliseconden tussen laden en verzenden (ingevuld door het script); korter dan dit is een bot. */
-const MIN_TIJD_MS = 3000;
+/** Velden die het inhoudsfilter overslaat (geen vrije tekst van de afzender). */
+const GEEN_TEKST = new Set(['email', 'telefoon']);
 const MAX_BODY_BYTES = 50_000;
+
+function tokenGeheim(): string | undefined {
+  return tokenSleutel(
+    getSecret('FORM_SECRET')?.trim() || undefined,
+    getSecret('RESEND_API_KEY')?.trim() || undefined,
+    import.meta.env.DEV,
+  );
+}
+
+/** Formuliertoken voor het script. `no-store`: elk token heeft zijn eigen tijd. */
+export const GET: APIRoute = () => {
+  const geheim = tokenGeheim();
+  const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
+  if (!geheim) return new Response(JSON.stringify({ ok: false }), { status: 503, headers });
+  return new Response(JSON.stringify({ ok: true, token: maakToken(geheim) }), { status: 200, headers });
+};
 
 type Invoer = Record<string, unknown>;
 
@@ -57,15 +77,9 @@ function vreemdeOrigin(request: Request, site: URL | undefined): boolean {
   return !toegestaan.includes(origin);
 }
 
-function isBot(invoer: Invoer): boolean {
+function honeypotGevuld(invoer: Invoer): boolean {
   const honeypot = invoer[HONEYPOT];
-  if (typeof honeypot === 'string' ? honeypot.trim() !== '' : honeypot != null) return true;
-
-  // Alleen controleren als het veld aanwezig en numeriek is (zonder JavaScript is het leeg).
-  const tijd = invoer.tijd;
-  if (tijd === undefined || tijd === null || tijd === '') return false;
-  const ms = Number(tijd);
-  return Number.isFinite(ms) && ms < MIN_TIJD_MS;
+  return typeof honeypot === 'string' ? honeypot.trim() !== '' : honeypot != null;
 }
 
 /** Eén mail versturen; `true` als Resend hem heeft aangenomen. Logt nooit adressen of inhoud. */
@@ -104,8 +118,13 @@ export const POST: APIRoute = async ({ request, site }) => {
     });
   }
 
-  // Spam: doen alsof het gelukt is, niets versturen.
-  if (isBot(invoer) || vreemdeOrigin(request, site)) return succes(request, formulier.type);
+  // Bot: doen alsof het gelukt is, niets versturen. Een ontbrekend of verlopen token is geen bot (zonder JavaScript),
+  // maar telt mee in het inhoudsfilter hieronder.
+  const token = controleerToken(tokenGeheim(), invoer.token);
+  if (honeypotGevuld(invoer) || vreemdeOrigin(request, site) || token === 'te-snel' || token === 'ongeldig') {
+    console.info(`[aanvraag] bot geweerd (${formulier.type}, token ${token})`);
+    return succes(request, formulier.type);
+  }
 
   const resultaat = formulier.schema.safeParse(invoer);
   if (!resultaat.success) {
@@ -125,6 +144,20 @@ export const POST: APIRoute = async ({ request, site }) => {
   }
   const data = resultaat.data;
 
+  // Inhoudsfilter (reclame). In het log alleen de namen van de regels, geen inhoud.
+  const velden = data as unknown as Record<string, unknown>;
+  const naamVeld = [velden.naam, velden.namen].find((waarde): waarde is string => typeof waarde === 'string');
+  const teksten = Object.entries(velden)
+    .filter(([veld, waarde]) => typeof waarde === 'string' && !GEEN_TEKST.has(veld) && veld !== 'naam' && veld !== 'namen')
+    .map(([, waarde]) => waarde as string);
+  const spam = beoordeel({ naam: naamVeld, teksten, token });
+  if (spam.oordeel !== 'ok') {
+    console.info(`[aanvraag] ${spam.oordeel} (${formulier.type}, score ${spam.score}: ${spam.redenen.join(', ')})`);
+  }
+  if (spam.oordeel === 'spam') return succes(request, formulier.type);
+  const verdacht = spam.oordeel === 'verdacht';
+  const onderwerp = `${verdacht ? '[Mogelijk reclame] ' : ''}${formulier.onderwerp(data)}`;
+
   const sleutel = getSecret('RESEND_API_KEY')?.trim();
   const van = getSecret('FORM_FROM_EMAIL')?.trim();
   const naar = getSecret('FORM_TO_EMAIL')?.trim() || CONTACT.email;
@@ -137,13 +170,12 @@ export const POST: APIRoute = async ({ request, site }) => {
         [
           '[aanvraag] dry-run (geen RESEND_API_KEY): niets verstuurd.',
           `--- Mail naar ${naar} (reply-to ${data.email})`,
-          `Onderwerp: ${formulier.onderwerp(data)}`,
+          `Onderwerp: ${onderwerp}`,
           '',
           formulier.tekst(data),
-          `--- Bevestiging naar ${data.email} (reply-to ${naar})`,
-          `Onderwerp: ${bevestiging.onderwerp}`,
-          '',
-          bevestiging.tekst,
+          ...(verdacht
+            ? ['--- Geen bevestiging (mogelijk reclame)']
+            : [`--- Bevestiging naar ${data.email} (reply-to ${naar})`, `Onderwerp: ${bevestiging.onderwerp}`, '', bevestiging.tekst]),
         ].join('\n'),
       );
       return succes(request, formulier.type);
@@ -162,7 +194,7 @@ export const POST: APIRoute = async ({ request, site }) => {
   const naarPaul = await verstuur(resend, 'mail naar Paul', {
     from: van,
     to: [naar],
-    subject: formulier.onderwerp(data),
+    subject: onderwerp,
     text: formulier.tekst(data),
     replyTo: data.email,
   });
@@ -177,6 +209,8 @@ export const POST: APIRoute = async ({ request, site }) => {
   }
 
   // 2. Bevestiging aan de aanvrager. Mislukt dit, dan is de aanvraag zelf wel aangekomen: loggen en toch succes.
+  //    Niet bij mogelijke reclame: dan zou de site bevestigingen naar adressen van spammers sturen.
+  if (verdacht) return succes(request, formulier.type);
   const bevestiging = formulier.bevestiging(data);
   await verstuur(resend, 'bevestiging', {
     from: van,

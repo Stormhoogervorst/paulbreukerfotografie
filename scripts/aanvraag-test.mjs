@@ -6,6 +6,9 @@
  * log leest dit script om te controleren wat er "verstuurd" is. Eenmalig nodig: `npx playwright install chromium`.
  * Een andere poort: `PORT=4400 node scripts/aanvraag-test.mjs`. Exit-code 1 bij een mislukte controle.
  *
+ * Spamwering: een te snel verzonden of vervalst token geeft schijnsucces zonder mail; het inhoudsfilter gooit een
+ * SEO-reclamemail weg, zet "[Mogelijk reclame]" voor een twijfelgeval (zonder bevestiging) en laat een gewone vraag door.
+ *
  * Controles (portret): geldige aanvraag leidt naar /bedankt?type=portret (met de stappen van het portret), lege
  * verzending toont fouten, honeypot gevuld logt niets, ongeldig e-mailadres geeft 400, een klik op de cta van
  * "Kunstportret" scrolt naar #aanvragen met dat pakket voorgeselecteerd en het veld "locatie" staat in de gelogde
@@ -29,7 +32,9 @@ const wacht = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // ---------------------------------------------------------------------------
 
 const env = { ...process.env, FORCE_COLOR: '0' };
-delete env.RESEND_API_KEY;
+// Leeg (niet weglaten): Vite overschrijft een bestaande variabele niet met de waarde uit .env, dus zo blijft een echte
+// sleutel in .env buiten de test en verstuurt de route niets (dry-run).
+env.RESEND_API_KEY = '';
 const server = spawn('npx', ['astro', 'dev', '--port', String(PORT), '--ignore-lock'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
 let log = '';
 server.stdout.on('data', (deel) => (log += deel));
@@ -70,6 +75,13 @@ const postJson = async (body, headers = {}) => {
   });
   return { status: antwoord.status, json: await antwoord.json().catch(() => null) };
 };
+/** Een formuliertoken zoals het script het ophaalt (GET /api/aanvraag). */
+const haalToken = async () => {
+  const antwoord = await fetch(`${BASE}/api/aanvraag`, { headers: { Accept: 'application/json' } });
+  const json = await antwoord.json();
+  eis(antwoord.status === 200 && typeof json?.token === 'string', `token: status ${antwoord.status}`);
+  return json.token;
+};
 /** Verzenden zoals een formulier zonder JavaScript: urlencoded, geen Accept: application/json. */
 const postFormulier = async (velden) => {
   const antwoord = await fetch(`${BASE}/api/aanvraag`, {
@@ -90,7 +102,6 @@ const geldigPortret = {
   locatie: 'Thuis in Lent',
   personen: '3-5',
   bericht: 'Een gezin met twee kinderen.\nGraag in de tuin.',
-  tijd: '5000',
 };
 const geldigContact = {
   type: 'contact',
@@ -99,7 +110,6 @@ const geldigContact = {
   telefoon: '+31 6 12345678',
   onderwerp: 'boek',
   bericht: 'Ik wil graag een boek bestellen.\nKan dat ook als cadeau?',
-  tijd: '5000',
 };
 const geldigBruiloft = {
   type: 'bruiloft',
@@ -108,7 +118,6 @@ const geldigBruiloft = {
   namen: 'Anna en Bram',
   email: 'anna@example.com',
   pakket: 'digitaal',
-  tijd: '5000',
 };
 
 // ---------------------------------------------------------------------------
@@ -134,7 +143,7 @@ await controle('portret API: geldige aanvraag geeft { ok: true } en logt mails m
 });
 
 await controle('portret zonder JavaScript: 303 naar /bedankt?type=portret', async () => {
-  const { website: _w, tijd: _t, ...velden } = geldigPortret;
+  const { website: _w, ...velden } = geldigPortret;
   const antwoord = await postFormulier(velden);
   eis(antwoord.status === 303 && antwoord.location === '/bedankt?type=portret', `${antwoord.status} ${antwoord.location}`);
 });
@@ -158,14 +167,63 @@ await controle('portret API: lege of onbekende pakketkeuze en te lang bericht ge
   eis(naam.status === 400 && naam.json?.fouten?.naam, `naam: ${JSON.stringify(naam.json)}`);
 });
 
-await controle('portret API: honeypot gevuld, te snel of vreemde Origin geeft schijnsucces en logt niets', async () => {
+await controle('portret API: honeypot gevuld, te snel token, vervalst token of vreemde Origin geeft schijnsucces en logt niets', async () => {
   const voor = aantalMails();
   const honeypot = await postJson({ ...geldigPortret, website: 'https://spam.example' });
-  const snel = await postJson({ ...geldigPortret, tijd: '500' });
+  const snel = await postJson({ ...geldigPortret, token: await haalToken() });
+  const vervalst = await postJson({ ...geldigPortret, token: `${Date.now() - 10_000}.vervalst` });
   const vreemd = await postJson(geldigPortret, { Origin: 'https://spam.example' });
-  for (const antwoord of [honeypot, snel, vreemd]) eis(antwoord.status === 200 && antwoord.json?.ok === true, `status ${antwoord.status}`);
+  for (const antwoord of [honeypot, snel, vervalst, vreemd]) eis(antwoord.status === 200 && antwoord.json?.ok === true, `status ${antwoord.status}`);
   await wacht(800);
   eis(aantalMails() === voor, 'er is toch een mail gelogd');
+});
+
+await controle('inhoudsfilter: reclame (SEO-aanbod met links) geeft schijnsucces en logt geen mail', async () => {
+  const voor = aantalMails();
+  const antwoord = await postJson({
+    ...geldigContact,
+    naam: 'Mark Wilson',
+    onderwerp: 'anders',
+    bericht:
+      'Hello team, I came across your website and noticed it is not on the first page of Google. Our SEO agency builds high quality backlinks. Free audit: https://seo-boost.example.com and www.rank-now.example.net. Reply STOP to unsubscribe.',
+  });
+  eis(antwoord.status === 200 && antwoord.json?.ok === true, `status ${antwoord.status}`);
+  await wacht(800);
+  eis(aantalMails() === voor, 'er is toch een mail gelogd');
+  eis(/\[aanvraag\] spam \(contact, score \d+: .*seo/.test(log), 'geen spamregel in het log');
+});
+
+await controle('inhoudsfilter: twijfelgeval gaat naar Paul met "[Mogelijk reclame]" en zonder bevestiging', async () => {
+  const voor = aantalMails();
+  const antwoord = await postJson({
+    ...geldigContact,
+    naam: 'Lisa Peters',
+    onderwerp: 'zakelijk',
+    bericht: 'Dear business owner, I would like to discuss a collaboration with you. Kunnen we even bellen?',
+  });
+  eis(antwoord.status === 200 && antwoord.json?.ok === true, `status ${antwoord.status}`);
+  await wacht(800);
+  eis(aantalMails() === voor + 1, 'er is geen dry-run gelogd');
+  eis(log.includes('Onderwerp: [Mogelijk reclame] Nieuw bericht via contactformulier: Lisa Peters'), 'geen [Mogelijk reclame] in het onderwerp');
+  eis(log.includes('--- Geen bevestiging (mogelijk reclame)'), 'er is toch een bevestiging gelogd');
+});
+
+await controle('inhoudsfilter: gewone vraag met één link en geldig token komt gewoon door', async () => {
+  const token = await haalToken();
+  await wacht(3200);
+  const voor = aantalMails();
+  const antwoord = await postJson({
+    ...geldigContact,
+    naam: 'Sanne Jansen',
+    onderwerp: 'bruiloft',
+    bericht: 'Hoi Paul, ik zag je website en vind je analoge werk prachtig. Onze locatie: https://www.kasteeldoorwerth.nl. Ben je vrij op 12 juni?',
+    token,
+  });
+  eis(antwoord.status === 200 && antwoord.json?.ok === true, `status ${antwoord.status}`);
+  await wacht(800);
+  eis(aantalMails() === voor + 1, 'er is geen dry-run gelogd');
+  eis(log.includes('Onderwerp: Nieuw bericht via contactformulier: Sanne Jansen'), 'onderwerp ontbreekt of heeft een voorvoegsel');
+  eis(log.includes('Hoi Sanne Jansen,'), 'geen bevestiging gelogd');
 });
 
 await controle('onbekend type geeft 400', async () => {
@@ -186,7 +244,7 @@ await controle('contact API: geldige aanvraag geeft { ok: true } en logt mails m
     'Vertel me waar ik je mee kan helpen: Ik wil graag een boek bestellen.\nKan dat ook als cadeau?',
     'Verstuurd via paulbreuker.nl/contact',
     'Onderwerp: Bedankt voor je bericht, ik reageer binnen 3 werkdagen',
-    'Hoi Jan de Boer,\n\nBedankt voor je bericht. Ik heb het ontvangen en reageer binnen 3 werkdagen.\n\nDit heb ik genoteerd:',
+    'Hoi Jan de Boer,\n\nBedankt voor je bericht. Ik heb het ontvangen en reageer binnen 3 werkdagen.\n\nHeb je in de tussentijd iets toe te voegen?',
     'Groet,\nPaul Breuker\n+31 6 51 47 54 06 | info@paulbreuker.nl\nhttps://paulbreuker.nl',
   ]) {
     eis(log.includes(verwacht), `ontbreekt in het log: ${verwacht}`);
@@ -194,7 +252,7 @@ await controle('contact API: geldige aanvraag geeft { ok: true } en logt mails m
 });
 
 await controle('contact zonder JavaScript: 303 naar /bedankt?type=contact', async () => {
-  const { tijd: _t, ...velden } = geldigContact;
+  const velden = geldigContact;
   const antwoord = await postFormulier(velden);
   eis(antwoord.status === 303 && antwoord.location === '/bedankt?type=contact', `${antwoord.status} ${antwoord.location}`);
 });
@@ -222,12 +280,13 @@ await controle('contact API: onbekend of leeg onderwerp, leeg of te kort of te l
   eis(naam.status === 400 && naam.json?.fouten?.naam, `naam: ${JSON.stringify(naam.json)}`);
 });
 
-await controle('contact API: honeypot gevuld, te snel of vreemde Origin geeft schijnsucces en logt niets', async () => {
+await controle('contact API: honeypot gevuld, te snel token, vervalst token of vreemde Origin geeft schijnsucces en logt niets', async () => {
   const voor = aantalMails();
   const honeypot = await postJson({ ...geldigContact, website: 'https://spam.example' });
-  const snel = await postJson({ ...geldigContact, tijd: '500' });
+  const snel = await postJson({ ...geldigContact, token: await haalToken() });
+  const vervalst = await postJson({ ...geldigContact, token: `${Date.now() - 10_000}.vervalst` });
   const vreemd = await postJson(geldigContact, { Origin: 'https://spam.example' });
-  for (const antwoord of [honeypot, snel, vreemd]) eis(antwoord.status === 200 && antwoord.json?.ok === true, `status ${antwoord.status}`);
+  for (const antwoord of [honeypot, snel, vervalst, vreemd]) eis(antwoord.status === 200 && antwoord.json?.ok === true, `status ${antwoord.status}`);
   await wacht(800);
   eis(aantalMails() === voor, 'er is toch een mail gelogd');
 });
@@ -252,7 +311,7 @@ await controle('bruiloft API (regressie): geldige aanvraag, 303 zonder JavaScrip
   eis(log.includes('Onderwerp: Nieuwe bruiloftaanvraag: Anna en Bram, 12 juni 2099'), 'onderwerp ontbreekt');
   eis(log.includes('Verstuurd via paulbreuker.nl/fotograaf-bruiloft'), 'bron ontbreekt');
   eis(log.includes('Gewenst pakket: Digitaal'), 'het gekozen pakket ontbreekt in de mail');
-  const { tijd: _t, ...velden } = geldigBruiloft;
+  const velden = geldigBruiloft;
   const redirect = await postFormulier(velden);
   eis(redirect.status === 303 && redirect.location === '/bedankt?type=bruiloft', `${redirect.status} ${redirect.location}`);
   const fout = await postJson({ ...geldigBruiloft, email: 'x', namen: '' });
@@ -294,7 +353,10 @@ async function nieuwePagina(pad) {
   const pagina = await context.newPage();
   await pagina.goto(BASE + pad, { waitUntil: 'domcontentloaded' });
   await pagina.waitForSelector('form[data-aanvraag]', { state: 'attached' });
-  // Het script (formulier.ts) hangt zijn handlers bij het laden; geef het en de spamwering (minimaal 3 s) de tijd.
+  // Het script (formulier.ts) hangt zijn handlers bij het laden. Het haalt het formuliertoken op zodra het formulier
+  // bijna in beeld is of focus krijgt (focusin hieronder); daarna moet er minimaal 3 s verstrijken (spamwering).
+  await pagina.waitForTimeout(300);
+  await pagina.locator('form[data-aanvraag]').dispatchEvent('focusin');
   await pagina.waitForTimeout(3500);
   return { context, pagina };
 }

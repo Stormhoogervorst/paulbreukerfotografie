@@ -34,6 +34,8 @@ export default defineConfig({
       RESEND_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
       FORM_TO_EMAIL: envField.string({ context: 'server', access: 'secret', optional: true }),
       FORM_FROM_EMAIL: envField.string({ context: 'server', access: 'secret', optional: true }),
+      // Sleutel voor het formuliertoken (spamwering). Optioneel: zonder deze variabele wordt hij afgeleid van RESEND_API_KEY.
+      FORM_SECRET: envField.string({ context: 'server', access: 'secret', optional: true }),
     },
   },
   integrations: [

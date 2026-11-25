@@ -5,8 +5,8 @@
  *   focus op het eerste ongeldige veld;
  * - verzenden via fetch (Accept: application/json), daarna door naar /bedankt; bij een serverfout een melding boven de
  *   knop (met mail en telefoon) en blijft de ingevulde data staan;
- * - het tijdstempelveld (milliseconden sinds laden, voor de spamwering), de min-datum (vandaag) en "We hebben nog geen
- *   datum" (schakelt het datumveld uit);
+ * - het formuliertoken (spamwering, zie src/lib/formulieren/spam.ts): opgehaald zodra het formulier bijna in beeld is of
+ *   een veld focus krijgt; de min-datum (vandaag) en "We hebben nog geen datum" (schakelt het datumveld uit);
  * - de pakketkeuze: een klik op een link met `data-pakket` (de cta's in Pakketten) kiest dat pakket in het veld "pakket"
  *   en de link springt daarna zelf naar #aanvragen. Heeft het formulier geen veld "pakket" (bruiloft), dan gebeurt er niets.
  * Geen libraries.
@@ -16,13 +16,35 @@ type Veld = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 const form = document.querySelector<HTMLFormElement>('form[data-aanvraag]');
 
 if (form) {
-  const geladen = performance.now();
   const knop = form.querySelector<HTMLButtonElement>('button[type="submit"]');
   const serverfout = form.querySelector<HTMLElement>('[data-serverfout]');
   const invoer = (naam: string) => form.elements.namedItem(naam) as HTMLInputElement | null;
   const velden = () => form.querySelectorAll<Veld>('.veld__invoer');
 
   form.noValidate = true; // eigen meldingen in plaats van die van de browser
+
+  // Formuliertoken: één keer ophalen. Mislukt het, dan gaat de aanvraag zonder token (de server accepteert dat).
+  let tokenOphalen: Promise<void> | undefined;
+  const haalToken = () =>
+    (tokenOphalen ??= fetch(form.action, { headers: { Accept: 'application/json' }, cache: 'no-store' })
+      .then((antwoord) => antwoord.json())
+      .then((json) => {
+        const veld = invoer('token');
+        if (veld && typeof json?.token === 'string') veld.value = json.token;
+      })
+      .catch(() => undefined));
+  form.addEventListener('focusin', haalToken, { once: true });
+  if ('IntersectionObserver' in window) {
+    const waarnemer = new IntersectionObserver(
+      (items) => {
+        if (!items.some((item) => item.isIntersecting)) return;
+        waarnemer.disconnect();
+        haalToken();
+      },
+      { rootMargin: '600px 0px' },
+    );
+    waarnemer.observe(form);
+  }
 
   const toon = (veld: Veld, melding: string) => {
     const fout = document.getElementById(`${veld.id}-fout`);
@@ -107,9 +129,9 @@ if (form) {
       return;
     }
 
-    const tijd = invoer('tijd');
-    if (tijd) tijd.value = String(Math.round(performance.now() - geladen));
     bezig(true);
+    // Hoogstens 3 seconden wachten op het token; daarna zonder.
+    await Promise.race([haalToken(), new Promise((klaar) => setTimeout(klaar, 3000))]);
 
     try {
       const antwoord = await fetch(form.action, {

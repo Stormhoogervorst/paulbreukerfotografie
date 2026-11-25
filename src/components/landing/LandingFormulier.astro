@@ -11,8 +11,8 @@
  * - Velden: alleen een onderlijn in --ink, label klein erboven, "(optioneel)" achter optionele labels. Echte
  *   <label for>; radiogroepen in een <fieldset> met <legend>. Foutmeldingen staan onder het veld in een
  *   aria-live="polite"-element (leeg tot het script er iets in zet).
- * - Spamwering: honeypot "website" (verborgen met CSS, niet bereikbaar met het toetsenbord) en een tijdstempelveld dat
- *   het script invult. Zie src/pages/api/aanvraag.ts.
+ * - Spamwering: honeypot "website" (verborgen met CSS, niet bereikbaar met het toetsenbord) en een formuliertoken dat
+ *   het script ophaalt, plus een inhoudsfilter op de server. Zie src/lib/formulieren/spam.ts.
  * - Geen eigen buitenmarges: de verticale ruimte rond de sectie komt van de .sectie-wrapper in LandingLayout.astro.
  *
  * - Hergebruik op /contact (`type: 'contact'`): `ankerId="formulier"`, `toonContact={false}` (de contactregels staan daar
@@ -84,8 +84,8 @@ const veldId = (naam: string) => `aanvraag-${naam}`;
 
     <form class="formulier__form" method="post" action="/api/aanvraag" data-aanvraag>
       <input type="hidden" name="type" value={definitie.type} />
-      <!-- Milliseconden tussen laden en verzenden; vult het script in. Zonder JavaScript blijft het leeg (de server slaat dan de controle over). -->
-      <input type="hidden" name="tijd" value="" />
+      <!-- Formuliertoken (spamwering); haalt het script op. Zonder JavaScript blijft het leeg, zie src/lib/formulieren/spam.ts. -->
+      <input type="hidden" name="token" value="" />
       <!-- Honeypot: verborgen met CSS (.valstrik), niet bereikbaar met het toetsenbord of een schermlezer. -->
       <div class="valstrik" aria-hidden="true">
         <label for="aanvraag-website">Niet invullen</label>
